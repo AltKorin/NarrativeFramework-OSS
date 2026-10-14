@@ -57,15 +57,20 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Browser workflows (fictional disposable accounts)
         run: |
-          python web/tests/blog_browser.py
-          python web/tests/analytics_browser.py
-          python web/tests/browser.py
-          python web/tests/languages.py
-          python web/tests/site_browser.py
-          python web/tests/onboarding_browser.py
-          python web/tests/wiki_browser.py
-          python web/tests/sharing_browser.py
-          python web/tests/play_browser.py
+          # Disposable CI only: suites share one IP. Reset only DRF login
+          # counters between suites; keep production limits and other Redis state.
+          for suite in blog_browser analytics_browser browser languages site_browser onboarding_browser wiki_browser sharing_browser play_browser; do
+            docker compose -f web/compose.yaml exec -T api python manage.py shell -c "
+          from django.core.cache import cache
+          from django.conf import settings
+          import redis
+          connection = redis.Redis.from_url(settings.CACHES['default']['LOCATION'])
+          keys = list(connection.scan_iter(match=cache.make_key('throttle_login_*')))
+          if keys:
+              connection.delete(*keys)
+          "
+            python web/tests/$suite.py
+          done
       - name: Stop disposable stack
         if: always()
         run: docker compose -f web/compose.yaml down -v --remove-orphans
