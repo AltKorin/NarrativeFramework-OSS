@@ -2,7 +2,7 @@
 
 [Polski](README.pl.md) · [Individual adventures](docs/en/individual-play.md) · [MCP play contract](docs/en/mcp-play.md) · [Contributing](../CONTRIBUTING.md)
 
-A self-hosted RPG adventure workshop, alongside the original Unity assets. Django/DRF + PostgreSQL, React/TypeScript + React Flow, and a separate authenticated MCP service. MIT; branding exclusions in the root license apply.
+A self-hosted RPG adventure workshop, alongside the original Unity assets. Django/DRF + PostgreSQL, React/TypeScript + React Flow, and a separate authenticated MCP service. MIT; [brand permissions](../BRANDING.md) are documented separately.
 
 ## Start with Docker Compose
 
