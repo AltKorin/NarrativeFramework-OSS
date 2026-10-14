@@ -55,3 +55,8 @@ CSP dopuszcza jedynie potrzebne domeny tagu/pomiaru Google; nie włącza `unsafe
 
 
 W Dockerze konfiguracja jest kopiowana do obrazu: po zmianie pliku przebuduj usługę `web` (`docker compose up --build --no-deps -d web`).
+
+
+## Infografiki i materiały do udostępniania
+
+Na stronie głównej są dwie serie PL/EN: pierwsza kampania i sekrety/publikacja. Podglądy oraz PNG do pobrania znajdują się w `web/frontend/public/images/social/`. Źródła `.pcraft`, PSD, ilustracje i opisy są w [marketing/social](https://github.com/AltKorin/NarrativeFramework-OSS/tree/main/web/marketing/social). Teksty i kształty edytuje się jako warstwy; po zmianie wyeksportuj grafikę ponownie i przebuduj frontend. Zachowaj pliki dla obu języków, wymiary 1080 × 1350 oraz sens opisów alternatywnych i tekstowego podsumowania na stronie. Ilustracje są koncepcyjne, nie są zrzutami interfejsu.

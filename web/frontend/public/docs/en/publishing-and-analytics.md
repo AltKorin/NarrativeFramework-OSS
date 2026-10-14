@@ -28,3 +28,8 @@ References: [basic consent mode](https://developers.google.com/tag-platform/secu
 
 
 Docker copies configuration into the image: after changing the file, rebuild `web` (`docker compose up --build --no-deps -d web`).
+
+
+## Infographics and shareable artwork
+
+The landing page includes two PL/EN series: first campaign and GM secrets/publication. Web previews and downloadable PNGs live in `web/frontend/public/images/social/`. Layered `.pcraft` and PSD sources, illustrations and instructions are in [marketing/social](https://github.com/AltKorin/NarrativeFramework-OSS/tree/main/web/marketing/social). Edit text/shapes as layers, re-export the image, and rebuild the frontend. Keep both languages, 1080 × 1350 dimensions, accurate alt text and the readable HTML summary. Illustrations are conceptual, not interface screenshots.

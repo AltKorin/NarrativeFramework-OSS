@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { initialLanguage, type Language } from "./i18n";
 import "./landing.css";
+import Infographics from "./Infographics";
 import "./blog.css";
 import { posts, postPath } from "./posts";
 
@@ -468,6 +469,7 @@ export default function Landing({
           </div>
           <p className="nf-note">{t.demoNote}</p>
         </section>
+        <Infographics language={language} />
         <section id="between-sessions" className="nf-play nf-container">
           <div className="nf-play-copy">
             <h2>{t.playTitle}</h2>

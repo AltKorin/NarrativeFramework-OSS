@@ -116,3 +116,10 @@ The complete group browser workflow passed invitation/login return, all three ro
 - New first-campaign browser journey passed in PL/EN: fixed return after login, campaign naming focus, typed entries, title guard, progress after reload, custom directed relationship, saved graph, mobile fit/layout, hide/reopen guidance and node-to-article navigation.
 - Existing editor, languages, public site/signup, wiki, group sharing/publication and individual-play browser regressions passed locally.
 - First-time human usability study is planned in `pl/first-campaign-ux.md` / `en/first-campaign-ux.md`; no study results or conversion improvement claimed.
+
+## Shareable illustrations and infographics — 2026-10-14
+
+- Both first-campaign PL/EN posters and a new rugged dark-fantasy GM-publication series are available on the landing page. Actual downloads were verified as PNG 1080 × 1350. Language switches select the matching image/download; 390/768/1024/1440 layouts have no horizontal overflow.
+- Campaign-wiki guides include the first-campaign infographic; downtime guides use the expedition illustration. All added article images decode successfully with descriptive alt text; explicit dimensions reserve layout space. New RPG-poster previews use WebP, with full PNG downloads.
+- Layered Photocraft sources and PSD exports are included in `web/marketing/social`. First-campaign native/PSD reopen checks retained 34 type layers and 24 shapes; editing a reopened type layer succeeded. New PL/EN `.pcraft` reopen checks retained 16 editable text layers and 5 named groups. The illustrative scene remains a separate raster layer; typography is native.
+- Final local TypeScript/static build, public-content HTTP checks and blog/site/analytics browser suites passed. Source asset provenance, exact generation prompts and editing/re-export instructions are included. No external social posts were published.

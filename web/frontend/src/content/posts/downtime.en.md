@@ -2,6 +2,8 @@ An absent player does not have to mean a character vanishes into the mist. A sho
 
 Downtime should support the shared campaign. It need not settle the central conflict or require everyone else to read a long conversation.
 
+![A ranger and dwarf study a map and sealed letter before an expedition to a mountain fortress.](/images/expedition.webp)
+
 ## Give it one task and a return condition
 
 Instead of “do something in town,” choose a concrete goal: find an old ally, collect a map or discover who is watching the inn. Add an ending condition: the character rejoins the party before dawn or after receiving an answer.

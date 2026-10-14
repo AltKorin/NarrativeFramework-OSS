@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Bilingual campaign/publication infographics on the landing page, full-size PNG downloads and illustrated guides. Layered Photocraft/PSD sources include the first-campaign series and a rugged dark-fantasy GM-secrets series; web previews use compressed assets and accessible HTML summaries.
+
 - PL/EN first-campaign guidance: focused naming, typed character/place creation, saved-data progress and direct custom relationship creation opening the map. Fixed return to campaigns after login/registration. No automatic publication.
 - Three bilingual, prerendered RPG guides with article metadata, hreflang, sitemap, RSS, true 404 responses and www canonical redirect.
 - Optional consent-gated public GA4, separate prepared-but-disabled application stream, sanitized manual context and withdrawal controls; disabled defaults for forks. Updated privacy/cookie notices.

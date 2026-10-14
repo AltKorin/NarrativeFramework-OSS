@@ -132,7 +132,26 @@ export default function Blog({
                     ),
                     img: ({ src, alt }) =>
                       src?.startsWith("/images/") ? (
-                        <img src={src} alt={alt || ""} loading="lazy" />
+                        <img
+                          src={src}
+                          alt={alt || ""}
+                          loading="lazy"
+                          decoding="async"
+                          width={
+                            src.includes("/social/")
+                              ? 1080
+                              : src === "/images/expedition.webp"
+                                ? 1536
+                                : undefined
+                          }
+                          height={
+                            src.includes("/social/")
+                              ? 1350
+                              : src === "/images/expedition.webp"
+                                ? 1024
+                                : undefined
+                          }
+                        />
                       ) : null,
                   }}
                 >

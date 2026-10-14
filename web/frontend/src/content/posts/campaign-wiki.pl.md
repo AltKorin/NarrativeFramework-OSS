@@ -8,6 +8,8 @@ Nie trzeba od razu opisywać całego kontynentu. Na początek wystarczą trzy ar
 
 Przykładowo kartografka Mira mieszka w porcie i pracuje dla gildii. Artykuły pozwalają czytać opis świata jak wiki, a mapa relacji pokazuje połączenia. To dwa widoki tych samych danych, więc nie trzeba utrzymywać osobnego diagramu.
 
+![Infografika: nazwanie kampanii, dodanie postaci i miejsca, własna relacja oraz mapa powiązań.](/images/social/first-campaign-pl.png)
+
 ## Oddziel opis od sekretu
 
 Zwykła treść artykułu powinna zawierać to, co zamierzasz udostępnić. Informację, że Mira fałszuje mapy dla przemytników, umieść w notatkach MG albo w osobnym, prywatnym artykule. Notatki MG nie trafiają do publikacji dla gracza.

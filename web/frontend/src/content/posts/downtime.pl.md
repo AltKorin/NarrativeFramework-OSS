@@ -2,6 +2,8 @@ Nieobecność gracza nie musi oznaczać, że jego postać rozpływa się we mgle
 
 Warunek jest prosty: downtime powinien wspierać wspólną kampanię. Nie musi rozstrzygać jej najważniejszego konfliktu ani wymagać od reszty grupy czytania długiej rozmowy.
 
+![Zwiadowca i krasnolud analizują mapę oraz zapieczętowany list przed wyprawą do górskiej twierdzy.](/images/expedition.webp)
+
 ## Ustal jedno zadanie i punkt powrotu
 
 Zamiast „zrób coś w mieście” wybierz konkretny cel: odnajdź dawnego sojusznika, odbierz mapę albo dowiedz się, kto obserwuje gospodę. Dodaj moment zakończenia: bohater wraca do drużyny przed świtem lub gdy otrzyma odpowiedź.
