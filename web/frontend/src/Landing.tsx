@@ -107,7 +107,8 @@ const copy = {
     license: "Licencja MIT",
     tests: "Testy odporności",
     protocol: "Kontrakt MCP",
-    faqTitle: "Zanim ruszysz w drogę",
+    faqTitle: "Zanim zaczniesz",
+    faqQuote: "Przed wyruszeniem w drogę należy zebrać drużynę.",
     faq: [
       [
         "Czy potrzebuję konta?",
@@ -230,7 +231,8 @@ const copy = {
     license: "MIT license",
     tests: "Adversarial tests",
     protocol: "MCP contract",
-    faqTitle: "Before you set out",
+    faqTitle: "Before you begin",
+    faqQuote: "You must gather your party before venturing forth.",
     faq: [
       [
         "Do I need an account?",
@@ -556,7 +558,13 @@ export default function Landing({
           </div>
         </section>
         <section className="nf-faq nf-container">
-          <h2>{t.faqTitle}</h2>
+          <div className="nf-faq-intro">
+            <h2>{t.faqTitle}</h2>
+            <blockquote className="nf-faq-quote">
+              <p>„{t.faqQuote}”</p>
+              <cite>— Baldur’s Gate</cite>
+            </blockquote>
+          </div>
           <div>
             {t.faq.map(([question, answer]) => (
               <details key={question}>

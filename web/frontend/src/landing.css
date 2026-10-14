@@ -415,6 +415,22 @@ body {
 .nf-faq h2 {
   font-size: 36px;
 }
+.nf-faq-quote {
+  margin: 24px 0 0;
+  max-width: 32ch;
+  color: var(--nf-muted);
+}
+.nf-faq-quote p {
+  font-family: Georgia, serif;
+  font-size: 19px;
+  font-style: italic;
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+.nf-faq-quote cite {
+  font-size: 12px;
+  font-style: normal;
+}
 .nf-faq details {
   border-bottom: 1px solid var(--nf-line);
   padding-block: 20px;
