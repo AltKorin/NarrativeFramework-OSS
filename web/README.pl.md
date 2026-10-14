@@ -1,4 +1,4 @@
-# Narrative Framework 0.3.0-alpha.1
+# Narrative Framework 0.3.0-alpha.2
 
 [English](README.md) · [Indywidualne przygody](docs/pl/individual-play.md) · [Kontrakt MCP gracza](docs/pl/mcp-play.md) · [Przykład](examples/README.pl.md)
 
@@ -8,6 +8,7 @@ Samodzielny warsztat przygód RPG obok oryginalnych assetów Unity. Django/DRF, 
 
 - Edytor grafu scen, NPC, miejsc i wskazówek, prywatne sekrety MG i kontrola struktury.
 - Demo bez konta z lokalnymi szkicami, prywatne scenariusze po zalogowaniu, import/eksport JSON i Markdown.
+- Współdzielenie wiki: zaproszenia, role właściciela/współ-MG/gracza, oddzielne publikacje i wybrani odbiorcy.
 - Interfejs PL/EN z zapamiętywaniem wyboru oraz przykład w obu językach.
 - Przypisanie wybranych materiałów jednej postaci: downtime, nieobecność lub solo.
 - MCP gracza z tokenem konkretnej rozgrywki, pamięć Markdown, dziennik i raport.
@@ -126,4 +127,4 @@ Zobacz [CONTRIBUTING](../CONTRIBUTING.md), [decyzje architektoniczne](docs/archi
 
 ## Wiki kampanii
 
-Otwórz `/campaigns/` lub wybierz **Wiki kampanii** w warsztacie. Kampania ma artykuły Markdown, kategorie, wyszukiwanie, relacje/odnośniki zwrotne i graf tych samych danych. Materiały można kopiować do różnych przygód z kontrolą wersji, zachowując osobne sekrety MG. Migracja 0004 dodaje nowe tabele. [Instrukcja i kontrakty](docs/pl/campaign-wiki.md).
+Otwórz `/campaigns/` lub wybierz **Wiki kampanii** w warsztacie. Kampania obsługuje role właściciela, współ-MG i gracza, jednorazowe zaproszenia, publikacje dla wszystkich lub wybranych graczy oraz filtrowane artykuły, wyszukiwanie, relacje i mapę. Materiały można kopiować do różnych przygód z kontrolą wersji, zachowując osobne sekrety MG. Migracje 0004 i 0005 dodają wiki oraz współdzielenie; stare materiały pozostają prywatne. [Instrukcja i kontrakty](docs/pl/campaign-wiki.md).

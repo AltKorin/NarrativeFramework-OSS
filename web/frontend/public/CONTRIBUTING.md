@@ -41,4 +41,6 @@ Do not commit `.env`, database files, generated local state, real campaign conte
 
 Adversarial regression procedures: [English](web/docs/en/adversarial-testing.md) · [Polski](web/docs/pl/adversarial-testing.md). Run dependency-stop tests only against the dedicated disposable Compose project described there.
 
+Campaign membership/publication policy is centralized in `campaign_access.py` and `wiki_sharing.py`. Keep player JSON as an explicit projection of published snapshots; never serialize a GM view and filter it in React. Lock the campaign before role checks/mutations and cover revocation races on PostgreSQL. Run `web/tests/sharing_browser.py` and the wiki MCP integration after access changes.
+
 Campaign wiki architecture, limits and checks: [English](web/docs/en/campaign-wiki.md) · [Polski](web/docs/pl/campaign-wiki.md).

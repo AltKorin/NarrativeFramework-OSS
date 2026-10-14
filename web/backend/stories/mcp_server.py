@@ -117,26 +117,29 @@ async def validate_scenario(scenario_id: str, language: str = "en") -> dict:
 # Wiki tools belong only to the author catalog, never to scoped player tokens.
 async def wiki_call(fn, *args):
     try:
-        return await db_call(fn, principal.get(), *args)
+        user = principal.get()
+        if fn in (wiki.list_campaigns, wiki.search_pages, wiki.read_page):
+            return await db_call(lambda: fn(user, *args, author_only=True))
+        return await db_call(fn, user, *args)
     except DomainError as error:
         raise ValueError(f"{error.status}: {error}") from error
 
 
 @mcp.tool()
 async def list_campaigns() -> list[dict]:
-    """List owned private campaigns. Player play tokens cannot access this catalog."""
+    """List owned or co-managed campaigns. Player memberships do not grant author access."""
     return await wiki_call(wiki.list_campaigns)
 
 
 @mcp.tool()
 async def search_wiki(campaign_id: str, query: str = "") -> list[dict]:
-    """Search owned campaign page titles/body; at most 100 metadata entries, no full bodies."""
+    """Search owned/co-managed campaign draft titles/body; at most 100 metadata entries, no full bodies."""
     return await wiki_call(wiki.search_pages, campaign_id, query)
 
 
 @mcp.tool()
 async def read_wiki_page(campaign_id: str, page_id: str) -> dict:
-    """Read one owned campaign article, private GM notes and explicit relations. GM-only."""
+    """Read one owned/co-managed campaign draft article, private GM notes and explicit relations. GM-only."""
     return await wiki_call(wiki.read_page, campaign_id, page_id)
 
 
@@ -150,7 +153,7 @@ async def save_wiki_page(
     body: str,
     gm_notes: str = "",
 ) -> dict:
-    """Save an existing owned article with expected version. Includes/replaces private notes; read first. On conflict, reconcile before retrying."""
+    """Save an existing owned/co-managed draft article with expected version. Includes/replaces private notes; read first. On conflict, reconcile before retrying."""
     return await wiki_call(
         wiki.save_page,
         campaign_id,

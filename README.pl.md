@@ -4,14 +4,14 @@
 
 Otwarty warsztat RPG: wizualne przygotowanie przygód, wiki świata kampanii i indywidualne przygody downtime, solo lub dla nieobecnej postaci prowadzone przez zewnętrznego agenta MCP.
 
-**Pierwsza publiczna wersja testowa: `v0.3.0-alpha.1`.** Wiki jest obecnie prywatna dla właściciela. Udostępnianie kampanii grupie jest zaplanowane, ale jeszcze nie działa. Wyniki testów funkcjonalnych nie oznaczają gwarantowanej liczby użytkowników.
+**Bieżąca wersja testowa: `v0.3.0-alpha.2`.** Wiki obsługuje zaproszenia, role współ-MG/gracza i publikacje dla całej grupy lub wybranych osób. Wyniki testów funkcjonalnych nie oznaczają gwarantowanej liczby użytkowników.
 
 ![Edytor przygody z grafem i materiałami MG](web/frontend/public/images/workshop.png)
 
 ## Co działa
 
 - Graf scen, postaci, miejsc i wskazówek; kontrola struktury i osobne sekrety MG.
-- Wiki Markdown z kategoriami, wyszukiwaniem, relacjami, odnośnikami zwrotnymi i mapą.
+- Wiki Markdown z członkostwem kampanii, oddzielnymi szkicami/publikacjami, podglądem MG jako gracz i filtrowanymi relacjami, wyszukiwaniem oraz mapą.
 - Kopiowanie wersjonowanych materiałów wiki do wielu przygód.
 - Przydzielanie indywidualnych przygód, pamięć i dziennik gracza oraz zatwierdzanie konsekwencji przez MG.
 - Osobne MCP autora i gracza; serwer nie zawiera własnego modelu ani czatu AI.
@@ -46,7 +46,7 @@ Przed wystawieniem do Internetu przeczytaj [instrukcję instalacji i HTTPS](web/
 
 - [Wiki kampanii](web/docs/pl/campaign-wiki.md).
 - [Przygody indywidualne](web/docs/pl/individual-play.md) i [kontrakt MCP gracza](web/docs/pl/mcp-play.md).
-- [Plan udostępniania kampanii grupie](web/docs/pl/campaign-sharing-plan.md) — role, zaproszenia i publikacje nie są jeszcze wdrożone.
+- [Plan udostępniania kampanii grupie](web/docs/pl/campaign-sharing-plan.md) — etapy 1–2 są wdrożone; osobne MCP czytelnika pozostaje kolejnym etapem.
 - [Testy odporności](web/docs/pl/adversarial-testing.md), [wyniki weryfikacji](web/docs/verification.md), [historia wydania](CHANGELOG.md).
 - [Współtworzenie](CONTRIBUTING.md), [zgłaszanie podatności](SECURITY.md), [zależności i materiały](THIRD_PARTY_NOTICES.md).
 

@@ -516,3 +516,82 @@ body {
   width: 100%;
   font-size: 12px;
 }
+
+.wiki-sharing,
+.wiki-publication,
+.wiki-invite-accept {
+  padding: 16px;
+  border: 1px solid #d2dacb;
+  border-radius: 4px;
+  background: #f0f3e9;
+}
+.wiki-invite-accept {
+  margin: 0 32px 24px;
+}
+.wiki-publication {
+  margin-block: 20px;
+}
+.wiki-sharing summary,
+.wiki-publication summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+.wiki-sharing p,
+.wiki-publication p {
+  font-size: 12px;
+  color: #596b50;
+}
+.wiki-sharing details {
+  margin-top: 18px;
+}
+.wiki-sharing label,
+.wiki-publication label {
+  margin-block: 12px;
+}
+.wiki-sharing-actions,
+.wiki-member,
+.wiki-invitation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-block: 12px;
+}
+.wiki-member,
+.wiki-invitation {
+  border-bottom: 1px solid #d2dacb;
+  padding-bottom: 12px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.wiki-sharing input {
+  width: 100%;
+}
+.wiki-app .wiki-check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.wiki-check input {
+  width: auto;
+}
+.wiki-publication fieldset {
+  border: 1px solid #c4cebf;
+  margin-block: 12px;
+}
+.wiki-relation > .wiki-publication {
+  grid-column: 1/-1;
+  margin-top: 0;
+}
+.wiki-audit {
+  max-height: 220px;
+  overflow: auto;
+  font-size: 11px;
+  padding-left: 18px;
+}
+@media (max-width: 767px) {
+  .wiki-invite-accept {
+    margin-inline: 20px;
+  }
+}

@@ -2,6 +2,16 @@ from django.urls import path
 from stories import views, play_views, registration, wiki_views
 
 urlpatterns = [
+    path("api/campaign-invitations/inspect/", wiki_views.inspect_invitation),
+    path("api/campaign-invitations/accept/", wiki_views.accept_invitation),
+    path("api/campaigns/<uuid:campaign_id>/members/", wiki_views.members),
+    path("api/campaigns/<uuid:campaign_id>/members/<uuid:member_id>/", wiki_views.member),
+    path("api/campaigns/<uuid:campaign_id>/leave/", wiki_views.leave),
+    path("api/campaigns/<uuid:campaign_id>/invitations/", wiki_views.invitations),
+    path("api/campaigns/<uuid:campaign_id>/invitations/<uuid:invitation_id>/", wiki_views.revoke_invitation),
+    path("api/campaigns/<uuid:campaign_id>/pages/<uuid:page_id>/publication/", wiki_views.publication),
+    path("api/campaigns/<uuid:campaign_id>/relations/<uuid:relation_id>/publication/", wiki_views.relation_publication),
+    path("api/campaigns/<uuid:campaign_id>/audit/", wiki_views.audit),
     path("api/campaigns/", wiki_views.campaigns),
     path("api/campaigns/<uuid:campaign_id>/", wiki_views.campaign),
     path("api/campaigns/<uuid:campaign_id>/export/", wiki_views.export_campaign),

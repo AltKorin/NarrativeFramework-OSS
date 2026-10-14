@@ -59,6 +59,7 @@ jobs:
           python web/tests/languages.py
           python web/tests/site_browser.py
           python web/tests/wiki_browser.py
+          python web/tests/sharing_browser.py
           python web/tests/play_browser.py
       - name: Stop disposable stack
         if: always()

@@ -1,6 +1,6 @@
 # Plan: a campaign wiki for the whole group
 
-Status: **implementation plan**, not currently shipped functionality. [Polski: full design](../pl/campaign-sharing-plan.md) · [Current wiki](campaign-wiki.md).
+Status: **stages 1–2 shipped in v0.3.0-alpha.2**: membership, invitations, publication and group views. Stages 3 (separate reader MCP) and 4 remain planned. The wiki guide describes current behavior; this document preserves the design and acceptance criteria. [Polski: full design](../pl/campaign-sharing-plan.md) · [Current wiki](campaign-wiki.md).
 
 ## Product contract
 

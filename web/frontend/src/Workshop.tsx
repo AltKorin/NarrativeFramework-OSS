@@ -588,6 +588,15 @@ export default function Workshop() {
                   );
                   csrf = r.csrf;
                   setUser(r.user);
+                  const wikiInvite = new URLSearchParams(
+                    location.hash.slice(1),
+                  ).get("return-wiki-invite");
+                  if (wikiInvite && /^[A-Za-z0-9_-]{43}$/.test(wikiInvite)) {
+                    location.assign(
+                      `/campaigns/?lang=${language}#invite=${wikiInvite}`,
+                    );
+                    return;
+                  }
                   setPassword("");
                   setPasswordConfirm("");
                   setRegisterMode(false);

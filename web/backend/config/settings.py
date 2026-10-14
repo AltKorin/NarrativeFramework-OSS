@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "stories",
 ]
 MIDDLEWARE = [
+    "stories.private_cache.PrivateResponseMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

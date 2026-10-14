@@ -69,3 +69,13 @@ See the [reproduction report](en/adversarial-testing.md) for input bounds, creat
 ## Campaign wiki
 
 Campaign/WikiPage/WikiRelation are separate from the bounded scenario aggregate. A campaign row lock serializes mutations; page optimistic versions prevent lost edits. Immutable creation fingerprints reject changed-body replays and unique-ID races become controlled conflicts. Wiki list/article/graph share records. Copying to a scenario requires both source and destination versions and records provenance without creating a live reference. Player publication still uses the existing allowlist. Wiki MCP tools exist only in the owner author catalog. See the [full contract](en/campaign-wiki.md).
+
+## Group wiki authorization and publication (alpha.2)
+
+`campaign_access.py` is the shared authority boundary. `Campaign.owner` remains the single owner; `CampaignMember` stores co-GM/player roles with unique campaign/user membership. Mutations and coherent reads lock the campaign before checking current membership. Invitations are expiring single-use digest records; a fragment-based link requires explicit authenticated acceptance. Revocation/role changes use the same lock as writes/publication. Deleting a membership cascades its grants; role changes also clear grants.
+
+Page/relationship audiences and published JSON snapshots are distinct from drafts. Player serializers positively select publication fields and filter both edge endpoints and edge audience. Search uses published JSON fields for readers; GM views use drafts. GM preview reuses the reader projection rather than client filtering. API responses are private/no-store. Audit contains actor/action/resource/version, no secret text or credentials. Full GM export is now `narrative-wiki/2`; reader export is `narrative-wiki-player/1`.
+
+Author MCP explicitly requires a GM role for every wiki call; browser player membership does not grant author access. Existing play MCP/snapshots remain separate. Campaign reader MCP is a later stage. Migration 0005 is additive and makes no existing record public. Rollback of code to the owner-only release hides shared data; do not reverse migration 0005 over live data to roll back application behavior.
+
+Migration 0006 retains database defaults for new non-null wiki fields, so the owner-only code can still insert private pages/relations during a code rollback. Keep additive tables/data in place; reversing migrations discards sharing data.

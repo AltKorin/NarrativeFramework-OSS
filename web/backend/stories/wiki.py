@@ -13,9 +13,16 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 
+from .campaign_access import (
+    campaign_access,
+    projection,
+    public_page,
+    public_relation,
+    visible_records,
+)
 from .domain import save_document, validate_document
 from .domain_errors import DomainError
-from .models import Campaign, Scenario, WikiPage, WikiRelation
+from .models import Campaign, CampaignAuditEvent, Scenario, WikiPage, WikiRelation
 from .transport import bounded_json, storage_string
 
 KINDS = {"npc", "location", "organization", "item", "lore", "journal", "scene", "clue"}
@@ -52,11 +59,7 @@ def fingerprint(data):
 
 
 def campaign_for(user, campaign_id, lock=False):
-    qs = Campaign.objects.select_for_update() if lock else Campaign.objects
-    result = qs.filter(pk=identifier(campaign_id), owner=user).first()
-    if not result:
-        raise DomainError("Campaign not found", 404)
-    return result
+    return campaign_access(user, campaign_id, lock=lock, minimum="gm")
 
 
 def page_for(campaign, page_id):
@@ -71,7 +74,8 @@ def campaign_json(c):
         "id": str(c.id),
         "title": c.title,
         "summary": c.summary,
-        "version": c.version,
+        "version": 0 if getattr(c, "wiki_role", "owner") == "player" else c.version,
+        "role": getattr(c, "wiki_role", "owner"),
     }
 
 
@@ -84,15 +88,67 @@ def page_json(p, full=True):
         "version": p.version,
     }
     if full:
-        result.update(body=p.body, gm_notes=p.gm_notes)
+        result.update(
+            body=p.body,
+            gm_notes=p.gm_notes,
+            audience=p.audience,
+            published=p.published,
+            recipients=[str(x.id) for x in p.recipients.all()],
+        )
     return result
 
 
-def list_campaigns(user):
-    return [
-        campaign_json(c)
-        for c in Campaign.objects.filter(owner=user).order_by("title", "id")
-    ]
+def list_campaigns(user, author_only=False):
+    qs = (
+        Campaign.objects.filter(Q(owner=user) | Q(members__user=user))
+        .distinct()
+        .order_by("title", "id")
+    )
+    result = []
+    for c in qs:
+        from .campaign_access import role_for
+
+        c.wiki_role, c.wiki_member = role_for(c, user)
+        if c.wiki_role and (not author_only or c.wiki_role != "player"):
+            result.append(campaign_json(c))
+    return result
+
+
+def relation_json(r):
+    return {
+        "id": str(r.id),
+        "source": str(r.source_id),
+        "target": str(r.target_id),
+        "label": r.label,
+        "version": r.version,
+        "audience": r.audience,
+        "published": r.published,
+        "recipients": [str(x.id) for x in r.recipients.all()],
+    }
+
+
+def projected_records(c, preview=None, full=False):
+    role, member = projection(c, preview)
+    pages_qs = (
+        visible_records(c.pages.all(), role, member)
+        .prefetch_related("recipients")
+        .order_by("title", "id")
+    )
+    if not full:
+        pages_qs = pages_qs.defer("body", "gm_notes")
+    pages = list(pages_qs)
+    ids = [p.id for p in pages]
+    relations = list(
+        visible_records(
+            c.relations.filter(source_id__in=ids, target_id__in=ids), role, member
+        )
+        .prefetch_related("recipients")
+        .order_by("id")
+    )
+    # Order players by the published title, not the hidden draft.
+    if role == "player":
+        pages.sort(key=lambda p: (p.published["title"].casefold(), str(p.id)))
+    return role, member, pages, relations
 
 
 @transaction.atomic
@@ -123,18 +179,22 @@ def create_campaign(user, data):
 
 
 @transaction.atomic
-def campaign_detail(user, campaign_id):
-    c = campaign_for(user, campaign_id, True)
+def campaign_detail(user, campaign_id, preview=None):
+    c = campaign_access(user, campaign_id, minimum="player")
+    role, _member, pages, relations = projected_records(c, preview)
     result = campaign_json(c)
-    result["pages"] = [page_json(p, False) for p in c.pages.order_by("title", "id")]
+    result.update(
+        role=role,
+        version=0 if role == "player" else c.version,
+        preview=bool(preview),
+        actual_role=c.wiki_role,
+    )
+    result["pages"] = [
+        public_page(p, False) if role == "player" else page_json(p, False)
+        for p in pages
+    ]
     result["relations"] = [
-        {
-            "id": str(r.id),
-            "source": str(r.source_id),
-            "target": str(r.target_id),
-            "label": r.label,
-        }
-        for r in c.relations.order_by("id")
+        public_relation(r) if role == "player" else relation_json(r) for r in relations
     ]
     return result
 
@@ -152,9 +212,16 @@ def page_values(data):
     }
 
 
-def touch(c):
+def touch(c, user, action="wiki.changed", resource=""):
     c.version += 1
     c.save(update_fields=["version", "updated_at"])
+    CampaignAuditEvent.objects.create(
+        campaign=c,
+        actor=user,
+        action=action,
+        resource_id=str(resource),
+        version=c.version,
+    )
 
 
 @transaction.atomic
@@ -177,23 +244,34 @@ def create_page(user, campaign_id, data):
             )
     except IntegrityError:
         raise DomainError("Creation conflict", 409) from None
-    touch(c)
+    touch(c, user, "page.created", p.id)
     return page_json(p), True
 
 
 @transaction.atomic
-def read_page(user, campaign_id, page_id):
-    c = campaign_for(user, campaign_id, True)
-    p = page_for(c, page_id)
-    result = page_json(p)
+def read_page(user, campaign_id, page_id, preview=None, author_only=False):
+    c = campaign_access(user, campaign_id, minimum="gm" if author_only else "player")
+    role, member = projection(c, preview)
+    pages = visible_records(c.pages.all(), role, member)
+    p = pages.filter(pk=identifier(page_id)).prefetch_related("recipients").first()
+    if not p:
+        raise DomainError("Wiki page not found", 404)
+    relations = (
+        visible_records(
+            c.relations.filter(
+                source_id__in=pages.values("id"), target_id__in=pages.values("id")
+            ),
+            role,
+            member,
+        )
+        .filter(Q(source=p) | Q(target=p))
+        .prefetch_related("recipients")
+        .order_by("id")
+    )
+    result = public_page(p) if role == "player" else page_json(p)
     result["relations"] = [
-        {
-            "id": str(r.id),
-            "source": str(r.source_id),
-            "target": str(r.target_id),
-            "label": r.label,
-        }
-        for r in c.relations.filter(Q(source=p) | Q(target=p)).order_by("id")
+        (public_relation(r) if role == "player" else relation_json(r))
+        for r in relations
     ]
     return result
 
@@ -210,7 +288,7 @@ def save_page(user, campaign_id, page_id, data):
         setattr(p, key, value)
     p.version += 1
     p.save()
-    touch(c)
+    touch(c, user, "page.saved", p.id)
     return page_json(p)
 
 
@@ -221,7 +299,7 @@ def delete_page(user, campaign_id, page_id, version):
     if type(version) is not int or version != p.version:
         raise DomainError("Wiki version conflict; reload before saving", 409)
     p.delete()
-    touch(c)
+    touch(c, user, "page.deleted", page_id)
     return {"deleted": True}
 
 
@@ -257,7 +335,7 @@ def create_relation(user, campaign_id, data):
             )
     except IntegrityError:
         raise DomainError("Creation conflict", 409) from None
-    touch(c)
+    touch(c, user, "relation.created", r.id)
     return {"id": str(r.id)}, True
 
 
@@ -265,18 +343,27 @@ def create_relation(user, campaign_id, data):
 def delete_relation(user, campaign_id, relation_id):
     c = campaign_for(user, campaign_id, True)
     c.relations.filter(pk=identifier(relation_id)).delete()
-    touch(c)
+    touch(c, user, "relation.deleted", relation_id)
     return {"deleted": True}
 
 
-def search_pages(user, campaign_id, query):
-    c = campaign_for(user, campaign_id)
+@transaction.atomic
+def search_pages(user, campaign_id, query, preview=None, author_only=False):
+    c = campaign_access(user, campaign_id, minimum="gm" if author_only else "player")
     query = text(query, 200)
-    return [
-        page_json(p, False)
-        for p in c.pages.filter(
+    role, member = projection(c, preview)
+    pages = visible_records(c.pages.all(), role, member)
+    if role == "player":
+        pages = pages.filter(
+            Q(published__title__icontains=query) | Q(published__body__icontains=query)
+        ).order_by("published__title", "id")
+    else:
+        pages = pages.filter(
             Q(title__icontains=query) | Q(body__icontains=query)
-        ).order_by("title", "id")[:100]
+        ).order_by("title", "id")
+    return [
+        (public_page(p, False) if role == "player" else page_json(p, False))
+        for p in pages[:100]
     ]
 
 
@@ -324,31 +411,36 @@ def import_to_scenario(user, campaign_id, page_id, data):
 
 
 @transaction.atomic
-def export_campaign(user, campaign_id):
-    c = campaign_for(user, campaign_id, True)
-    result = campaign_detail(user, campaign_id)
-    result["schema"] = "narrative-wiki/1"
-    result["pages"] = [page_json(p) for p in c.pages.order_by("title", "id")]
+def export_campaign(user, campaign_id, preview=None):
+    c = campaign_access(user, campaign_id, minimum="player")
+    role, _member, pages, _ = projected_records(c, preview, full=True)
+    result = campaign_detail(user, campaign_id, preview)
+    result["schema"] = (
+        "narrative-wiki-player/1" if role == "player" else "narrative-wiki/2"
+    )
+    result["pages"] = [
+        public_page(p) if role == "player" else page_json(p) for p in pages
+    ]
     return result
 
 
 @transaction.atomic
 def update_campaign(user, campaign_id, data):
     body_object(data)
-    c = campaign_for(user, campaign_id, True)
+    c = campaign_access(user, campaign_id, minimum="owner")
     if type(data.get("version")) is not int or data["version"] != c.version:
         raise DomainError("Campaign version conflict; reload before saving", 409)
     c.title = text(data.get("title"), 200, True)
     c.summary = text(data.get("summary", ""), 4000)
     c.save(update_fields=["title", "summary"])
-    touch(c)
+    touch(c, user, "campaign.updated", c.id)
     return campaign_json(c)
 
 
 @transaction.atomic
 def delete_campaign(user, campaign_id, data):
     body_object(data)
-    c = campaign_for(user, campaign_id, True)
+    c = campaign_access(user, campaign_id, minimum="owner")
     if type(data.get("version")) is not int or data["version"] != c.version:
         raise DomainError("Campaign version conflict; reload before saving", 409)
     c.delete()

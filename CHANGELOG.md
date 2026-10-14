@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.0-alpha.2 — 2026-10-14
+
+- Shared campaign wiki: owner/co-GM/player roles, expiring single-use invitations, membership management and leaving/revocation.
+- Separate saved drafts and explicit player publications, with all-player or selected-member audiences for pages and relationships.
+- Server-filtered articles, counts, search, graph, backlinks and exports; GM preview as a specific player, plus focus/periodic access rechecks.
+- Co-GM author MCP access with per-call authorization; personal player tokens cannot read GM drafts. Existing player-play MCP remains isolated.
+- Additive migration 0005 preserves old pages/relations as private and unpublished; 0006 retains database defaults for legacy-code inserts during rollback. GM export is now `narrative-wiki/2`; reader export uses `narrative-wiki-player/1`.
+- Invitation/publication/role audit, private API cache policy, bilingual guides and group browser/race regressions.
+- FAQ easter egg without attribution.
+
+Separate campaign-reader MCP, player editing, ownership transfer and Kanka import remain planned.
+
 ## v0.3.0-alpha.1 — 2026-10-14
 
 First public open-source preview of the independently hosted Narrative Framework RPG workshop.

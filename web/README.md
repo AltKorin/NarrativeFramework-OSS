@@ -1,4 +1,4 @@
-# Narrative Framework 0.3.0-alpha.1
+# Narrative Framework 0.3.0-alpha.2
 
 [Polski](README.pl.md) · [Individual adventures](docs/en/individual-play.md) · [MCP play contract](docs/en/mcp-play.md) · [Contributing](../CONTRIBUTING.md)
 
@@ -115,4 +115,4 @@ Website configuration and deployment handoff: [English](docs/en/website.md) · [
 
 ## Campaign wiki
 
-Open `/campaigns/` or choose **Campaign wiki** in the workshop. Owned campaigns have Markdown articles, categories, search, explicit relationships/backlinks and a graph over the same records. Reuse articles across adventures through version-checked snapshots; GM notes remain separate. Migration 0004 is additive. [Guide and contracts](docs/en/campaign-wiki.md).
+Open `/campaigns/` or choose **Campaign wiki** in the workshop. Campaigns support owner/co-GM/player memberships, single-use invitations, deliberate publication to all or selected players, Markdown articles, search, relationships/backlinks and a filtered graph. Reuse articles across adventures through version-checked snapshots; GM notes remain separate. Migrations 0004 and 0005 are additive; existing material stays private. [Guide and contracts](docs/en/campaign-wiki.md).

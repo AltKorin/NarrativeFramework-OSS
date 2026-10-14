@@ -11,7 +11,7 @@ import django
 django.setup()
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
-from stories.models import Campaign, WikiPage
+from stories.models import Campaign, WikiPage, CampaignMember
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 from asgiref.sync import sync_to_async
@@ -19,7 +19,11 @@ from asgiref.sync import sync_to_async
 suffix = uuid.uuid4().hex[:10]
 owner = get_user_model().objects.create_user("wiki-mcp-" + suffix)
 other = get_user_model().objects.create_user("wiki-other-" + suffix)
+gm = get_user_model().objects.create_user("wiki-gm-" + suffix)
 c = Campaign.objects.create(owner=owner, title="Shared world")
+CampaignMember.objects.create(campaign=c, user=gm, role="gm")
+CampaignMember.objects.create(campaign=c, user=other, role="player")
+gm_token = Token.objects.create(user=gm).key
 p = WikiPage.objects.create(
     campaign=c,
     title="Mira",
@@ -90,16 +94,46 @@ async def run():
                 )
             ).isError
             assert data(await client.call_tool("list_campaigns", {})) == []
+    async with streamablehttp_client(
+        "http://mcp:8001/mcp", headers={"Authorization": "Bearer " + gm_token}
+    ) as (read, write, _):
+        async with ClientSession(read, write) as client:
+            await client.initialize()
+            assert (
+                data(
+                    await client.call_tool(
+                        "read_wiki_page",
+                        {"campaign_id": str(c.id), "page_id": str(p.id)},
+                    )
+                )["gm_notes"]
+                == "PRIVATE_WIKI_MCP_SENTINEL"
+            )
+            await sync_to_async(
+                lambda: CampaignMember.objects.filter(campaign=c, user=gm).update(
+                    role="player"
+                )
+            )()
+            assert (
+                await client.call_tool(
+                    "read_wiki_page", {"campaign_id": str(c.id), "page_id": str(p.id)}
+                )
+            ).isError
+            assert (
+                await client.call_tool(
+                    "search_wiki", {"campaign_id": str(c.id), "query": "Mira"}
+                )
+            ).isError
+            assert (await client.call_tool("save_wiki_page", request)).isError
     assert (
         await sync_to_async(lambda: WikiPage.objects.get(pk=p.id).body)()
         == "Updated by the author"
     )
     print(
-        "PASS: real wiki MCP discovery/search/read/edit/version conflict and foreign-owner isolation"
+        "PASS: real wiki MCP discovery/search/read/edit/version conflict, player exclusion, co-GM access and immediate demotion"
     )
 
 
 try:
     asyncio.run(run())
 finally:
-    get_user_model().objects.filter(pk__in=[owner.pk, other.pk]).delete()
+    get_user_model().objects.filter(pk__in=[owner.pk, other.pk, gm.pk]).delete()

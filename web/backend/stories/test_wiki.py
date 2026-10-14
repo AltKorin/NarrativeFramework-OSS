@@ -247,7 +247,7 @@ class WikiTests(TestCase):
         response = self.client.get(self.root + "export/")
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["schema"], "narrative-wiki/1")
+        self.assertEqual(data["schema"], "narrative-wiki/2")
         self.assertIn("PRIVATE_WIKI_SENTINEL", response.content.decode())
         self.assertIn("attachment", response["Content-Disposition"])
 

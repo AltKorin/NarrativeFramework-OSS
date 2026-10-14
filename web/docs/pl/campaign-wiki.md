@@ -1,58 +1,77 @@
-# Wiki kampanii: jeden świat, wiele przygód
+# Wiki kampanii: świat dla całej grupy
 
-[English](../en/campaign-wiki.md) · [Rozgrywki indywidualne](individual-play.md) · [Kontrakt MCP](mcp-play.md)
+[English](../en/campaign-wiki.md) · [Rozgrywki indywidualne](individual-play.md) · [Projekt współdzielenia i zakres kolejnych etapów](campaign-sharing-plan.md)
 
-Wiki kampanii jest osobnym, trwałym zbiorem artykułów. Świat nie jest wciskany do grafu przygody z limitem 250 węzłów. Lista artykułów, mapa powiązań i odnośniki zwrotne korzystają z tych samych rekordów kampanii, stron i relacji w PostgreSQL.
+Wiki należy do kampanii. Jedno konto może prowadzić własne kampanie, współprowadzić inne i grać w kolejnych. Artykuły, indeks, mapa i odnośniki zwrotne korzystają z tych samych danych PostgreSQL. Materiały wykorzystasz w wielu przygodach jako jawne kopie.
 
-## Korzystanie z wiki
+## Rozpoczęcie i zaproszenia
 
-1. Zaloguj się w warsztacie i wybierz **Wiki kampanii**, albo otwórz `/campaigns/`.
-2. Utwórz kampanię. **Ustawienia kampanii** umożliwiają zmianę nazwy/opisu, odświeżenie oraz usunięcie po potwierdzeniu. Usunięcie obejmuje artykuły i relacje, ale zachowuje kopie materiałów w przygodach.
-3. Dodawaj postacie, miejsca, organizacje, przedmioty, wiedzę o świecie, dzienniki, sceny i wskazówki.
-4. Pisz treść w Markdown; **Podgląd** pokazuje nagłówki, listy, tabele i formatowanie. HTML nie jest wykonywany. Obrazki w treści i przesyłanie załączników nie są zaimplementowane. Sekrety wpisuj w **Prywatne notatki MG**.
-5. Dodaj opisane powiązanie z innym zapisanym artykułem. Relacja będzie widoczna na obu stronach (wychodząca/przychodząca) oraz na mapie kampanii. Kliknięcie węzła mapy otwiera artykuł. Pozycje mapy są automatyczne, bez zapisywania ręcznego układu.
-6. Wyszukuj po tytułach i głównej treści. Wynik ma limit 100 trafień; prywatne notatki MG nie są indeksowane. Puste wyszukiwanie pokazuje indeks kampanii według kategorii.
-7. Pobierz całą kampanię jako JSON `narrative-wiki/1` lub artykuł jako Markdown. Oba eksporty są **kopiami MG zawierającymi prywatne notatki**. Import całej kampanii oraz import/synchronizacja z Kanką nie są jeszcze zaimplementowane.
+1. Zaloguj się i otwórz **Wiki kampanii** w warsztacie albo `/campaigns/`.
+2. Utwórz kampanię. Właściciel zmienia jej nazwę/opis i może ją usunąć. Opis kampanii jest widoczny członkom — nie wpisuj tam sekretów.
+3. W **Członkowie i zaproszenia** wybierz rolę i utwórz link. Przekaż go prywatnie. Link jest jednorazowy, ważny 7 dni; wykorzysta go pierwsze konto, które świadomie przyjmie zaproszenie. Nie ma wysyłki e-mail ani publicznego katalogu kont.
+4. Zaproszony loguje się albo rejestruje i wraca do zaproszenia. Widzi kampanię i rolę, po czym wybiera **Przyjmij zaproszenie**. Samo otwarcie linku niczego nie przydziela. Token pozostaje we fragmencie adresu, nie w parametrze wysyłanym z żądaniem strony.
+5. Właściciel widzi, kto dołączył, może unieważnić niewykorzystany link, zmienić rolę lub usunąć członka. Zmiana roli usuwa indywidualne przydziały stron/relacji. Ponowne dołączenie wymaga nowego zaproszenia i nie odtwarza starych przydziałów.
 
-Pierwsza wersja jest prywatna dla właściciela konta. „Wspólny świat” oznacza ponowne użycie w jego przygodach; nie dodaje jeszcze dostępu graczy do wiki, ról współprowadzącego ani członkostwa kampanii. Przełączanie PL/EN zachowuje teksty i szkice; nie tłumaczy świata.
+| Rola | Dostęp |
+| --- | --- |
+| Właściciel | Wszystkie materiały i sekrety, publikacje, członkowie/zaproszenia, ustawienia i usunięcie kampanii |
+| Współprowadzący | Wszystkie materiały robocze i sekrety, edycja, publikacje, podgląd gracza, pełny eksport; bez zarządzania rolami i usuwania kampanii |
+| Gracz | Tylko opublikowane materiały udostępnione całej grupie albo jemu; odczyt, wyszukiwanie, mapa i własny eksport |
 
-## Wykorzystanie artykułu w przygodzie
+**Współprowadzący widzi wszystkie sekrety MG.** Awans nie jest ograniczonym uprawnieniem do korekty jednego artykułu. Członek może wybrać **Opuść kampanię**; właściciel nie może odejść. Przekazywanie własności oraz edycja artykułów przez graczy nie są jeszcze zaimplementowane.
 
-Zapisz artykuł, wybierz własną zapisaną przygodę i kliknij **Skopiuj do przygody**. Backend sprawdza właściciela oraz wersję artykułu i przygody. Równoczesna zmiana kończy się 409, zamiast kopiować niezauważenie inną treść niż ta przejrzana przez MG.
+## Artykuły, szkice i publikacje
 
-Kopia jest węzłem scenariusza. Metadane `wiki_origin` przechowują identyfikator kampanii, strony i wersję. Tytuł i treść trafiają do tytułu/opisu węzła; notatki MG do jego `secret`. Postać, miejsce, scena i wskazówka zachowują typ. Pozostałe kategorie wiki stają się materiałem/wskazówką, bo obecny format przygody ma cztery typy. Połącz materiał na mapie przygody zgodnie z potrzebą. Inspektor węzła prowadzi z powrotem do źródła w wiki.
+Dodawaj postacie, miejsca, organizacje, przedmioty, wiedzę o świecie, dzienniki, sceny i wskazówki. Treść jest Markdown: nagłówki, listy, tabele i formatowanie. HTML nie jest wykonywany; obrazki/załączniki nie są zaimplementowane. Osobne notatki MG są widoczne wyłącznie prowadzącym.
 
-Ten sam artykuł można wykorzystać w różnych przygodach. Druga kopia tej samej strony w jednej przygodzie jest odrzucana, również po utracie odpowiedzi. Kopie są świadomymi migawkami: dalsza edycja/usunięcie wiki nie zmienia przygody, przypisania gracza, dziennika ani pamięci. Automatyczne odświeżanie/synchronizacja kopii nie są zaimplementowane.
+Nowy artykuł jest **tylko dla MG**, bez publikacji. **Zapisz artykuł** zapisuje wersję roboczą. Nie aktualizuje treści widzianej przez graczy. W **Publikacja dla graczy** wybierz odbiorców:
 
-Publikacja dla gracza nadal wymaga świadomego wyboru materiałów i korzysta z istniejącej listy dozwolonych pól. Kopia wiki nie jest automatycznie publikowana. `secret` i metadane źródła są pomijane w migawce gracza. Sekret wklejony w zwykły opis pozostaje zwykłym opisem — o jego publikacji decyduje MG.
+- wszyscy gracze kampanii, również przyszli członkowie z tą rolą;
+- wybrani aktualni gracze;
+- tylko MG — wycofaj istniejącą publikację przyciskiem **Wycofaj publikację**.
 
-## Zapis, wersje i limity
+**Opublikuj dla graczy** kopiuje zapisany tytuł, kategorię i treść do osobnej migawki. Notatki MG nie są do niej kopiowane. Panel pokazuje wersję opublikowaną i roboczą. Zmienione teksty robocze stają się widoczne dopiero po kolejnej publikacji. Publikacja i edycja wymagają aktualnej wersji; konflikt 409 wymaga odświeżenia i uzgodnienia zmian. Przed publikacją sprawdź cały tekst, w tym jawnie wpisane nazwy i odnośniki Markdown. Sekret w zwykłej treści nie zostanie automatycznie rozpoznany; użyj notatek MG albo osobnego artykułu dla węższej grupy.
 
-Migracja `0004_campaign_wikipage_wikirelation` dodaje Campaign, WikiPage i WikiRelation bez zmiany dotychczasowych scenariuszy/rozgrywek. Compose wykonuje migracje przed startem API/MCP.
+**Podgląd jako gracz** pokazuje dokładnie opublikowany zakres wybranego gracza, bez możliwości edycji. Powrót do **Widok MG** przywraca szkice i sekrety. Przełączanie PL/EN nie tłumaczy ani nie zastępuje napisanej treści.
 
-- 20 kampanii na właściciela, 1000 artykułów i 2000 relacji na kampanię.
-- Tytuł: 200 znaków; opis kampanii: 4000; treść artykułu i prywatne notatki: po 12 000; opis relacji: 80.
-- Tworzenie przyjmuje UUID klienta. Kampania/artykuł przechowują odcisk pierwotnego żądania: dokładne ponowienie zwraca aktualny rekord, zmienione — konflikt. Taka sama relacja semantyczna zwraca istniejącą relację.
-- Zmiany kampanii są serializowane blokadą jej wiersza. Zapis/usunięcie artykułu wymaga jego bieżącej wersji. Ustawienia/usunięcie kampanii wymagają wersji kampanii, zmienianej też przez edycje stron i relacji.
-- Nieaktualny zapis zwraca 409; interfejs zachowuje szkic i pyta przed jego odrzuceniem przy odświeżeniu. Ponowienia tworzenia w bieżącej karcie używają tego samego UUID. Niezapisany szkic przeglądarki nie jest kopią zapasową na serwerze. Próba opuszczenia zmienionego artykułu ostrzega przed utratą zmian.
-- Obowiązują dotychczasowe limity JSON, tekstu, uwierzytelnienia i przyjmowania żądań. Eksport całej wiki jest tylko dla właściciela i może przekraczać rozmiar pojedynczego żądania; MCP nie pobiera całej wiki bez limitu.
+## Relacje, wyszukiwanie i eksport
 
-## API i MCP autora
+Dodaj opisaną relację między zapisanymi artykułami. Prowadzący widzą ją na obu stronach oraz na mapie. Relacja ma osobne ustawienia udostępniania i domyślnie jest prywatna. Jawne artykuły nie ujawniają automatycznie sekretnej zależności. Gracz widzi relację tylko wtedy, gdy udostępniono mu oba końce i samą relację. Publikacja relacji przechowuje opis jako migawkę. Usunięcie/ukrycie artykułu ukrywa jego połączenia. Mapa ma automatyczny układ; nie zapisuje ręcznych pozycji.
 
-REST wymaga sesji i CSRF przy zapisie. Endpointy i pola szczegółowo opisuje [wersja angielska](../en/campaign-wiki.md#rest-and-author-mcp). Kopiowanie przyjmuje `{scenario_id, version, source_version}` — `version` to wersja przygody, `source_version` to wersja artykułu. PUT artykułu zastępuje `title`, `kind`, `body`, `gm_notes`; pominięte teksty są puste. Cudze zasoby oraz relacje między różnymi kampaniami są odrzucane.
+Wszystkie widoki są filtrowane przez backend: indeks, liczniki, mapa, odnośniki, wyszukiwanie, bezpośrednie adresy i eksport. Ukryty zasób zwraca 404. Wyszukiwanie zwraca maksymalnie 100 trafień po tytule/treści. Gracz przeszukuje tylko publikacje; szkice i notatki MG nie trafiają do jego wyników. Prowadzący przeszukują szkice, bez notatek MG.
 
-Autorskie `/mcp` ma dodatkowo `list_campaigns`, `search_wiki`, `read_wiki_page`, `save_wiki_page`. Wyszukiwanie zwraca metadane; odczyt jedną stronę wraz z notatkami MG; zapis wymaga oczekiwanej wersji. Przed zapisem odczytaj aktualny artykuł i zachowaj jego prywatne notatki. Narzędzia nie występują w `/play/mcp` — token gracza nie daje dostępu do całego świata.
+**Eksport kampanii (MG)** to `narrative-wiki/2`, zawierający sekrety, wersje robocze i publikacje. Nie zawiera tokenów i zaproszeń. **Eksport udostępnionych materiałów** to `narrative-wiki-player/1`, z samym aktualnym zakresem czytelnika. Podgląd MG również eksportuje wersję gracza. Markdown artykułu gracza nie zawiera notatek MG. Import całej wiki i import/synchronizacja Kanki pozostają poza zakresem.
+
+## Wykorzystanie w przygodzie
+
+Prowadzący może skopiować zapisany artykuł kampanii do swojej przygody. Sprawdzane są wersje źródła i celu; współprowadzenie kampanii nie daje dostępu do przygód innych kont. Tytuł/treść przechodzą do opisu, notatki MG do `secret`, a `wiki_origin` zapisuje kampanię, stronę i wersję. NPC/miejsce/scena/wskazówka zachowują typ; inne kategorie stają się materiałem/wskazówką. Druga kopia tej samej strony do tej samej przygody zwraca 409. Podłącz węzeł do grafu według potrzeb.
+
+Kopia jest niezależna od dalszych edycji/usunięcia wiki. Odebranie dostępu do kampanii nie usuwa wcześniej utworzonych własnych kopii ani osobno opublikowanych migawek rozgrywki. Publikacja wiki nie publikuje automatycznie materiałów `/play/mcp` i odwrotnie. Gracz nadal otrzymuje wybrane pola przydzielonej przygody, bez `secret` i `wiki_origin`.
+
+## Dostęp, limity i administracja
+
+- Każde żądanie sprawdza aktualne członkostwo. Operacje serializują się na kampanii. Po cofnięciu dostępu oczekujący zapis nie może użyć dawnej roli.
+- UI ponownie sprawdza uprawnienia po powrocie do karty i co 30 sekund w widocznej, bezczynnej karcie. Po degradacji usuwa szkice/secrety z widoku; po utracie kampanii czyści jej materiały. Otwarte formularze nie zapisują się automatycznie. API odmawia dostępu od razu, bez czekania na odświeżenie UI.
+- Wysłanych już odpowiedzi, pobranych eksportów i pamięci zewnętrznego agenta nie da się cofnąć. Nie traktuj ukrycia w UI jako usunięcia dostarczonych danych.
+- Odpowiedzi API mają `Cache-Control: private, no-store`. Dziennik dostępu dla MG pokazuje ostatnie 100 operacji; baza przechowuje aktora, operację, identyfikator i wersję bez treści sekretów/tokenów.
+- 20 własnych kampanii, 50 zaproszonych członków i 20 aktywnych zaproszeń na kampanię; maksymalnie 30 utworzonych zaproszeń na godzinę/kampanię. Właściciel jest osobny od limitu członków.
+- 1000 artykułów i 2000 relacji/kampanię; tytuł 200, opis 4000, treść i notatki po 12 000, etykieta relacji 80 znaków. Obowiązują też istniejące limity żądań/admission. To limity zasobów, nie obietnica wydajności.
+- Migracja 0005 jest addytywna: stare materiały pozostają prywatne i nieopublikowane. 0004 tworzy wcześniejsze tabele wiki. Compose migruje przed startem API/MCP. Kopia PostgreSQL obejmuje członkostwa i publikacje; przechowuj ją jako dane poufne.
+
+## API i MCP
+
+REST wymaga sesji i CSRF przy zapisie. Endpointy opisuje [wersja angielska](../en/campaign-wiki.md#rest-and-mcp). Publikacja przyjmuje `{version, audience, recipients}`; audience to `gm`, `all` lub `selected`, a recipients to UUID aktualnych członkostw graczy. `gm` wycofuje publikację. Zmiana odbiorców tworzy ponownie migawkę aktualnego zapisanego artykułu — sprawdź go przed zatwierdzeniem. Zmiana roli przyjmuje `{version, role}` z wersją kampanii. Odczyty obsługują `?preview=<UUID członkostwa gracza>` wyłącznie dla MG.
+
+Autorskie `/mcp` pozwala właścicielowi i współprowadzącemu wyszukiwać, czytać i zapisywać materiały robocze, wraz z sekretami. Gracz nie uzyska tych uprawnień osobistym tokenem. Rola jest sprawdzana przy każdym wywołaniu. `/play/mcp` pozostaje osobnym katalogiem, bez dostępu do wiki. **MCP czytelnika kampanii `/campaign/mcp` nie jest jeszcze zaimplementowane**; to kolejny etap, niezależny od działającego współdzielenia w przeglądarce.
 
 ## Weryfikacja
 
 ```sh
 docker compose -f web/compose.yaml exec -T api python manage.py test stories
 docker compose -f web/compose.yaml exec -T api python < web/tests/wiki_integration.py
-PLAYWRIGHT_BROWSERS_PATH=/tmp/narrative-browsers web/.venv/bin/python web/tests/wiki_browser.py
+PLAYWRIGHT_BROWSERS_PATH=/tmp/narrative-browsers web/.venv/bin/python web/tests/sharing_browser.py
 ```
 
-Uruchamiaj na środowisku testowym. Skrypty integracyjne/przeglądarkowe tworzą tymczasowe konta i sprzątają po sobie. Testy PostgreSQL sprawdzają równoczesne edycje i kolizje UUID różnych właścicieli. Przeglądarka sprawdza Markdown z próbą wstrzyknięcia HTML, uprawnienia, wyszukiwanie, relacje/odnośniki/mapę, zachowanie szkicu przy konflikcie, eksport, sekrety/metadane kopiowania, otwieranie przygody, PL/EN i widok mobilny.
+Testuj na instancji testowej. Skrypty tworzą i usuwają fikcyjne konta. Testy PostgreSQL obejmują równoczesną akceptację linku, publikację wobec edycji i cofnięcie dostępu wobec zapisu. Przeglądarka sprawdza cały przepływ grupy, filtrowane eksporty, podgląd, degradację, cofnięcie dostępu, PL/EN i telefon.
 
-## Plan współdzielenia kampanii
-
-[Plan współdzielenia kampanii](campaign-sharing-plan.md) — plan następnej wersji, jeszcze niezaimplementowany.
+Migracja 0006 zachowuje wartości domyślne nowych pól także w bazie, aby stary kod mógł nadal tworzyć prywatne strony i relacje przy wycofaniu wersji aplikacji. Wycofanie kodu nie wymaga cofania migracji i usuwania danych współdzielenia.

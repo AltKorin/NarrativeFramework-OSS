@@ -178,7 +178,7 @@ try:
             page.get_by_role("button", name="Export campaign (GM)", exact=True).click()
         data = json.loads(open(download.value.path()).read())
         assert (
-            data["schema"] == "narrative-wiki/1"
+            data["schema"] == "narrative-wiki/2"
             and len(data["pages"]) == 2
             and len(data["relations"]) == 1
         )

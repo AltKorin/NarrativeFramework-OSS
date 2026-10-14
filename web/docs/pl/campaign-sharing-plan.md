@@ -1,6 +1,6 @@
 # Plan: wiki dla grupy kampanii
 
-Status: **plan do implementacji**. Opisuje docelowe zachowanie, nie funkcje dostępne w obecnym wdrożeniu. [English](../en/campaign-sharing-plan.md) · [Obecna wiki](campaign-wiki.md).
+Status: **etapy 1–2 wdrożone w v0.3.0-alpha.2**: role, zaproszenia, publikacje i widok grupy. Etap 3 (osobne MCP czytelnika) i etap 4 pozostają planem. Bieżące zachowanie opisuje instrukcja wiki; poniżej zachowano projekt i kryteria akceptacji. [English](../en/campaign-sharing-plan.md) · [Obecna wiki](campaign-wiki.md).
 
 ## Cel i decyzje
 

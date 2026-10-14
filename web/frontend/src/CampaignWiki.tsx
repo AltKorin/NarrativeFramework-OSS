@@ -6,6 +6,11 @@ import "@xyflow/react/dist/style.css";
 import { initialLanguage, translate, type Language } from "./i18n";
 import { newUUID } from "./uuid";
 import "./wiki.css";
+import {
+  CampaignSharing,
+  PublicationControls,
+  type Publication,
+} from "./WikiSharing";
 
 type Meta = {
   id: string;
@@ -14,13 +19,21 @@ type Meta = {
   kind: string;
   version: number;
 };
-type Page = Meta & { body: string; gm_notes: string };
-type Relation = { id: string; source: string; target: string; label: string };
+type Page = Meta & Publication & { body: string; gm_notes?: string };
+type Relation = Publication & {
+  id: string;
+  source: string;
+  target: string;
+  label: string;
+};
 type Campaign = {
   id: string;
   title: string;
   summary: string;
   version: number;
+  role: string;
+  actual_role: string;
+  preview: boolean;
   pages: Meta[];
   relations: Relation[];
 };
@@ -52,6 +65,23 @@ const emptyDraft = (): Draft => ({
   gm_notes: "",
 });
 const messages: Record<string, string> = {
+  "Invitation unavailable":
+    "Zaproszenie wygasło, zostało użyte lub unieważnione.",
+  "Already a campaign member":
+    "Należysz już do tej kampanii. Rolę może zmienić jej właściciel.",
+  "Invitation rate limit reached":
+    "Za dużo zaproszeń. Spróbuj ponownie później.",
+  "Invitation limit reached": "Osiągnięto limit 20 aktywnych zaproszeń.",
+  "Campaign member limit reached":
+    "Osiągnięto limit 50 zaproszonych członków kampanii.",
+  "Invalid campaign role": "Wybierz poprawną rolę w kampanii.",
+  "Member not found": "Nie znaleziono członka kampanii.",
+  "Invitation not found": "Nie znaleziono zaproszenia.",
+  "Invalid publication audience": "Wybierz odbiorców publikacji.",
+  "Invalid publication recipients":
+    "Wybierz aktualnych graczy tej kampanii i sprawdź odbiorców publikacji.",
+  "The owner cannot leave the campaign":
+    "Właściciel nie może opuścić swojej kampanii.",
   "Creation conflict":
     "Ten identyfikator został już użyty. Odśwież listę i sprawdź zapis przed ponowieniem.",
   "Wiki version conflict; reload before saving":
@@ -99,7 +129,22 @@ export default function CampaignWiki() {
   );
   const [scenarioId, setScenarioId] = useState("");
   const [copiedTo, setCopiedTo] = useState("");
+  const [preview, setPreview] = useState("");
+  const previewRef = useRef("");
+  const accessEpoch = useRef(0);
+  const [inviteToken, setInviteToken] = useState(
+    () => new URLSearchParams(location.hash.slice(1)).get("invite") || "",
+  );
+  const [invitation, setInvitation] = useState<{
+    title: string;
+    role: string;
+  } | null>(null);
+  const [inviteError, setInviteError] = useState("");
+  const canEdit = !!campaign && campaign.role !== "player";
+  const actualGM =
+    !!campaign && (campaign.actual_role || campaign.role) !== "player";
   const dirty =
+    canEdit &&
     !!draft &&
     (!page ||
       ["title", "kind", "body", "gm_notes"].some(
@@ -111,6 +156,17 @@ export default function CampaignWiki() {
     body?: unknown,
     signal?: AbortSignal,
   ) {
+    const epoch = accessEpoch.current;
+    if (
+      method === "GET" &&
+      previewRef.current &&
+      /^campaigns\/[^/]+\/(?:$|pages\/|export\/)/.test(path)
+    ) {
+      path +=
+        (path.includes("?") ? "&" : "?") +
+        "preview=" +
+        encodeURIComponent(previewRef.current);
+    }
     const r = await fetch(`/api/${path}`, {
       method,
       signal,
@@ -121,7 +177,33 @@ export default function CampaignWiki() {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const result = await r.json();
-    if (!r.ok) throw Error(result.error || result.detail || "Request failed");
+    if (epoch !== accessEpoch.current)
+      throw Error(
+        t(
+          "Uprawnienia się zmieniły. Odśwież widok.",
+          "Access changed. Reload the view.",
+        ),
+      );
+    if (!r.ok) {
+      if (
+        r.status === 401 ||
+        r.status === 403 ||
+        (r.status === 404 && /^campaigns\/[^/]+\/($|\?)/.test(path))
+      ) {
+        accessEpoch.current += 1;
+        const denied = /^campaigns\/([^/]+)\//.exec(path)?.[1];
+        setCampaigns((items) =>
+          denied ? items.filter((c) => c.id !== denied) : [],
+        );
+        setCampaign(null);
+        setPage(null);
+        setDraft(null);
+        setHits(null);
+        setEditing(false);
+        setCopiedTo("");
+      }
+      throw Error(result.error || result.detail || "Request failed");
+    }
     return result;
   }
   async function run(fn: () => Promise<void>) {
@@ -183,7 +265,7 @@ export default function CampaignWiki() {
       title: p.title,
       kind: p.kind,
       body: p.body,
-      gm_notes: p.gm_notes,
+      gm_notes: p.gm_notes || "",
     });
     setEditing(false);
     setTarget("");
@@ -257,6 +339,91 @@ export default function CampaignWiki() {
       control.abort();
     };
   }, [query, campaign?.id, campaign?.version]);
+  useEffect(() => {
+    const changed = () => {
+      setInviteToken(
+        new URLSearchParams(location.hash.slice(1)).get("invite") || "",
+      );
+      setInvitation(null);
+      setInviteError("");
+    };
+    window.addEventListener("hashchange", changed);
+    return () => window.removeEventListener("hashchange", changed);
+  }, []);
+  useEffect(() => {
+    if (!user || !inviteToken) return;
+    api("campaign-invitations/inspect/", "POST", { token: inviteToken })
+      .then(setInvitation)
+      .catch((e) => setInviteError(e.message));
+  }, [user, inviteToken]);
+  useEffect(() => {
+    if (!campaign) return;
+    let pending = false;
+    const recheck = async () => {
+      if (pending || document.visibilityState === "hidden" || busy) return;
+      pending = true;
+      try {
+        const current = await api(`campaigns/${campaign.id}/`);
+        if (current.role !== campaign.role) {
+          accessEpoch.current += 1;
+          setPage(null);
+          setDraft(null);
+          setHits(null);
+          setEditing(false);
+          setCopiedTo("");
+          setNotice(
+            t(
+              "Zmieniły się Twoje uprawnienia. Otwórz artykuł ponownie.",
+              "Your permissions changed. Open the article again.",
+            ),
+          );
+        }
+        setCampaign(current);
+        if (current.role === "player") {
+          setHits(null);
+          if (query.trim())
+            setHits(
+              await api(
+                `campaigns/${campaign.id}/pages/?q=${encodeURIComponent(query)}`,
+              ),
+            );
+        }
+        if (page && !current.pages.some((p: Meta) => p.id === page.id)) {
+          accessEpoch.current += 1;
+          setPage(null);
+          setDraft(null);
+          setHits(null);
+          setEditing(false);
+        } else if (current.role === "player" && page) {
+          const value = await api(`campaigns/${campaign.id}/pages/${page.id}/`);
+          setPage(value);
+          setDraft({
+            title: value.title,
+            kind: value.kind,
+            body: value.body,
+            gm_notes: "",
+          });
+        }
+        setCampaigns(await api("campaigns/"));
+      } catch {
+        /* api clears unauthorized data; retained GM drafts are not silently discarded. */
+      } finally {
+        pending = false;
+      }
+    };
+    const focus = () => {
+      void recheck();
+    };
+    window.addEventListener("focus", focus);
+    document.addEventListener("visibilitychange", focus);
+    const timer = setInterval(focus, 30000);
+    return () => {
+      window.removeEventListener("focus", focus);
+      document.removeEventListener("visibilitychange", focus);
+      clearInterval(timer);
+    };
+  }, [campaign?.id, campaign?.role, page?.id, busy, query]);
+
   function download(name: string, contents: string, mime: string) {
     const url = URL.createObjectURL(new Blob([contents], { type: mime }));
     const a = document.createElement("a");
@@ -284,7 +451,7 @@ export default function CampaignWiki() {
       title: value.title,
       kind: value.kind,
       body: value.body,
-      gm_notes: value.gm_notes,
+      gm_notes: value.gm_notes || "",
     });
     setEditing(false);
     await refresh(campaign.id);
@@ -341,6 +508,78 @@ export default function CampaignWiki() {
           </div>
         )}
       </div>
+      {inviteToken && (
+        <section className="wiki-invite-accept">
+          <h2>{t("Zaproszenie do kampanii", "Campaign invitation")}</h2>
+          {invitation && (
+            <>
+              <p>
+                {invitation.title} ·{" "}
+                {invitation.role === "gm"
+                  ? t(
+                      "Współprowadzący — dostęp do wszystkich sekretów MG",
+                      "Co-GM — access to all GM secrets",
+                    )
+                  : t("Gracz", "Player")}
+              </p>
+              <button
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    const result = await api(
+                      "campaign-invitations/accept/",
+                      "POST",
+                      { token: inviteToken },
+                    );
+                    setInviteToken("");
+                    setInvitation(null);
+                    history.replaceState(
+                      null,
+                      "",
+                      location.pathname + location.search,
+                    );
+                    previewRef.current = "";
+                    setPreview("");
+                    setCampaigns(await api("campaigns/"));
+                    await openCampaign(result.campaign_id);
+                  })
+                }
+              >
+                {t("Przyjmij zaproszenie", "Accept invitation")}
+              </button>
+            </>
+          )}
+          {inviteError && (
+            <p role="alert">
+              {t(
+                "Zaproszenie jest niedostępne lub wygasło.",
+                "The invitation is unavailable or expired.",
+              )}
+            </p>
+          )}
+          {!user && (
+            <p>
+              {t(
+                "Zaloguj się lub załóż konto, a potem świadomie przyjmij zaproszenie.",
+                "Log in or create an account, then accept the invitation.",
+              )}
+            </p>
+          )}
+          <button
+            onClick={() => {
+              setInviteToken("");
+              setInvitation(null);
+              history.replaceState(
+                null,
+                "",
+                location.pathname + location.search,
+              );
+            }}
+          >
+            {t("Odrzuć zaproszenie", "Dismiss invitation")}
+          </button>
+        </section>
+      )}
       {notice && (
         <div className="wiki-notice" role="status">
           {pl ? messages[notice] || translate(language, notice) : notice}
@@ -364,11 +603,13 @@ export default function CampaignWiki() {
           </h2>
           <p>
             {t(
-              "Prywatna wiki MG wymaga zalogowania. Materiały kampanii i sekrety pozostają na Twoim koncie.",
-              "The private GM wiki requires an account. Campaign material and secrets stay with your account.",
+              "Wiki kampanii wymaga konta. Po zaproszeniu zobaczysz udostępnione materiały swojej grupy.",
+              "Campaign wiki requires an account. An invitation gives you access to the material shared with your group.",
             )}
           </p>
-          <a href={`/workshop/?account=login&lang=${language}`}>
+          <a
+            href={`/workshop/?account=login&lang=${language}${inviteToken ? "#return-wiki-invite=" + encodeURIComponent(inviteToken) : ""}`}
+          >
             {t("Zaloguj się lub załóż konto", "Log in or create an account")}
           </a>
         </section>
@@ -382,7 +623,12 @@ export default function CampaignWiki() {
                 value={campaign?.id || ""}
                 onChange={(e) => {
                   if (e.target.value && mayLeave())
-                    run(() => openCampaign(e.target.value));
+                    run(async () => {
+                      previewRef.current = "";
+                      setPreview("");
+                      accessEpoch.current += 1;
+                      await openCampaign(e.target.value);
+                    });
                 }}
               >
                 <option value="">
@@ -401,6 +647,9 @@ export default function CampaignWiki() {
                 e.preventDefault();
                 if (!mayLeave()) return;
                 run(async () => {
+                  previewRef.current = "";
+                  setPreview("");
+                  accessEpoch.current += 1;
                   const c = await api("campaigns/", "POST", {
                     id: campaignReceipt.current,
                     title: newCampaign,
@@ -436,106 +685,167 @@ export default function CampaignWiki() {
                     onChange={(e) => setQuery(e.target.value)}
                   />
                 </label>
-                <button
-                  className="wiki-primary"
-                  onClick={() => {
-                    if (!mayLeave()) return;
-                    setNewId(newUUID());
-                    setPage(null);
-                    setDraft(emptyDraft());
-                    setEditing(true);
-                    setGraph(false);
-                    setCopiedTo("");
-                  }}
-                >
-                  {t("Nowy artykuł", "New article")}
-                </button>
-                <details className="wiki-settings">
-                  <summary>
-                    {t("Ustawienia kampanii", "Campaign settings")}
-                  </summary>
-                  <form
-                    key={campaign.id + campaign.title}
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const fields = new FormData(e.currentTarget);
-                      run(async () => {
-                        await api(`campaigns/${campaign.id}/`, "PUT", {
-                          version: campaign.version,
-                          title: fields.get("title"),
-                          summary: fields.get("summary"),
+                {canEdit && (
+                  <button
+                    className="wiki-primary"
+                    onClick={() => {
+                      if (!mayLeave()) return;
+                      setNewId(newUUID());
+                      setPage(null);
+                      setDraft(emptyDraft());
+                      setEditing(true);
+                      setGraph(false);
+                      setCopiedTo("");
+                    }}
+                  >
+                    {t("Nowy artykuł", "New article")}
+                  </button>
+                )}
+                {campaign.role === "owner" && (
+                  <details className="wiki-settings">
+                    <summary>
+                      {t("Ustawienia kampanii", "Campaign settings")}
+                    </summary>
+                    <form
+                      key={campaign.id + campaign.title}
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const fields = new FormData(e.currentTarget);
+                        run(async () => {
+                          await api(`campaigns/${campaign.id}/`, "PUT", {
+                            version: campaign.version,
+                            title: fields.get("title"),
+                            summary: fields.get("summary"),
+                          });
+                          await refresh(campaign.id);
+                          setCampaigns(await api("campaigns/"));
+                          setNotice(
+                            t(
+                              "Zapisano ustawienia kampanii.",
+                              "Campaign settings saved.",
+                            ),
+                          );
                         });
-                        await refresh(campaign.id);
-                        setCampaigns(await api("campaigns/"));
-                        setNotice(
-                          t(
-                            "Zapisano ustawienia kampanii.",
-                            "Campaign settings saved.",
-                          ),
-                        );
+                      }}
+                    >
+                      <label>
+                        {t("Nazwa kampanii", "Campaign title")}
+                        <input
+                          name="title"
+                          required
+                          maxLength={200}
+                          defaultValue={campaign.title}
+                        />
+                      </label>
+                      <label>
+                        {t("Opis kampanii", "Campaign description")}
+                        <textarea
+                          name="summary"
+                          rows={4}
+                          maxLength={4000}
+                          defaultValue={campaign.summary}
+                        />
+                      </label>
+                      <button>{t("Zapisz ustawienia", "Save settings")}</button>
+                    </form>
+                    <button
+                      onClick={() => {
+                        if (mayLeave())
+                          run(() => openCampaign(campaign.id, page?.id));
+                      }}
+                    >
+                      {t("Odśwież kampanię", "Reload campaign")}
+                    </button>
+                    <button
+                      className="wiki-danger"
+                      onClick={() => {
+                        if (
+                          confirm(
+                            t(
+                              "Usunąć kampanię oraz wszystkie jej artykuły i powiązania? Kopie w przygodach pozostaną.",
+                              "Delete this campaign and all its articles and relationships? Adventure copies remain.",
+                            ),
+                          )
+                        )
+                          run(async () => {
+                            await api(`campaigns/${campaign.id}/`, "DELETE", {
+                              version: campaign.version,
+                            });
+                            const list = await api("campaigns/");
+                            setCampaigns(list);
+                            setCampaign(null);
+                            setPage(null);
+                            setDraft(null);
+                            history.replaceState(
+                              null,
+                              "",
+                              `/campaigns/?lang=${language}`,
+                            );
+                            if (list[0]) await openCampaign(list[0].id);
+                          });
+                      }}
+                    >
+                      {t("Usuń kampanię", "Delete campaign")}
+                    </button>
+                  </details>
+                )}
+                {actualGM && (
+                  <CampaignSharing
+                    key={campaign.id}
+                    campaignId={campaign.id}
+                    version={campaign.version}
+                    owner={campaign.actual_role === "owner"}
+                    readonly={!canEdit}
+                    preview={preview}
+                    api={api}
+                    t={t}
+                    run={run}
+                    changed={async () => {
+                      await refresh(campaign.id);
+                    }}
+                    onPreview={(id) => {
+                      if (!mayLeave()) return;
+                      run(async () => {
+                        accessEpoch.current += 1;
+                        previewRef.current = id;
+                        setPreview(id);
+                        setPage(null);
+                        setDraft(null);
+                        setHits(null);
+                        setEditing(false);
+                        await openCampaign(campaign.id, page?.id);
                       });
                     }}
-                  >
-                    <label>
-                      {t("Nazwa kampanii", "Campaign title")}
-                      <input
-                        name="title"
-                        required
-                        maxLength={200}
-                        defaultValue={campaign.title}
-                      />
-                    </label>
-                    <label>
-                      {t("Opis kampanii", "Campaign description")}
-                      <textarea
-                        name="summary"
-                        rows={4}
-                        maxLength={4000}
-                        defaultValue={campaign.summary}
-                      />
-                    </label>
-                    <button>{t("Zapisz ustawienia", "Save settings")}</button>
-                  </form>
+                  />
+                )}
+                {!campaign.preview && campaign.role !== "owner" && (
                   <button
-                    onClick={() => {
-                      if (mayLeave())
-                        run(() => openCampaign(campaign.id, page?.id));
-                    }}
-                  >
-                    {t("Odśwież kampanię", "Reload campaign")}
-                  </button>
-                  <button
-                    className="wiki-danger"
                     onClick={() => {
                       if (
                         confirm(
                           t(
-                            "Usunąć kampanię oraz wszystkie jej artykuły i powiązania? Kopie w przygodach pozostaną.",
-                            "Delete this campaign and all its articles and relationships? Adventure copies remain.",
+                            "Opuścić kampanię? Ponowny dostęp wymaga nowego zaproszenia.",
+                            "Leave campaign? Returning requires a new invitation.",
                           ),
                         )
                       )
                         run(async () => {
-                          await api(`campaigns/${campaign.id}/`, "DELETE", {
-                            version: campaign.version,
-                          });
-                          const list = await api("campaigns/");
-                          setCampaigns(list);
+                          await api(
+                            `campaigns/${campaign.id}/leave/`,
+                            "POST",
+                            {},
+                          );
                           setCampaign(null);
                           setPage(null);
                           setDraft(null);
-                          history.replaceState(
-                            null,
-                            "",
-                            `/campaigns/?lang=${language}`,
-                          );
-                          if (list[0]) await openCampaign(list[0].id);
+                          setHits(null);
+                          setCampaigns(await api("campaigns/"));
                         });
                     }}
                   >
-                    {t("Usuń kampanię", "Delete campaign")}
+                    {t("Opuść kampanię", "Leave campaign")}
                   </button>
-                </details>
+                )}
                 <div className="wiki-index">
                   {kinds.map((kind) => {
                     const entries = visible.filter((p) => p.kind === kind);
@@ -578,7 +888,12 @@ export default function CampaignWiki() {
                     })
                   }
                 >
-                  {t("Eksport kampanii (MG)", "Export campaign (GM)")}
+                  {canEdit
+                    ? t("Eksport kampanii (MG)", "Export campaign (GM)")
+                    : t(
+                        "Eksport udostępnionych materiałów",
+                        "Export shared material",
+                      )}
                 </button>
               </>
             )}
@@ -600,8 +915,10 @@ export default function CampaignWiki() {
                   <h2>{campaign.title}</h2>
                   {campaign.summary && <p>{campaign.summary}</p>}
                   <p>
-                    {t("Prywatne materiały MG", "Private GM material")} ·{" "}
-                    {campaign.pages.length} {t("artykułów", "articles")}
+                    {canEdit
+                      ? t("Materiały robocze MG", "GM draft material")
+                      : t("Udostępnione materiały", "Shared material")}{" "}
+                    · {campaign.pages.length} {t("artykułów", "articles")}
                   </p>
                 </div>
                 {graph && (
@@ -661,14 +978,22 @@ export default function CampaignWiki() {
                     <div className="wiki-empty">
                       <h3>
                         {t(
-                          "Pierwszy artykuł czeka.",
-                          "Your first article awaits.",
+                          canEdit
+                            ? "Pierwszy artykuł czeka."
+                            : "Brak udostępnionych artykułów.",
+                          canEdit
+                            ? "Your first article awaits."
+                            : "No shared articles yet.",
                         )}
                       </h3>
                       <p>
                         {t(
-                          "Dodaj postać, miejsce albo wiedzę o świecie. Relacje między artykułami pojawią się też na mapie.",
-                          "Add a character, a place or world lore. Article relationships also appear on the map.",
+                          canEdit
+                            ? "Dodaj postać, miejsce albo wiedzę o świecie. Relacje między artykułami pojawią się też na mapie."
+                            : "Prowadzący może opublikować dla Ciebie materiały kampanii.",
+                          canEdit
+                            ? "Add a character, a place or world lore. Article relationships also appear on the map."
+                            : "A GM can publish campaign material for you.",
                         )}
                       </p>
                     </div>
@@ -683,11 +1008,13 @@ export default function CampaignWiki() {
                             : ""}
                         </span>
                         <div>
-                          <button onClick={() => setEditing(!editing)}>
-                            {editing
-                              ? t("Podgląd", "Preview")
-                              : t("Edytuj", "Edit")}
-                          </button>
+                          {canEdit && (
+                            <button onClick={() => setEditing(!editing)}>
+                              {editing
+                                ? t("Podgląd", "Preview")
+                                : t("Edytuj", "Edit")}
+                            </button>
+                          )}
                           {page && (
                             <button
                               onClick={() => {
@@ -701,16 +1028,18 @@ export default function CampaignWiki() {
                               {t("Odśwież", "Reload")}
                             </button>
                           )}
-                          <button
-                            className="wiki-primary"
-                            disabled={!dirty}
-                            onClick={() => run(save)}
-                          >
-                            {t("Zapisz artykuł", "Save article")}
-                          </button>
+                          {canEdit && (
+                            <button
+                              className="wiki-primary"
+                              disabled={!dirty}
+                              onClick={() => run(save)}
+                            >
+                              {t("Zapisz artykuł", "Save article")}
+                            </button>
+                          )}
                         </div>
                       </div>
-                      {editing ? (
+                      {canEdit && editing ? (
                         <div className="wiki-editor">
                           <label>
                             {t("Tytuł artykułu", "Article title")}
@@ -813,6 +1142,34 @@ export default function CampaignWiki() {
                           )}
                         </article>
                       )}
+                      {page && canEdit && (
+                        <PublicationControls
+                          key={page.id}
+                          campaignId={campaign.id}
+                          api={api}
+                          t={t}
+                          run={run}
+                          dirty={!!dirty}
+                          resource={page}
+                          changed={async () => {
+                            await refresh(campaign.id);
+                            await openPage(campaign.id, page.id);
+                          }}
+                        />
+                      )}
+                      {page && !canEdit && (
+                        <button
+                          onClick={() =>
+                            download(
+                              "wiki-article.md",
+                              `# ${draft.title}\n\n${draft.body}`,
+                              "text/markdown",
+                            )
+                          }
+                        >
+                          {t("Pobierz Markdown", "Download Markdown")}
+                        </button>
+                      )}
                       {page && (
                         <section className="wiki-relations">
                           <h3>
@@ -842,92 +1199,110 @@ export default function CampaignWiki() {
                                   {meta?.title || "?"}
                                 </button>
                                 <span>{r.label}</span>
-                                <button
-                                  aria-label={t(
-                                    "Usuń powiązanie",
-                                    "Remove relationship",
-                                  )}
-                                  onClick={() =>
-                                    run(async () => {
-                                      await api(
-                                        `campaigns/${campaign.id}/relations/${r.id}/`,
-                                        "DELETE",
-                                      );
+                                {canEdit && (
+                                  <button
+                                    aria-label={t(
+                                      "Usuń powiązanie",
+                                      "Remove relationship",
+                                    )}
+                                    onClick={() =>
+                                      run(async () => {
+                                        await api(
+                                          `campaigns/${campaign.id}/relations/${r.id}/`,
+                                          "DELETE",
+                                        );
+                                        await refresh(campaign.id);
+                                      })
+                                    }
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                                {canEdit && (
+                                  <PublicationControls
+                                    key={r.id}
+                                    campaignId={campaign.id}
+                                    api={api}
+                                    t={t}
+                                    run={run}
+                                    resource={r}
+                                    relation
+                                    changed={async () => {
                                       await refresh(campaign.id);
-                                    })
-                                  }
-                                >
-                                  ×
-                                </button>
+                                    }}
+                                  />
+                                )}
                               </div>
                             );
                           })}
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              run(async () => {
-                                await api(
-                                  `campaigns/${campaign.id}/relations/`,
-                                  "POST",
-                                  {
-                                    id: relationReceipt.current,
-                                    source: page.id,
-                                    target,
-                                    label: relationLabel,
-                                  },
-                                );
-                                relationReceipt.current = newUUID();
-                                setTarget("");
-                                setRelationLabel("");
-                                await refresh(campaign.id);
-                              });
-                            }}
-                          >
-                            <label>
-                              {t("Powiąż z artykułem", "Link to article")}
-                              <select
-                                aria-label={t(
-                                  "Powiąż z artykułem",
-                                  "Link to article",
-                                )}
-                                required
-                                value={target}
-                                onChange={(e) => setTarget(e.target.value)}
-                              >
-                                <option value="">
-                                  {t("Wybierz artykuł", "Choose an article")}
-                                </option>
-                                {campaign.pages
-                                  .filter((p) => p.id !== page.id)
-                                  .map((p) => (
-                                    <option value={p.id} key={p.id}>
-                                      {p.title}
-                                    </option>
-                                  ))}
-                              </select>
-                            </label>
-                            <label>
-                              {t("Opis relacji", "Relationship label")}
-                              <input
-                                required
-                                maxLength={80}
-                                placeholder={t(
-                                  "np. należy do, mieszka w",
-                                  "e.g. belongs to, lives in",
-                                )}
-                                value={relationLabel}
-                                onChange={(e) =>
-                                  setRelationLabel(e.target.value)
-                                }
-                              />
-                            </label>
-                            <button>
-                              {t("Dodaj powiązanie", "Add relationship")}
-                            </button>
-                          </form>
+                          {canEdit && (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                run(async () => {
+                                  await api(
+                                    `campaigns/${campaign.id}/relations/`,
+                                    "POST",
+                                    {
+                                      id: relationReceipt.current,
+                                      source: page.id,
+                                      target,
+                                      label: relationLabel,
+                                    },
+                                  );
+                                  relationReceipt.current = newUUID();
+                                  setTarget("");
+                                  setRelationLabel("");
+                                  await refresh(campaign.id);
+                                });
+                              }}
+                            >
+                              <label>
+                                {t("Powiąż z artykułem", "Link to article")}
+                                <select
+                                  aria-label={t(
+                                    "Powiąż z artykułem",
+                                    "Link to article",
+                                  )}
+                                  required
+                                  value={target}
+                                  onChange={(e) => setTarget(e.target.value)}
+                                >
+                                  <option value="">
+                                    {t("Wybierz artykuł", "Choose an article")}
+                                  </option>
+                                  {campaign.pages
+                                    .filter((p) => p.id !== page.id)
+                                    .map((p) => (
+                                      <option value={p.id} key={p.id}>
+                                        {p.title}
+                                      </option>
+                                    ))}
+                                </select>
+                              </label>
+                              <label>
+                                {t("Opis relacji", "Relationship label")}
+                                <input
+                                  required
+                                  maxLength={80}
+                                  placeholder={t(
+                                    "np. należy do, mieszka w",
+                                    "e.g. belongs to, lives in",
+                                  )}
+                                  value={relationLabel}
+                                  onChange={(e) =>
+                                    setRelationLabel(e.target.value)
+                                  }
+                                />
+                              </label>
+                              <button>
+                                {t("Dodaj powiązanie", "Add relationship")}
+                              </button>
+                            </form>
+                          )}
                         </section>
                       )}
-                      {page && (
+                      {page && canEdit && (
                         <section className="wiki-use">
                           <h3>
                             {t(

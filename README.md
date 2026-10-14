@@ -4,14 +4,14 @@
 
 An open-source RPG adventure workshop: connect scenes, characters, places and clues, keep campaign lore in a wiki, and prepare individual downtime, solo or absent-character adventures for an external MCP agent.
 
-**First public preview: `v0.3.0-alpha.1`.** This is working software under active development. Campaign wiki sharing is planned, not available: currently each wiki is private to its owner. Functional test results are not a server-capacity guarantee.
+**Current preview: `v0.3.0-alpha.2`.** This is working software under active development. Campaign owners can invite co-GMs and players, then publish to the whole group or selected members. Functional test results are not a server-capacity guarantee.
 
 ![The adventure editor with its graph and GM materials](web/frontend/public/images/workshop.png)
 
 ## What works
 
 - A visual adventure editor, structural checks and separate GM secrets.
-- Markdown campaign articles, categories, search, relationships/backlinks and a map over the same records.
+- Campaign memberships/invitations, draft/publication separation, selected audiences, GM preview and filtered Markdown/search/relationships/map.
 - Explicit, version-checked wiki copies into multiple adventures.
 - GM-assigned downtime/solo adventures, scoped player MCP access, persistent memory/journal and human review of lasting consequences.
 - Separate author and player MCP catalogs; the server does not include its own AI model or chat client.
@@ -51,13 +51,13 @@ Before public deployment, follow the [setup and HTTPS instructions](web/README.m
 | Individual adventures | [Guide](web/docs/en/individual-play.md) | [Instrukcja](web/docs/pl/individual-play.md) |
 | Player MCP contract | [Contract](web/docs/en/mcp-play.md) | [Kontrakt](web/docs/pl/mcp-play.md) |
 | Reproduced failures | [Report](web/docs/en/adversarial-testing.md) | [Raport](web/docs/pl/adversarial-testing.md) |
-| Campaign sharing — planned | [Design](web/docs/en/campaign-sharing-plan.md) | [Plan](web/docs/pl/campaign-sharing-plan.md) |
+| Campaign sharing design | [Design](web/docs/en/campaign-sharing-plan.md) | [Plan](web/docs/pl/campaign-sharing-plan.md) |
 
 See [verification](web/docs/verification.md), [release notes](CHANGELOG.md), [contributing](CONTRIBUTING.md), [security reporting](SECURITY.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Current boundaries
 
-Wiki membership, co-GM roles, player wiki access, Kanka import and campaign reader MCP are not implemented. The existing player endpoint uses explicitly assigned adventure snapshots. The server does not enforce RPG mechanics, guarantee narrative quality, automatically merge consequences into campaign canon, provide email/password-reset automation or support realtime collaborative editing. See the sharing design for the next complete group workflow.
+Kanka import, player wiki editing and a separate campaign-reader MCP are not implemented. The existing player endpoint uses explicitly assigned adventure snapshots. The server does not enforce RPG mechanics, guarantee narrative quality, automatically merge consequences into campaign canon, provide email/password-reset automation or support realtime collaborative editing. Browser wiki sharing is available; the sharing design records subsequent stages.
 
 ## Where it started
 

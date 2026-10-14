@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from . import wiki
+from . import wiki, wiki_sharing
 from .domain_errors import DomainError
 
 
@@ -37,7 +37,11 @@ def campaign(request, campaign_id):
         return Response(wiki.update_campaign(request.user, campaign_id, request.data))
     if request.method == "DELETE":
         return Response(wiki.delete_campaign(request.user, campaign_id, request.data))
-    return Response(wiki.campaign_detail(request.user, campaign_id))
+    return Response(
+        wiki.campaign_detail(
+            request.user, campaign_id, request.query_params.get("preview")
+        )
+    )
 
 
 @api_view(["GET", "POST"])
@@ -46,7 +50,10 @@ def pages(request, campaign_id):
     if request.method == "GET":
         return Response(
             wiki.search_pages(
-                request.user, campaign_id, request.query_params.get("q", "")
+                request.user,
+                campaign_id,
+                request.query_params.get("q", ""),
+                request.query_params.get("preview"),
             )
         )
     result, created = wiki.create_page(request.user, campaign_id, request.data)
@@ -57,7 +64,11 @@ def pages(request, campaign_id):
 @errors
 def page(request, campaign_id, page_id):
     if request.method == "GET":
-        return Response(wiki.read_page(request.user, campaign_id, page_id))
+        return Response(
+            wiki.read_page(
+                request.user, campaign_id, page_id, request.query_params.get("preview")
+            )
+        )
     if request.method == "DELETE":
         wiki.body_object(request.data)
         return Response(
@@ -94,10 +105,93 @@ def use_page(request, campaign_id, page_id):
 def export_campaign(request, campaign_id):
     import json
 
-    result = wiki.export_campaign(request.user, campaign_id)
+    result = wiki.export_campaign(
+        request.user, campaign_id, request.query_params.get("preview")
+    )
     response = HttpResponse(
         json.dumps(result, ensure_ascii=False, indent=2),
         content_type="application/json; charset=utf-8",
     )
     response["Content-Disposition"] = 'attachment; filename="campaign-wiki.json"'
     return response
+
+
+@api_view(["GET"])
+@errors
+def members(request, campaign_id):
+    return Response(wiki_sharing.members(request.user, campaign_id))
+
+
+@api_view(["PATCH", "DELETE"])
+@errors
+def member(request, campaign_id, member_id):
+    return Response(
+        wiki_sharing.change_member(
+            request.user,
+            campaign_id,
+            member_id,
+            request.data if request.method == "PATCH" else None,
+        )
+    )
+
+
+@api_view(["POST"])
+@errors
+def leave(request, campaign_id):
+    return Response(wiki_sharing.leave(request.user, campaign_id))
+
+
+@api_view(["GET", "POST"])
+@errors
+def invitations(request, campaign_id):
+    return Response(
+        wiki_sharing.invitations(
+            request.user,
+            campaign_id,
+            request.data if request.method == "POST" else None,
+        )
+    )
+
+
+@api_view(["DELETE"])
+@errors
+def revoke_invitation(request, campaign_id, invitation_id):
+    return Response(
+        wiki_sharing.revoke_invitation(request.user, campaign_id, invitation_id)
+    )
+
+
+@api_view(["POST"])
+@errors
+def inspect_invitation(request):
+    return Response(wiki_sharing.invitation(request.user, request.data))
+
+
+@api_view(["POST"])
+@errors
+def accept_invitation(request):
+    return Response(wiki_sharing.invitation(request.user, request.data, accept=True))
+
+
+@api_view(["POST"])
+@errors
+def publication(request, campaign_id, page_id):
+    return Response(
+        wiki_sharing.publish(request.user, campaign_id, page_id, request.data)
+    )
+
+
+@api_view(["POST"])
+@errors
+def relation_publication(request, campaign_id, relation_id):
+    return Response(
+        wiki_sharing.publish(
+            request.user, campaign_id, relation_id, request.data, relation=True
+        )
+    )
+
+
+@api_view(["GET"])
+@errors
+def audit(request, campaign_id):
+    return Response(wiki_sharing.audit(request.user, campaign_id))

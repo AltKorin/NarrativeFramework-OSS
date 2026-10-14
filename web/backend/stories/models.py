@@ -99,7 +99,7 @@ class PlayConsequence(models.Model):
 
 
 class Campaign(models.Model):
-    """Private world shared by its owner's adventures; independent of play snapshots."""
+    """Campaign world with role-scoped members; independent of play snapshots."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -111,6 +111,10 @@ class Campaign(models.Model):
 
 
 class WikiPage(models.Model):
+    audience = models.CharField(max_length=10, default="gm", db_default="gm")
+    published = models.JSONField(null=True, default=None)
+    recipients = models.ManyToManyField("CampaignMember", blank=True, related_name="granted_pages")
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     campaign = models.ForeignKey(
         Campaign, on_delete=models.CASCADE, related_name="pages"
@@ -125,6 +129,11 @@ class WikiPage(models.Model):
 
 
 class WikiRelation(models.Model):
+    version = models.PositiveIntegerField(default=1, db_default=1)
+    audience = models.CharField(max_length=10, default="gm", db_default="gm")
+    published = models.JSONField(null=True, default=None)
+    recipients = models.ManyToManyField("CampaignMember", blank=True, related_name="granted_relations")
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     campaign = models.ForeignKey(
         Campaign, on_delete=models.CASCADE, related_name="relations"
@@ -143,3 +152,34 @@ class WikiRelation(models.Model):
                 fields=["source", "target", "label"], name="unique_wiki_relation"
             )
         ]
+
+
+class CampaignMember(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="members")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=[("gm", "Co-GM"), ("player", "Player")])
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["campaign", "user"], name="unique_campaign_member")]
+
+
+class CampaignInvitation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="invitations")
+    digest = models.CharField(max_length=64, unique=True, editable=False)
+    role = models.CharField(max_length=10)
+    expires_at = models.DateTimeField()
+    revoked = models.BooleanField(default=False)
+    accepted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    accepted_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class CampaignAuditEvent(models.Model):
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="audit_events")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    action = models.CharField(max_length=40)
+    resource_id = models.CharField(max_length=64, blank=True)
+    version = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
