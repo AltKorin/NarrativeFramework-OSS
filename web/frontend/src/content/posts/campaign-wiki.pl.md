@@ -8,7 +8,7 @@ Nie trzeba od razu opisywać całego kontynentu. Na początek wystarczą trzy ar
 
 Przykładowo kartografka Mira mieszka w porcie i pracuje dla gildii. Artykuły pozwalają czytać opis świata jak wiki, a mapa relacji pokazuje połączenia. To dwa widoki tych samych danych, więc nie trzeba utrzymywać osobnego diagramu.
 
-![Infografika: nazwanie kampanii, dodanie postaci i miejsca, własna relacja oraz mapa powiązań.](/images/social/first-campaign-pl.png)
+![Infografika: nazwanie kampanii, dodanie postaci i miejsca, własna relacja oraz mapa powiązań.](/images/social/first-campaign-illustrated-pl.png)
 
 ## Oddziel opis od sekretu
 

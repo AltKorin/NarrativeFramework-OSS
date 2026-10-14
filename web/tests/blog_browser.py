@@ -91,7 +91,7 @@ with sync_playwright() as p:
         download.save_as(path)
         raw = path.read_bytes()
         assert raw[:8] == b"\x89PNG\r\n\x1a\n"
-        assert struct.unpack(">II", raw[16:24]) == (1080, 1350)
+        assert struct.unpack(">II", raw[16:24]) == ((1122, 1402) if "illustrated" in download.suggested_filename else (1080, 1350))
     assert (
         page.locator("link[rel=canonical]").get_attribute("href")
         == "https://narrativeframework.com/en/"

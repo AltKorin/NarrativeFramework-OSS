@@ -8,7 +8,7 @@ You do not need to describe a continent first. Begin with three articles: the pa
 
 For example, Mira the cartographer lives in the port and works for a guild. Articles let you read the setting as a wiki; the relationship map shows its connections. Both views use the same records, so there is no separate diagram to maintain.
 
-![Infographic: name a campaign, add a character and place, create a relationship and view the map.](/images/social/first-campaign-en.png)
+![Infographic: name a campaign, add a character and place, create a relationship and view the map.](/images/social/first-campaign-illustrated-en.png)
 
 ## Separate descriptions from secrets
 

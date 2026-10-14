@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Preserve the original illustrated campaign infographic alongside the newer RPG series; keep the simplified Photocraft export as an additional download.
+
 - Bilingual campaign/publication infographics on the landing page, full-size PNG downloads and illustrated guides. Layered Photocraft/PSD sources include the first-campaign series and a rugged dark-fantasy GM-secrets series; web previews use compressed assets and accessible HTML summaries.
 
 - PL/EN first-campaign guidance: focused naming, typed character/place creation, saved-data progress and direct custom relationship creation opening the map. Fixed return to campaigns after login/registration. No automatic publication.

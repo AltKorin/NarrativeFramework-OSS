@@ -5,9 +5,9 @@ export default function Infographics({ language }: { language: Language }) {
   const t = (a: string, b: string) => (pl ? a : b);
   const guides = [
     {
-      id: "first-campaign",
+      id: "first-campaign-illustrated",
       title: t("Pierwsza kampania", "Your first campaign"),
-      extension: "png",
+      extension: "webp",
       alt: t(
         "Cztery kroki: nazwij kampanię, dodaj postać i miejsce, nazwij ich relację i otwórz mapę. Mira pracuje w karczmie.",
         "Four steps: name your campaign, add a character and place, name their relationship and open the map. Mira works at the inn.",
@@ -77,8 +77,12 @@ export default function Infographics({ language }: { language: Language }) {
               >
                 <img
                   src={`/images/social/${guide.id}-${language}.${guide.extension}`}
-                  width="1080"
-                  height="1350"
+                  width={
+                    guide.id === "first-campaign-illustrated" ? 1122 : 1080
+                  }
+                  height={
+                    guide.id === "first-campaign-illustrated" ? 1402 : 1350
+                  }
                   loading="lazy"
                   decoding="async"
                   alt={guide.alt}
@@ -94,6 +98,19 @@ export default function Infographics({ language }: { language: Language }) {
                 {t("Pobierz PNG do udostępnienia", "Download PNG to share")}{" "}
                 <span aria-hidden="true">↓</span>
               </a>
+              {guide.id === "first-campaign-illustrated" && (
+                <p className="nf-note">
+                  <a
+                    href={`/images/social/first-campaign-${language}.png`}
+                    download
+                  >
+                    {t(
+                      "Pobierz uproszczony wariant PNG",
+                      "Download the simplified PNG variant",
+                    )}
+                  </a>
+                </p>
+              )}
             </article>
           );
         })}

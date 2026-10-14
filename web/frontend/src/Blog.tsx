@@ -138,18 +138,22 @@ export default function Blog({
                           loading="lazy"
                           decoding="async"
                           width={
-                            src.includes("/social/")
-                              ? 1080
-                              : src === "/images/expedition.webp"
-                                ? 1536
-                                : undefined
+                            src.includes("first-campaign-illustrated-")
+                              ? 1122
+                              : src.includes("/social/")
+                                ? 1080
+                                : src === "/images/expedition.webp"
+                                  ? 1536
+                                  : undefined
                           }
                           height={
-                            src.includes("/social/")
-                              ? 1350
-                              : src === "/images/expedition.webp"
-                                ? 1024
-                                : undefined
+                            src.includes("first-campaign-illustrated-")
+                              ? 1402
+                              : src.includes("/social/")
+                                ? 1350
+                                : src === "/images/expedition.webp"
+                                  ? 1024
+                                  : undefined
                           }
                         />
                       ) : null,
