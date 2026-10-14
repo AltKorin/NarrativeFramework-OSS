@@ -56,6 +56,6 @@ Nie ma jeszcze importu z Kanki, MCP czytelnika kampanii, edycji w czasie rzeczyw
 
 Projekt zaczął się jako framework narracyjny do Unity. Później rozwinął się w kierunku wykorzystania w grze, a ten otwarty warsztat RPG stał się niezależną wersją dla wszystkich. Oryginalne [assety Unity](Assets/NarrativeFrameworkForUnity/Documentation/README.md) pozostają częścią historyczną; aplikacja webowa ich nie potrzebuje. Nie były sprawdzane testami wydania webowego i mają inny format danych, bez gotowej konwersji.
 
-Kod i dokumentacja: [MIT](LICENSE), z osobno opisanymi zasadami używania marki. Ilustracje demonstracyjne wygenerowano z pomocą AI i udostępniono bez gwarancji; szczegóły w [informacji o materiałach](THIRD_PARTY_NOTICES.md).
+Kod i dokumentacja: [MIT](LICENSE), z osobno opisanymi [zasadami używania marki](BRANDING.md). Ilustracje demonstracyjne wygenerowano z pomocą AI i udostępniono bez gwarancji; szczegóły w [informacji o materiałach](THIRD_PARTY_NOTICES.md).
 
 Wsparcie: [Buy Me a Coffee — Oil to my machine](https://www.buymeacoffee.com/StolemCentrumGier).

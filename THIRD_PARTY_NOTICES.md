@@ -22,7 +22,7 @@ This is a navigation aid, not a complete transitive license inventory. Authorita
 - `web/frontend/public/images/workshop.png` is a screenshot of this application's fictional demonstration scenario.
 - `web/frontend/public/images/harbor.jpg` and `harbor.webp` are AI-generated demonstration artwork (two encodings of the same illustration).
 - The original Unity demonstration illustrations under `Assets/NarrativeFrameworkForUnity/Data/Illustrations` and `Images` are AI-generated and provided as-is for demonstration.
-- Brand names and logos are subject to the brand statement in `LICENSE`.
+- Brand names and logos are subject to the brand statement in `BRANDING.md`.
 - Kanka is mentioned as an existing tool and possible future import source. No Kanka code or assets are included.
 
 The historical Unity code depends on Unity and TextMeshPro in a user's Unity installation. Those products are not bundled here and are governed by their own terms. Legacy optional AI integrations require the user's provider account/key; the web workshop does not bundle a model or require provider credentials.

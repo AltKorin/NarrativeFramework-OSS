@@ -17,7 +17,7 @@ excluded = {
     "__pycache__",
     "releases",
 }
-files = [root / name for name in ("LICENSE", "CONTRIBUTING.md", "README.md", "README.pl.md", "CHANGELOG.md", "SECURITY.md", "THIRD_PARTY_NOTICES.md")]
+files = [root / name for name in ("LICENSE", "CONTRIBUTING.md", "README.md", "README.pl.md", "CHANGELOG.md", "SECURITY.md", "THIRD_PARTY_NOTICES.md", "BRANDING.md")]
 for path in (root / "web").rglob("*"):
     rel = path.relative_to(root)
     if not path.is_file() or path.is_symlink() or excluded.intersection(rel.parts):

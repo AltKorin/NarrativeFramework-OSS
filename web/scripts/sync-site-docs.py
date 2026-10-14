@@ -21,6 +21,7 @@ for source, name in (
     (web / "README.pl.md", "README.pl.md"),
     (web.parent / "CONTRIBUTING.md", "CONTRIBUTING.md"),
     (web.parent / "LICENSE", "docs/LICENSE.txt"),
+    (web.parent / "BRANDING.md", "docs/BRANDING.md"),
 ):
     shutil.copyfile(source, public / name)
 print("Website docs synchronized.")

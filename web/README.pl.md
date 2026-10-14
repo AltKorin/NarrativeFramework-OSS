@@ -2,7 +2,7 @@
 
 [English](README.md) · [Indywidualne przygody](docs/pl/individual-play.md) · [Kontrakt MCP gracza](docs/pl/mcp-play.md) · [Przykład](examples/README.pl.md)
 
-Samodzielny warsztat przygód RPG obok oryginalnych assetów Unity. Django/DRF, PostgreSQL, React/TypeScript, React Flow i osobny serwis MCP. Licencja MIT; wyłączenia nazwy i znaków marki opisuje główny plik LICENSE.
+Samodzielny warsztat przygód RPG obok oryginalnych assetów Unity. Django/DRF, PostgreSQL, React/TypeScript, React Flow i osobny serwis MCP. Licencja MIT; zasady używania nazwy i znaków marki opisuje osobny plik [BRANDING.md](../BRANDING.md).
 
 ## Co działa
 

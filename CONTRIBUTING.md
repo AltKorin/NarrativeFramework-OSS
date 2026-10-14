@@ -37,7 +37,7 @@ For domain changes run `python manage.py test stories` using the project environ
 
 Describe the user-visible trigger and resulting behavior, affected boundary and checks actually run. Update the bilingual guides for user behavior, the MCP contract for tools/arguments/errors, and architecture decisions when storage/authority/retry semantics change. Mark deferred behavior explicitly. Do not claim load capacity from functional tests.
 
-Do not commit `.env`, database files, generated local state, real campaign content, credentials, build output or `node_modules`. Sample adventures should be fictional and distributable. The root MIT license applies, with its branding exclusions.
+Do not commit `.env`, database files, generated local state, real campaign content, credentials, build output or `node_modules`. Sample adventures should be fictional and distributable. The root MIT license applies, with separate [brand permissions](BRANDING.md).
 
 Adversarial regression procedures: [English](web/docs/en/adversarial-testing.md) · [Polski](web/docs/pl/adversarial-testing.md). Run dependency-stop tests only against the dedicated disposable Compose project described there.
 
