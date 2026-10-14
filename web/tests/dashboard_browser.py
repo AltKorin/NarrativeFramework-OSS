@@ -100,8 +100,18 @@ try:
             page.get_by_role("button",name=t("Otwórz demo przygody","Open adventure demo"),exact=True).click()
             expect(page.locator(".react-flow__node")).to_have_count(6)
             assert page.get_by_label(t("Tytuł przygody","Adventure title"),exact=True).input_value()!="My adventure "+lang
+            page.locator("header").get_by_role("button",name=t("Pulpit","Dashboard"),exact=True).click()
+            page.locator(".wh-lists").get_by_role("link",name="My adventure "+lang,exact=True).click()
+            page.get_by_label(t("Tytuł przygody","Adventure title"),exact=True).wait_for()
+            page.route("**/api/demo/**", lambda route: route.fulfill(status=503,content_type="application/json",body=json.dumps({"error":"Temporary demo failure"})))
             page.locator("header").get_by_role("button",name=users[lang],exact=False).click()
             page.get_by_role("button",name=t("Wyloguj","Log out"),exact=True).click()
+            page.locator(".loading").wait_for()
+            assert "My adventure "+lang not in page.locator("body").inner_text()
+            assert "UNSAVED_OPENING" not in page.locator("body").inner_text()
+            page.get_by_role("link",name=t("Wróć do pulpitu","Back to dashboard"),exact=True).wait_for()
+            page.unroute("**/api/demo/**")
+            page.get_by_role("link",name=t("Wróć do pulpitu","Back to dashboard"),exact=True).click()
             page.get_by_role("heading",name=t("Twój warsztat RPG","Your RPG workshop"),exact=True).wait_for()
             assert page.locator(".wh-lists").count()==0
             assert "My campaign "+lang not in page.locator("main").inner_text()

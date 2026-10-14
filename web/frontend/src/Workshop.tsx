@@ -264,6 +264,11 @@ export default function Workshop() {
       <main className="loading">
         <h1>Narrative Framework</h1>
         <p>{notice ? t(notice) : t("Otwieranie warsztatu…")}</p>
+        {notice && (
+          <a href={`/workshop/?lang=${language}`}>
+            {language === "pl" ? "Wróć do pulpitu" : "Back to dashboard"}
+          </a>
+        )}
       </main>
     );
   const doc = story.document,
@@ -650,17 +655,21 @@ export default function Workshop() {
                 onClick={() =>
                   run(async () => {
                     await api("session/", "DELETE");
+                    const needsDemo = !story.is_demo;
                     setUser(null);
                     setMcpToken("");
-                    if (!story.is_demo)
+                    setItems([]);
+                    setHasOpenedEditor(false);
+                    if (needsDemo) setStory(null);
+                    setSaved(true);
+                    navigateView("home");
+                    if (needsDemo)
                       setStory(
                         restoreDemo(
                           await api(`demo/?lang=${language}`),
                           language,
                         ),
                       );
-                    setSaved(true);
-                    navigateView("home");
                   })
                 }
               >
