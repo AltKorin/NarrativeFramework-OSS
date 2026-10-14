@@ -40,6 +40,8 @@ jobs:
           PY
       - name: Build and start Compose (includes TypeScript and static HTML)
         run: docker compose -f web/compose.yaml up --build --wait --wait-timeout 180 -d
+      - name: Static content, SEO and HTTP status checks
+        run: python web/tests/content_http.py
       - name: PostgreSQL regressions and migration consistency
         run: |
           docker compose -f web/compose.yaml exec -T api python manage.py test stories --noinput
@@ -55,9 +57,12 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Browser workflows (fictional disposable accounts)
         run: |
+          python web/tests/blog_browser.py
+          python web/tests/analytics_browser.py
           python web/tests/browser.py
           python web/tests/languages.py
           python web/tests/site_browser.py
+          python web/tests/onboarding_browser.py
           python web/tests/wiki_browser.py
           python web/tests/sharing_browser.py
           python web/tests/play_browser.py

@@ -59,3 +59,7 @@ Projekt zaczął się jako framework narracyjny do Unity. Później rozwinął s
 Kod i dokumentacja: [MIT](LICENSE), z osobno opisanymi [zasadami używania marki](BRANDING.md). Ilustracje demonstracyjne wygenerowano z pomocą AI i udostępniono bez gwarancji; szczegóły w [informacji o materiałach](THIRD_PARTY_NOTICES.md).
 
 Wsparcie: [Buy Me a Coffee — Oil to my machine](https://www.buymeacoffee.com/StolemCentrumGier).
+
+
+- [First campaign / Pierwsza kampania — UX](web/docs/pl/first-campaign-ux.md)
+- [Blog, SEO, Analytics](web/docs/pl/publishing-and-analytics.md)

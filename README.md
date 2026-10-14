@@ -68,3 +68,7 @@ Narrative Framework began as a Unity toolkit for branching narrative simulations
 Code and documentation use the [MIT License](LICENSE). [Brand-name/logo permissions](BRANDING.md) are documented separately. AI-generated demo illustrations are provided as-is; see [asset and dependency notices](THIRD_PARTY_NOTICES.md).
 
 If the project helps your table, you can support it through [Buy Me a Coffee — Oil to my machine](https://www.buymeacoffee.com/StolemCentrumGier).
+
+
+- [First campaign / Pierwsza kampania — UX](web/docs/en/first-campaign-ux.md)
+- [Blog, SEO, Analytics](web/docs/en/publishing-and-analytics.md)

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- PL/EN first-campaign guidance: focused naming, typed character/place creation, saved-data progress and direct custom relationship creation opening the map. Fixed return to campaigns after login/registration. No automatic publication.
+- Three bilingual, prerendered RPG guides with article metadata, hreflang, sitemap, RSS, true 404 responses and www canonical redirect.
+- Optional consent-gated public GA4, separate prepared-but-disabled application stream, sanitized manual context and withdrawal controls; disabled defaults for forks. Updated privacy/cookie notices.
+- Browser regressions and documented first-time GM usability-study plan; no claim of completed human usability research.
+
 ## v0.3.0-alpha.2 — 2026-10-14
 
 - Shared campaign wiki: owner/co-GM/player roles, expiring single-use invitations, membership management and leaving/revocation.

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { initialLanguage, type Language } from "./i18n";
 import "./landing.css";
+import "./blog.css";
+import { posts, postPath } from "./posts";
 
 type SiteConfig = {
   applicationUrl: string;
@@ -313,6 +315,21 @@ export default function Landing({
       language === "pl"
         ? "Narrative Framework — otwarty warsztat przygód RPG"
         : "Narrative Framework — an open RPG adventure workshop";
+    const canonical = `https://narrativeframework.com/${language}/`;
+    document
+      .querySelector('link[rel="canonical"]')
+      ?.setAttribute(
+        "href",
+        location.pathname === "/"
+          ? "https://narrativeframework.com/"
+          : canonical,
+      );
+    document
+      .querySelector('meta[property="og:url"]')
+      ?.setAttribute("content", canonical);
+    document
+      .querySelector('meta[property="og:title"]')
+      ?.setAttribute("content", document.title);
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute("content", t.intro);
@@ -368,6 +385,9 @@ export default function Landing({
               {name}
             </a>
           ))}
+          <a href={`/${language}/blog/`}>
+            {language === "pl" ? "Poradniki" : "Guides"}
+          </a>
         </nav>
         <div
           className="nf-languages"
@@ -392,11 +412,19 @@ export default function Landing({
             <h1>{t.title}</h1>
             <p className="nf-lead">{t.intro}</p>
             <div className="nf-actions">
-              <a className="nf-button" href={appHref}>
+              <a
+                className="nf-button"
+                href={appHref}
+                data-analytics="open_workshop"
+              >
                 {t.try}
                 <span aria-hidden="true">↗</span>
               </a>
-              <a className="nf-text-link" href={signupHref}>
+              <a
+                className="nf-text-link"
+                href={signupHref}
+                data-analytics="sign_up_click"
+              >
                 {t.signup}
                 <span aria-hidden="true">→</span>
               </a>
@@ -509,7 +537,11 @@ export default function Landing({
               <h3>{t.source}</h3>
               <p>{t.sourceText}</p>
               {config.repositoryUrl ? (
-                <a className="nf-text-link" href={config.repositoryUrl}>
+                <a
+                  className="nf-text-link"
+                  href={config.repositoryUrl}
+                  data-analytics="github_click"
+                >
                   GitHub <span aria-hidden="true">↗</span>
                 </a>
               ) : (
@@ -548,7 +580,11 @@ export default function Landing({
               <h3>{t.support}</h3>
               <p>{t.supportText}</p>
               {config.supportUrl ? (
-                <a className="nf-text-link" href={config.supportUrl}>
+                <a
+                  className="nf-text-link"
+                  href={config.supportUrl}
+                  data-analytics="support_click"
+                >
                   Oil to my machine <span aria-hidden="true">↗</span>
                 </a>
               ) : (
@@ -556,6 +592,25 @@ export default function Landing({
               )}
             </article>
           </div>
+        </section>
+        <section className="nf-blog-teaser nf-container">
+          <div>
+            <h2>
+              {language === "pl"
+                ? "Pomysły na następną sesję"
+                : "Ideas for your next session"}
+            </h2>
+            <a className="nf-text-link" href={`/${language}/blog/`}>
+              {language === "pl" ? "Wszystkie poradniki" : "All guides"} ↗
+            </a>
+          </div>
+          {posts.slice(0, 2).map((post) => (
+            <a href={postPath(post, language)} key={post.id}>
+              <p>{post[language].category}</p>
+              <h3>{post[language].title}</h3>
+              <p>{post[language].description}</p>
+            </a>
+          ))}
         </section>
         <section className="nf-faq nf-container">
           <div className="nf-faq-intro">

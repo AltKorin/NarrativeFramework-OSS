@@ -1,193 +1,212 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cookie Policy | Narrative Framework</title>
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Crimson+Pro:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>
+      Cookies i pamięć przeglądarki / Browser storage | Narrative Framework
+    </title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://narrativeframework.com/cookies.html" />
+    <link rel="stylesheet" href="/analytics.css" />
+    <script src="/analytics.js" defer></script>
     <style>
-        :root {
-            --bg-primary: #0D0D0F;
-            --bg-secondary: #131316;
-            --text-primary: #FFFAF5;
-            --text-secondary: #A8A4A0;
-            --accent: #8B2635;
-            --gold: #C9A55C;
-            --border: #252528;
-        }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.7;
-        }
-        
-        h1, h2, h3 { font-family: 'Cinzel', serif; font-weight: 500; }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 6rem 2rem;
-        }
-        
+      body {
+        margin: 0;
+        background: #f8f8f3;
+        color: #1c302b;
+        font:
+          16px/1.8 "Segoe UI",
+          system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 800px;
+        margin: auto;
+        padding: 45px 24px 100px;
+      }
+      a {
+        color: inherit;
+        text-underline-offset: 4px;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        font-size: 14px;
+        margin-bottom: 45px;
+      }
+      h1 {
+        font-size: 40px;
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+      }
+      h2 {
+        font-size: 25px;
+        margin-top: 35px;
+      }
+      h3 {
+        font-size: 19px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      td,
+      th {
+        text-align: left;
+        padding: 12px;
+        border-bottom: 1px solid #d9ddd4;
+        vertical-align: top;
+      }
+      section {
+        scroll-margin-top: 25px;
+        margin-bottom: 55px;
+      }
+      p,
+      li {
+        max-width: 75ch;
+      }
+      .updated {
+        font-size: 13px;
+        color: #56615a;
+      }
+      a:focus-visible {
+        outline: 3px solid #a33e24;
+        outline-offset: 4px;
+      }
+      @media (max-width: 600px) {
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+          font-size: 32px;
         }
-        
-        .last-updated {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 3rem;
-        }
-        
-        h2 {
-            font-size: 1.4rem;
-            margin-top: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--gold);
-        }
-        
-        p, ul {
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-        
-        ul {
-            padding-left: 1.5rem;
-        }
-        
-        li {
-            margin-bottom: 0.5rem;
-        }
-        
-        a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-        
-        a:hover {
-            text-decoration: underline;
-        }
-        
-        .back-link {
-            display: inline-block;
-            margin-bottom: 2rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        
-        .back-link:hover {
-            color: var(--text-primary);
-        }
-        
         table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1.5rem 0;
+          display: block;
+          overflow: auto;
         }
-        
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
-        }
-        
-        th {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-        
-        td {
-            color: var(--text-secondary);
-        }
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <a href="/" class="back-link">← Back to Home</a>
-        
-        <h1>Cookie Policy</h1>
-        <p class="last-updated">Last updated: January 2025</p>
-        
-        <p>This Cookie Policy explains how Narrative Framework uses cookies and similar technologies on narrativeframework.com.</p>
-        
-        <h2>What Are Cookies?</h2>
-        <p>Cookies are small text files stored on your device when you visit a website. They help websites remember your preferences and understand how you use the site.</p>
-        
-        <h2>Cookies We Use</h2>
-        
+  </head>
+  <body>
+    <main>
+      <nav>
+        <a href="/pl/">Narrative Framework</a><a href="#pl">Polski</a
+        ><a href="#en" lang="en">English</a
+        ><a href="/privacy.html">Prywatność / Privacy</a>
+      </nav>
+      <h1>Cookies i pamięć przeglądarki / Browser storage</h1>
+      <p class="updated">Aktualizacja / Updated: 14.10.2026</p>
+      <section id="pl" lang="pl">
+        <h2>Co zapisujemy w przeglądarce</h2>
         <table>
-            <thead>
-                <tr>
-                    <th>Cookie</th>
-                    <th>Type</th>
-                    <th>Purpose</th>
-                    <th>Duration</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>cookie_consent</td>
-                    <td>Necessary</td>
-                    <td>Stores your cookie preferences</td>
-                    <td>1 year</td>
-                </tr>
-                <tr>
-                    <td>_ga</td>
-                    <td>Analytics</td>
-                    <td>Google Analytics - distinguishes users</td>
-                    <td>2 years</td>
-                </tr>
-                <tr>
-                    <td>_ga_*</td>
-                    <td>Analytics</td>
-                    <td>Google Analytics - session state</td>
-                    <td>2 years</td>
-                </tr>
-            </tbody>
+          <thead>
+            <tr>
+              <th>Nazwa</th>
+              <th>Cel</th>
+              <th>Czas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>sessionid, csrftoken</td>
+              <td>
+                Sesja konta i ochrona żądań zapisu; dane niezbędne do funkcji
+                aplikacji.
+              </td>
+              <td>
+                Według konfiguracji sesji/CSRF danej instancji; mogą zostać
+                wcześniej usunięte przez przeglądarkę.
+              </td>
+            </tr>
+            <tr>
+              <td>narrative-framework-language</td>
+              <td>Zapamiętanie wyboru PL/EN w localStorage.</td>
+              <td>Do wyczyszczenia pamięci przeglądarki.</td>
+            </tr>
+            <tr>
+              <td>Lokalny szkic demo</td>
+              <td>Zachowanie pracy w demo bez konta, w localStorage.</td>
+              <td>Do nadpisania lub wyczyszczenia pamięci.</td>
+            </tr>
+            <tr>
+              <td>nf-analytics-consent-v1</td>
+              <td>
+                Wybór zgody/odmowy analityki, w localStorage. Preferencja jest
+                osobna dla każdego hosta.
+              </td>
+              <td>180 dni; po upływie pytamy ponownie.</td>
+            </tr>
+            <tr>
+              <td>_ga, _ga_*</td>
+              <td>Opcjonalny pomiar Google Analytics, dopiero po zgodzie.</td>
+              <td>
+                Do 180 dni od zapisu/odnowienia; dostępne cookies usuwamy przy
+                wycofaniu zgody.
+              </td>
+            </tr>
+          </tbody>
         </table>
-        
-        <h2>Types of Cookies</h2>
-        
-        <p><strong>Necessary Cookies:</strong> Essential for the website to function. Cannot be disabled.</p>
-        
-        <p><strong>Analytics Cookies:</strong> Help us understand how visitors use our website. We use this data to improve our content and user experience. These require your consent.</p>
-        
-        <h2>Managing Cookies</h2>
-        <p>You can control cookies through:</p>
-        <ul>
-            <li><strong>Our cookie banner:</strong> Accept or decline non-essential cookies when you first visit</li>
-            <li><strong>Browser settings:</strong> Most browsers allow you to block or delete cookies</li>
-        </ul>
-        
-        <p>Note: Blocking cookies may affect website functionality.</p>
-        
-        <h2>Browser Settings</h2>
-        <ul>
-            <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener">Chrome</a></li>
-            <li><a href="https://support.mozilla.org/en-US/kb/cookies-information-websites-store-on-your-computer" target="_blank" rel="noopener">Firefox</a></li>
-            <li><a href="https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac" target="_blank" rel="noopener">Safari</a></li>
-            <li><a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener">Edge</a></li>
-        </ul>
-        
-        <h2>Third-Party Cookies</h2>
-        <p>We use Google Analytics, which sets its own cookies. Google's privacy policy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></p>
-        
-        <h2>Updates</h2>
-        <p>We may update this policy. Check this page for the latest version.</p>
-        
-        <h2>Contact</h2>
-        <p>Questions? Email: konradkomorowski88@gmail.com</p>
-        
-        <p style="margin-top: 2rem;">See also: <a href="privacy.html">Privacy Policy</a></p>
-    </div>
-</body>
+        <h3>Wybór należy do Ciebie</h3>
+        <p>
+          Przed zgodą tag Google nie jest ładowany i nie wysyłamy pomiaru do
+          Google. „Bez analityki” pozostawia warsztat w pełni dostępny. Wróć do
+          wyboru przez „Ustawienia analityki”, gdy pomiar jest skonfigurowany
+          dla tej części strony. Na instancji z wyłączoną analityką nie ma tagu
+          ani banera.
+        </p>
+        <p>
+          Po wcześniejszym włączeniu pomiaru wycofanie zgody przeładuje stronę,
+          aby usunąć aktywne nasłuchy Google. Wcześniej wysłane dane nie są
+          przez to automatycznie usuwane z usługi Google. Preferencja dotyczy
+          tej przeglądarki i hosta; strona główna i aplikacja na subdomenie mogą
+          zapytać osobno.
+        </p>
+        <h3>Ustawienia przeglądarki</h3>
+        <p>
+          Możesz blokować lub usuwać cookies i localStorage w przeglądarce.
+          Usunięcie niezbędnych cookies wyloguje konto, a usunięcie szkicu demo
+          bez eksportu może oznaczać utratę pracy. Szczegóły przetwarzania
+          danych i kontakt: <a href="/privacy.html">prywatność</a>.
+        </p>
+      </section>
+      <section id="en" lang="en">
+        <h2>What the browser stores</h2>
+        <p>
+          <strong>sessionid / csrftoken:</strong> account sessions and
+          write-request protection, with lifetimes determined by the instance's
+          session/CSRF settings.
+          <strong>Language preference:</strong> localStorage until cleared.
+          <strong>Demo drafts:</strong> localStorage until replaced/cleared.
+        </p>
+        <p>
+          <strong>nf-analytics-consent-v1:</strong> a localStorage
+          consent/decline choice valid for 180 days, separately for each host.
+          <strong>_ga / _ga_*:</strong> optional Google Analytics cookies
+          configured for up to 180 days from writing/renewal, only after
+          consent; accessible cookies are cleared on withdrawal.
+        </p>
+        <h3>Your choice</h3>
+        <p>
+          Before consent, the Google tag is not loaded and no measurement is
+          sent to Google. “No analytics” leaves the workshop functional. Reopen
+          “Analytics settings” to change your preference when analytics is
+          configured for this area. Disabled instances load neither the tag nor
+          a consent banner.
+        </p>
+        <p>
+          Withdrawing a previous consent reloads the page to remove installed
+          Google listeners. This does not automatically delete previously
+          received Google data. Preferences belong to this browser/host; the
+          main site and app subdomain may ask separately.
+        </p>
+        <h3>Browser controls</h3>
+        <p>
+          You can block or clear cookies and localStorage. Removing necessary
+          cookies signs you out; clearing an unexported demo draft may lose that
+          work. See <a href="/privacy.html">privacy information</a> for
+          processing details and contact.
+        </p>
+      </section>
+    </main>
+  </body>
 </html>

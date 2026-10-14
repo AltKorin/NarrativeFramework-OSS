@@ -51,7 +51,7 @@ PLAYWRIGHT_BROWSERS_PATH=/tmp/narrative-browsers web/.venv/bin/python web/tests/
 
 Playwright jest opcjonalną zależnością developerską opisaną w [weryfikacji](../verification.md). Test tworzy tymczasowe konto przez publiczny formularz, zapisuje prywatną przygodę i usuwa konto w `finally`.
 
-Vite generuje osobny pakiet landing page i edytora. Dodatkowy build SSR służy wyłącznie do wygenerowania statycznego HTML PL/EN, z opisem, canonical, hreflang i obrazem Open Graph. Na serwerze nie uruchamia się Node. Caddy serwuje stronę i przekazuje dotychczasowe endpointy do API/MCP. Strona nie ładuje analityki, zewnętrznych fontów ani skryptu wsparcia. Ilustrację portu wygenerowano przy użyciu AI; podgląd edytora to prawdziwy zrzut lokalnego demo.
+Vite generuje osobny pakiet landing page i edytora. Dodatkowy build SSR służy wyłącznie do wygenerowania statycznego HTML PL/EN, z opisem, canonical, hreflang i obrazem Open Graph. Na serwerze nie uruchamia się Node. Caddy serwuje stronę i przekazuje dotychczasowe endpointy do API/MCP. Opcjonalna analityka wymaga zgody; aplikacja ma osobny, domyślnie wyłączony pomiar. Zewnętrzne fonty i skrypt wsparcia nie są ładowane. Ilustrację portu wygenerowano przy użyciu AI; podgląd edytora to prawdziwy zrzut lokalnego demo.
 
 ## Wdrożenie referencyjne przez Cloudflare Tunnel
 
@@ -68,3 +68,6 @@ Po zmianie konfiguracji frontendowej przebuduj usługę web. Własny `site-confi
 Testy na docelowym LXC oraz przez publiczne HTTPS opisuje [weryfikacja](../verification.md). Przy świeżym DNS można użyć `SITE_TEST_RESOLVE_IP` z potwierdzonym publicznym adresem Cloudflare — dotyczy to wyłącznie procesu testowego; certyfikat nadal jest sprawdzany dla rzeczywistej nazwy domeny. Nie zmienia to DNS ani pliku hosts komputera.
 
 Szczegółowa instrukcja przygotowania kontenera: [LXC na proxmox-hp](lxc-setup.md).
+
+
+[Blog / SEO / Analytics](publishing-and-analytics.md)

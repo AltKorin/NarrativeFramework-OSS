@@ -12,3 +12,10 @@ export function render(
 ) {
   return renderToString(<Landing initialLang={language} siteConfig={config} />);
 }
+
+import Blog from "./Blog";
+import { posts, postPath, postBody } from "./posts";
+export { posts, postPath, postBody };
+export function renderBlog(language: Language, slug = "") {
+  return renderToString(<Blog initialLang={language} slug={slug} />);
+}

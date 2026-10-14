@@ -597,6 +597,13 @@ export default function Workshop() {
                     );
                     return;
                   }
+                  if (
+                    new URLSearchParams(location.search).get("next") ===
+                    "campaigns"
+                  ) {
+                    location.assign(`/campaigns/?lang=${language}`);
+                    return;
+                  }
                   setPassword("");
                   setPasswordConfirm("");
                   setRegisterMode(false);

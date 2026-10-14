@@ -116,3 +116,7 @@ Website configuration and deployment handoff: [English](docs/en/website.md) · [
 ## Campaign wiki
 
 Open `/campaigns/` or choose **Campaign wiki** in the workshop. Campaigns support owner/co-GM/player memberships, single-use invitations, deliberate publication to all or selected players, Markdown articles, search, relationships/backlinks and a filtered graph. Reuse articles across adventures through version-checked snapshots; GM notes remain separate. Migrations 0004 and 0005 are additive; existing material stays private. [Guide and contracts](docs/en/campaign-wiki.md).
+
+
+- [First campaign / Pierwsza kampania — UX](docs/en/first-campaign-ux.md)
+- [Blog, SEO, Analytics](docs/en/publishing-and-analytics.md)

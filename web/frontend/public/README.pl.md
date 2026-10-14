@@ -128,3 +128,7 @@ Zobacz [CONTRIBUTING](../CONTRIBUTING.md), [decyzje architektoniczne](docs/archi
 ## Wiki kampanii
 
 Otwórz `/campaigns/` lub wybierz **Wiki kampanii** w warsztacie. Kampania obsługuje role właściciela, współ-MG i gracza, jednorazowe zaproszenia, publikacje dla wszystkich lub wybranych graczy oraz filtrowane artykuły, wyszukiwanie, relacje i mapę. Materiały można kopiować do różnych przygód z kontrolą wersji, zachowując osobne sekrety MG. Migracje 0004 i 0005 dodają wiki oraz współdzielenie; stare materiały pozostają prywatne. [Instrukcja i kontrakty](docs/pl/campaign-wiki.md).
+
+
+- [First campaign / Pierwsza kampania — UX](docs/pl/first-campaign-ux.md)
+- [Blog, SEO, Analytics](docs/pl/publishing-and-analytics.md)

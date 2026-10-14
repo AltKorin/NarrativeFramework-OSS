@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import Markdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ReactFlow, Background, Controls, MarkerType } from "@xyflow/react";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  MarkerType,
+  useReactFlow,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { initialLanguage, translate, type Language } from "./i18n";
 import { newUUID } from "./uuid";
 import "./wiki.css";
+import CampaignStart from "./CampaignStart";
 import {
   CampaignSharing,
   PublicationControls,
@@ -99,6 +106,25 @@ const messages: Record<string, string> = {
   "Wiki page limit reached": "Osiągnięto limit 1000 artykułów w kampanii.",
   "Wiki relation limit reached": "Osiągnięto limit 2000 powiązań w kampanii.",
 };
+function FitCampaignMap() {
+  const flow = useReactFlow();
+  useEffect(() => {
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        void flow.fitView({ padding: 0.2 });
+      });
+    });
+    const element = document.querySelector(".wiki-map");
+    if (element) observer.observe(element);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [flow]);
+  return null;
+}
 export default function CampaignWiki() {
   const [language, setLanguage] = useState<Language>(initialLanguage);
   const pl = language === "pl";
@@ -458,6 +484,30 @@ export default function CampaignWiki() {
     changeURL(campaign.id, value.id);
     setNotice(t("Zapisano artykuł.", "Article saved."));
   }
+  function addEntry(kind = "lore") {
+    if (!mayLeave()) return;
+    setNewId(newUUID());
+    setPage(null);
+    setDraft({ ...emptyDraft(), kind });
+    setEditing(true);
+    setGraph(false);
+    setCopiedTo("");
+    requestAnimationFrame(() =>
+      document.getElementById("wiki-entry-title")?.focus(),
+    );
+  }
+  function showMap() {
+    if (!mayLeave()) return;
+    setGraph(true);
+    requestAnimationFrame(() =>
+      document.querySelector(".wiki-map")?.scrollIntoView({ block: "center" }),
+    );
+  }
+  useEffect(() => {
+    if (campaign && canEdit && !editing) {
+      document.querySelector(".wiki-start")?.scrollIntoView({ block: "start" });
+    }
+  }, [campaign?.id, campaign?.pages.length, editing]);
   const visible = hits || campaign?.pages || [];
   const connections =
     campaign?.relations.filter(
@@ -502,7 +552,7 @@ export default function CampaignWiki() {
             <button aria-pressed={!graph} onClick={() => setGraph(false)}>
               {t("Artykuły", "Articles")}
             </button>
-            <button aria-pressed={graph} onClick={() => setGraph(true)}>
+            <button aria-pressed={graph} onClick={showMap}>
               {t("Mapa powiązań", "Relationship map")}
             </button>
           </div>
@@ -608,7 +658,7 @@ export default function CampaignWiki() {
             )}
           </p>
           <a
-            href={`/workshop/?account=login&lang=${language}${inviteToken ? "#return-wiki-invite=" + encodeURIComponent(inviteToken) : ""}`}
+            href={`/workshop/?account=login&next=campaigns&lang=${language}${inviteToken ? "#return-wiki-invite=" + encodeURIComponent(inviteToken) : ""}`}
           >
             {t("Zaloguj się lub załóż konto", "Log in or create an account")}
           </a>
@@ -665,12 +715,17 @@ export default function CampaignWiki() {
                 {t("Nazwa nowej kampanii", "New campaign name")}
                 <input
                   required
+                  id="wiki-campaign-name"
+                  placeholder={t(
+                    "np. Cienie nad Zatoką",
+                    "e.g. Shadows over the Bay",
+                  )}
                   maxLength={200}
                   value={newCampaign}
                   onChange={(e) => setNewCampaign(e.target.value)}
                 />
               </label>
-              <button type="submit">
+              <button type="submit" disabled={!newCampaign.trim()}>
                 {t("Utwórz kampanię", "Create campaign")}
               </button>
             </form>
@@ -689,13 +744,7 @@ export default function CampaignWiki() {
                   <button
                     className="wiki-primary"
                     onClick={() => {
-                      if (!mayLeave()) return;
-                      setNewId(newUUID());
-                      setPage(null);
-                      setDraft(emptyDraft());
-                      setEditing(true);
-                      setGraph(false);
-                      setCopiedTo("");
+                      addEntry();
                     }}
                   >
                     {t("Nowy artykuł", "New article")}
@@ -904,8 +953,22 @@ export default function CampaignWiki() {
                 <h2>{t("Zacznij od kampanii.", "Start with a campaign.")}</h2>
                 <p>
                   {t(
-                    "Utwórz świat, do którego będziesz wracać w kolejnych przygodach.",
-                    "Create a world you can return to in future adventures.",
+                    "Nadaj nazwę kampanii. Potem dodasz postacie i miejsca oraz połączysz je na mapie. Nie musisz od razu opisywać całego świata.",
+                    "Name your campaign. Then add characters and places and connect them on a map. You do not need to describe your whole world at once.",
+                  )}
+                </p>
+                <button
+                  className="wiki-primary"
+                  onClick={() =>
+                    document.getElementById("wiki-campaign-name")?.focus()
+                  }
+                >
+                  {t("Nazwij swoją kampanię", "Name your campaign")}
+                </button>
+                <p className="wiki-hint">
+                  {t(
+                    "Kampania to wspólny świat. Warsztat przygód służy do planowania pojedynczych scenariuszy.",
+                    "A campaign is your shared world. The adventure workshop plans individual scenarios.",
                   )}
                 </p>
               </div>
@@ -921,6 +984,49 @@ export default function CampaignWiki() {
                     · {campaign.pages.length} {t("artykułów", "articles")}
                   </p>
                 </div>
+                {canEdit && !editing && (
+                  <CampaignStart
+                    key={campaign.id}
+                    pl={pl}
+                    pages={campaign.pages}
+                    connected={campaign.relations.length > 0}
+                    graph={graph}
+                    add={addEntry}
+                    showMap={showMap}
+                    link={async (source, target, label) => {
+                      if (!mayLeave()) return;
+                      await run(async () => {
+                        await api(
+                          `campaigns/${campaign.id}/relations/`,
+                          "POST",
+                          {
+                            id: relationReceipt.current,
+                            source,
+                            target,
+                            label,
+                          },
+                        );
+                        relationReceipt.current = newUUID();
+                        await refresh(campaign.id);
+                        setGraph(true);
+                        setNotice(
+                          t(
+                            "Zapisano połączenie. Jest widoczne na mapie.",
+                            "Connection saved. It is now on your map.",
+                          ),
+                        );
+                      });
+                    }}
+                  />
+                )}
+                {graph && campaign.pages.length === 0 && (
+                  <p className="wiki-hint">
+                    {t(
+                      "Mapa zapełni się, gdy dodasz pierwszą postać lub miejsce.",
+                      "Your first character or place will appear here on the map.",
+                    )}
+                  </p>
+                )}
                 {graph && (
                   <div
                     className="wiki-map"
@@ -968,6 +1074,7 @@ export default function CampaignWiki() {
                         setGraph(false);
                       }}
                     >
+                      <FitCampaignMap />
                       <Background gap={24} />
                       <Controls showInteractive={false} />
                     </ReactFlow>
@@ -1031,7 +1138,7 @@ export default function CampaignWiki() {
                           {canEdit && (
                             <button
                               className="wiki-primary"
-                              disabled={!dirty}
+                              disabled={!dirty || !draft.title.trim()}
                               onClick={() => run(save)}
                             >
                               {t("Zapisz artykuł", "Save article")}
@@ -1046,6 +1153,11 @@ export default function CampaignWiki() {
                             <input
                               required
                               maxLength={200}
+                              id="wiki-entry-title"
+                              placeholder={t(
+                                "np. Mira, właścicielka karczmy",
+                                "e.g. Mira, the innkeeper",
+                              )}
                               value={draft.title}
                               onChange={(e) =>
                                 setDraft({ ...draft, title: e.target.value })
@@ -1075,7 +1187,11 @@ export default function CampaignWiki() {
                                 "Treść (Markdown)",
                                 "Content (Markdown)",
                               )}
-                              rows={16}
+                              placeholder={t(
+                                "Jedno zdanie wystarczy. Kim jest ta postać? Co wyróżnia to miejsce?",
+                                "One sentence is enough. Who is this character? What makes this place special?",
+                              )}
+                              rows={8}
                               maxLength={12000}
                               value={draft.body}
                               onChange={(e) =>

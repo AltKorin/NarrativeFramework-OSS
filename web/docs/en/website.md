@@ -39,7 +39,7 @@ PLAYWRIGHT_BROWSERS_PATH=/tmp/narrative-browsers web/.venv/bin/python web/tests/
 
 Optional Playwright setup is in [verification](../verification.md). The browser test creates a disposable account through the real signup form, saves a private adventure and deletes the account in `finally`.
 
-Landing and editor are separate lazy bundles. A build-time SSR pass emits complete static PL/EN HTML, descriptions, canonical/hreflang and Open Graph metadata. No Node server is deployed. Caddy serves the site and proxies API/MCP. No analytics, remote fonts or donation scripts are loaded. The harbor illustration is AI-generated; the editor image is a real local demo screenshot.
+Landing and editor are separate lazy bundles. A build-time SSR pass emits complete static PL/EN HTML, descriptions, canonical/hreflang and Open Graph metadata. No Node server is deployed. Caddy serves the site and proxies API/MCP. Optional analytics requires consent; application measurement is separate and disabled by default. Remote fonts and donation scripts are not loaded. The harbor illustration is AI-generated; the editor image is a real local demo screenshot.
 
 ## Reference deployment with Cloudflare Tunnel
 
@@ -54,3 +54,6 @@ Tunnel credentials/configuration remain on the server, outside source and Docker
 Target-host and public HTTPS results are in [verification](../verification.md). For newly propagated DNS, tests accept `SITE_TEST_RESOLVE_IP` with a verified public Cloudflare IP. This changes only the test process resolver, still validates TLS for the real hostname and never changes system DNS or hosts.
 
 A concrete guest-preparation walkthrough is available in [Polish](../pl/lxc-setup.md).
+
+
+[Blog / SEO / Analytics](publishing-and-analytics.md)

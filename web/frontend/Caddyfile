@@ -10,6 +10,8 @@
   header X-Forwarded-Proto http
  }
  redir @public_http https://{host}{uri} 308
+ @www host www.narrativeframework.com
+ redir @www https://narrativeframework.com{uri} 301
  encode zstd gzip
  request_body {
   max_size 512KB
@@ -31,13 +33,18 @@
  }
  handle {
   root * /srv
-  try_files {path}/index.html {path} /index.html
+  try_files {path}/index.html {path} =404
+  file_server
+ }
+ handle_errors {
+  root * /srv
+  rewrite * /404.html
   file_server
  }
  header {
   X-Content-Type-Options nosniff
   Referrer-Policy same-origin
   X-Frame-Options DENY
-  Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+  Content-Security-Policy "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com; connect-src 'self' https://*.google.com https://*.google-analytics.com https://www.googletagmanager.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
  }
 }
