@@ -28,7 +28,7 @@ docker compose up --build -d
 docker compose exec api python manage.py createsuperuser
 ```
 
-Strona główna działa pod **http://localhost:8080**, a edytor pod **http://localhost:8080/workshop**. W warsztacie można utworzyć zwykłe konto, zapisać prywatną przygodę i skorzystać z sekcji **Między sesjami**. Administrator może wyłączyć rejestrację ustawieniem `ALLOW_REGISTRATION=0`. Rejestracja wymaga CSRF, poprawnego loginu i silnego hasła o długości minimum 12 znaków; limit wynosi pięć prób na godzinę na IP. Nie ma e-maili ani automatycznego resetu hasła. Nadal można tworzyć konta administracyjnie — `createsuperuser` tworzy konto administratora, a zwykłe konto można utworzyć interaktywnie przez Django:
+Strona główna działa pod **http://localhost:8080**, a pulpit warsztatu pod **http://localhost:8080/workshop**. Wybierz **Nowa kampania**, aby nazwać świat, **Nowa przygoda**, aby zacząć pusty scenariusz, albo **Otwórz demo przygody**, aby obejrzeć przykład. Po zalogowaniu pulpit pokazuje własne kampanie i przygody. W warsztacie można utworzyć zwykłe konto, zapisać prywatną przygodę i skorzystać z sekcji **Między sesjami**. Administrator może wyłączyć rejestrację ustawieniem `ALLOW_REGISTRATION=0`. Rejestracja wymaga CSRF, poprawnego loginu i silnego hasła o długości minimum 12 znaków; limit wynosi pięć prób na godzinę na IP. Nie ma e-maili ani automatycznego resetu hasła. Nadal można tworzyć konta administracyjnie — `createsuperuser` tworzy konto administratora, a zwykłe konto można utworzyć interaktywnie przez Django:
 
 ```sh
 docker compose exec api python manage.py shell

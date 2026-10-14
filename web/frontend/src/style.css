@@ -912,3 +912,23 @@ footer {
     min-width: 0;
   }
 }
+
+/* Workshop navigation also fits tablets after adding dashboard/campaign entry. */
+@media (max-width: 1300px) {
+  .app > header .header-caption {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .app > header {
+    height: auto;
+    min-height: 88px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .app > header .header-actions {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}

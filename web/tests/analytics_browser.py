@@ -60,7 +60,7 @@ with sync_playwright() as p:
     assert not calls and not page.locator("#nf-consent").is_visible()
     page.get_by_role("button", name="Analytics settings", exact=True).click()
     page.get_by_role("button", name="Allow analytics", exact=True).click()
-    page.wait_for_function("window.__nfGoogleLoaded===true")
+    page.wait_for_function("() => window.__nfGoogleLoaded===true")
     assert len(calls) == 1 and "G-0QV757EYZ7" in calls[0]
     data = commands(page)
     options = next(c[2] for c in data if c[0] == "config")
@@ -109,7 +109,7 @@ with sync_playwright() as p:
         wait_until="networkidle",
     )
     app.get_by_role("button", name="Allow analytics", exact=True).click()
-    app.wait_for_function("window.__nfGoogleLoaded===true")
+    app.wait_for_function("() => window.__nfGoogleLoaded===true")
     assert len(app_calls) == 1 and "G-HELGJT6EL4" in app_calls[0]
     records = commands(app)
     payload = json.dumps(records)

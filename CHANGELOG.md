@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Workshop opens on a PL/EN dashboard with explicit New campaign/New adventure, private saved-material lists, authentication intent, blank scenario creation and a separate demo. Header navigation and in-memory resume preserve open edits; saved scenarios keep direct reloadable URLs.
+
 - Preserve the original illustrated campaign infographic alongside the newer RPG series; keep the simplified Photocraft export as an additional download.
 
 - Bilingual campaign/publication infographics on the landing page, full-size PNG downloads and illustrated guides. Layered Photocraft/PSD sources include the first-campaign series and a rugged dark-fantasy GM-secrets series; web previews use compressed assets and accessible HTML summaries.

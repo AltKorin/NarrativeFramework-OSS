@@ -6,7 +6,7 @@ Wiki należy do kampanii. Jedno konto może prowadzić własne kampanie, współ
 
 ## Rozpoczęcie i zaproszenia
 
-1. Zaloguj się i otwórz **Wiki kampanii** w warsztacie albo `/campaigns/`.
+1. Otwórz pulpit `/workshop/` i wybierz **Nowa kampania**. Zaloguj się lub zarejestruj; po podaniu nazwy trafisz do pierwszych kroków wiki. Istniejącą kampanię otworzysz z listy na pulpicie albo przez **Wiki kampanii** / `/campaigns/`.
 2. Utwórz kampanię. Właściciel zmienia jej nazwę/opis i może ją usunąć. Opis kampanii jest widoczny członkom — nie wpisuj tam sekretów.
 3. W **Członkowie i zaproszenia** wybierz rolę i utwórz link. Przekaż go prywatnie. Link jest jednorazowy, ważny 7 dni; wykorzysta go pierwsze konto, które świadomie przyjmie zaproszenie. Nie ma wysyłki e-mail ani publicznego katalogu kont.
 4. Zaproszony loguje się albo rejestruje i wraca do zaproszenia. Widzi kampanię i rolę, po czym wybiera **Przyjmij zaproszenie**. Samo otwarcie linku niczego nie przydziela. Token pozostaje we fragmencie adresu, nie w parametrze wysyłanym z żądaniem strony.

@@ -38,7 +38,7 @@ Then start the stack:
 docker compose -f web/compose.yaml up --build -d
 ```
 
-Open **http://localhost:8080**. The workshop is at `/workshop/`, the campaign wiki at `/campaigns/`. The example configuration enables signup. PostgreSQL persists in a Docker volume; `docker compose down -v` deletes that data. No AI provider key is needed to run the application or tests. An external agent/client is required for AI-led play.
+Open **http://localhost:8080**. The workshop dashboard (new campaign, new adventure and saved material) is at `/workshop/`, the campaign wiki at `/campaigns/`. The example configuration enables signup. PostgreSQL persists in a Docker volume; `docker compose down -v` deletes that data. No AI provider key is needed to run the application or tests. An external agent/client is required for AI-led play.
 
 Before public deployment, follow the [setup and HTTPS instructions](web/README.md), set your own hostnames, secure cookies and trusted proxy addresses, and arrange backups. Do not commit `.env`, tokens or real campaign data. The hosted test instance is separate from a self-hosted installation.
 

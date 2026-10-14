@@ -8,7 +8,7 @@ with sync_playwright() as p:
     page = browser.new_page(locale="en-GB", viewport={"width": 1440, "height": 1050})
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
-    page.goto("http://localhost:8080/workshop", wait_until="networkidle")
+    page.goto("http://localhost:8080/workshop?view=editor", wait_until="networkidle")
     title = page.get_by_label("Adventure title", exact=True)
     title.wait_for()
     assert title.input_value() == "The Bell Beneath the Water"
@@ -48,7 +48,7 @@ with sync_playwright() as p:
     page.screenshot(path="/tmp/narrative-framework-pl-mobile.png", full_page=True)
     # A fresh Polish browser starts in Polish, independently of the first context.
     fresh = browser.new_page(locale="pl-PL")
-    fresh.goto("http://localhost:8080/workshop", wait_until="networkidle")
+    fresh.goto("http://localhost:8080/workshop?view=editor", wait_until="networkidle")
     fresh.get_by_label("Tytuł przygody", exact=True).wait_for()
     assert fresh.locator("html").get_attribute("lang") == "pl"
     assert not errors, errors

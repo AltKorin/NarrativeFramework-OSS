@@ -37,7 +37,7 @@ try:
         )
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto("http://localhost:8080/workshop", wait_until="networkidle")
+        page.goto("http://localhost:8080/workshop?view=editor", wait_until="networkidle")
         page.get_by_label("Tytuł przygody").wait_for()
         assert page.locator(".react-flow__node").count() == 6
         page.get_by_label("Tytuł przygody").fill("Testowa przygoda")
@@ -93,7 +93,7 @@ try:
         demo = browser.new_page(
             locale="pl-PL", viewport={"width": 1440, "height": 1100}
         )
-        demo.goto("http://localhost:8080/workshop", wait_until="networkidle")
+        demo.goto("http://localhost:8080/workshop?view=editor", wait_until="networkidle")
         demo.get_by_label("Tytuł przygody").wait_for()
         demo.screenshot(path="/tmp/narrative-workshop-desktop.png", full_page=True)
         demo.set_viewport_size({"width": 390, "height": 844})

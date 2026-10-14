@@ -113,6 +113,8 @@ try:
             assert cookies["sessionid"]["secure"] and cookies["sessionid"]["httpOnly"]
             assert cookies["csrftoken"]["secure"]
         page.locator("header").get_by_role("button", name=username).wait_for()
+        page.get_by_role("heading", name="Twój warsztat RPG").wait_for()
+        page.get_by_role("button", name="Otwórz demo przygody", exact=True).click()
         with page.expect_response(
             lambda r: r.url.endswith("/api/scenarios/") and r.request.method == "POST"
         ) as creation:

@@ -28,6 +28,17 @@ Wskazówki nie zasłaniają aplikacji, nie tworzą automatycznie przykładowych 
 
 ## Test z MG — do przeprowadzenia
 
-Zadanie dla 5 osób, które nie używały narzędzia: „Przygotowujesz sesję w karczmie. Zapisz właścicielkę i karczmę oraz pokaż na mapie, że w niej pracuje. Następnie zmień jej opis”. Nie podawaj nazw przycisków ani instrukcji. Zacznij od strony kampanii, uwzględnij założenie konta.
+Zadanie dla 5 osób, które nie używały narzędzia: „Przygotowujesz sesję w karczmie. Zapisz właścicielkę i karczmę oraz pokaż na mapie, że w niej pracuje. Następnie zmień jej opis”. Nie podawaj nazw przycisków ani instrukcji. Zacznij od pulpitu warsztatu `/workshop/`, uwzględnij założenie konta.
 
 Zanotuj czas do własnej mapy, ukończenie bez pomocy, pomyłki kierunku relacji, utratę danych i miejsca zawahania. Zapytaj: „Co było niejasne?” i „Czy użyłbyś tego przy przygotowaniu następnej sesji?”. Roboczy cel: co najmniej 4/5 osób kończy bez pomocy, własna mapa w ciągu 3 minut po zalogowaniu, brak utraty danych i przypadkowej publikacji. Są to cele do sprawdzenia, nie osiągnięte wyniki. Automatyczne testy nie dowodzą intuicyjności interfejsu.
+
+
+## Pulpit warsztatu
+
+Wejście `/workshop/` otwiera teraz pulpit zamiast edytora demonstracyjnej przygody. Widoczne są **Nowa kampania**, **Nowa przygoda**, osobne demo oraz po zalogowaniu listy kampanii (własnych i udostępnionych) i przygód. Nazwanie kampanii zapisuje ją przez istniejące API i otwiera wiki z prowadzeniem do pierwszej mapy. Nowa przygoda zawiera jedną pustą scenę, niezależną od demo i kampanii.
+
+Tworzenie rozpoczęte przed logowaniem jest kontynuowane po autoryzacji. „Pulpit” w nagłówku zachowuje otwartą edycję w pamięci; „Kontynuuj edycję” wraca do niej bez pobierania starej wersji. Nie jest to automatyczny zapis ani trwały szkic po zamknięciu przeglądarki. Niezapisany materiał serwerowy wywołuje ostrzeżenie przy opuszczaniu strony. Zapis przygody aktualizuje jej bezpośredni adres, więc odświeżenie otwiera zapisany materiał. Błędy list nie są prezentowane jako brak materiałów; dostępne jest ponowienie. Wylogowanie usuwa listy z widoku.
+
+`web/tests/dashboard_browser.py` sprawdza PL/EN, anonimowe wejście, zachowanie celu logowania, nową kampanię do pierwszej mapy, pustą przygodę, powrót do szkicu, zapis i odświeżenie, częściową awarię listy/ponowienie, rozdzielenie demo, telefon i wylogowanie. Test z MG należy zaczynać od `/workshop/`, a nie bezpośrednio od wiki, żeby sprawdzić także odkrywalność funkcji.
+
+Pulpit zawiera również osobne wejście do rozgrywek indywidualnych (solo/downtime). Zmiana języka aktualizuje adres i nie usuwa wpisanej nazwy w formularzu tworzenia. Test pulpitu obejmuje obie te ścieżki.

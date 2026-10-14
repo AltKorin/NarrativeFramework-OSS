@@ -14,6 +14,15 @@ Progress is derived from saved entries and relationships, including after reload
 
 ## Usability study — pending
 
-Ask five first-time GMs: “Prepare a session at an inn. Record its owner and the inn, show that she works there on a map, then change her description.” Start at campaigns and include account creation. Do not name controls or guide actions. Record completion without help, time to map, reversed relationships, lost work and hesitation. Ask what was unclear and whether they would use this before their next session.
+Ask five first-time GMs: “Prepare a session at an inn. Record its owner and the inn, show that she works there on a map, then change her description.” Start at the workshop dashboard `/workshop/` and include account creation. Do not name controls or guide actions. Record completion without help, time to map, reversed relationships, lost work and hesitation. Ask what was unclear and whether they would use this before their next session.
 
 Starting targets: 4/5 finish without help; own map within three minutes after login; no lost work or accidental publication. These are proposed targets, not measured results. Browser automation validates behavior, not intuitiveness.
+
+
+## Workshop dashboard
+
+`/workshop/` opens a dashboard with **New campaign**, **New adventure**, a separate demo and authenticated campaign/adventure lists. Campaign creation uses the existing API and enters the guided wiki. New adventure creates one empty opening scene, independent of campaigns and demo data. Authentication preserves the creation intent. The header Dashboard control keeps the open editor state in memory, and Continue editing resumes it without reloading an older version. This is not autosave or a durable draft across browser closure. Unsaved server material warns before leaving the page. Saving updates the direct scenario URL. Partial list failures have retry controls; logout removes private lists.
+
+`web/tests/dashboard_browser.py` validates PL/EN, anonymous entry, login intent, campaign-to-first-map, blank adventures, in-memory resume, save/reload, partial failure/retry, demo separation, mobile and logout. Start the planned human usability task at `/workshop/` to test discovery as well as wiki editing.
+
+The dashboard also exposes individual play (solo/downtime). Language changes update the URL and preserve the typed creation name; both paths are covered by the dashboard browser test.

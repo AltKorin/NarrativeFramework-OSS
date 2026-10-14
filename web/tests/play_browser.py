@@ -46,7 +46,7 @@ subprocess.run(base, input=setup, text=True, capture_output=True, check=True)
 
 
 def login(page, username):
-    page.goto(origin + "/workshop", wait_until="networkidle")
+    page.goto(origin + "/workshop?view=editor", wait_until="networkidle")
     page.locator("header").get_by_role("button", name="Log in", exact=False).click()
     page.get_by_label("Username", exact=True).fill(username)
     page.get_by_label("Password", exact=True).fill(password)

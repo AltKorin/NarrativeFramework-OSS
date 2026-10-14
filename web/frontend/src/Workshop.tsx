@@ -10,6 +10,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import "./style.css";
+import WorkshopHome from "./WorkshopHome";
 import { PlaysPanel } from "./PlaysPanel";
 import {
   validDocument,
@@ -77,6 +78,23 @@ async function api(path: string, method = "GET", body?: unknown) {
   return data;
 }
 export default function Workshop() {
+  const [view, setView] = useState<"home" | "editor">(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("view") === "editor" || params.has("scenario")
+      ? "editor"
+      : "home";
+  });
+  const [hasOpenedEditor, setHasOpenedEditor] = useState(
+    () =>
+      new URLSearchParams(location.search).get("view") === "editor" ||
+      new URLSearchParams(location.search).has("scenario"),
+  );
+  const [homeAction, setHomeAction] = useState<"campaign" | "adventure" | null>(
+    () => {
+      const next = new URLSearchParams(location.search).get("new");
+      return next === "campaign" || next === "adventure" ? next : null;
+    },
+  );
   const [language, setLanguage] = useState<Language>(initialLanguage);
   const t = (text: string) => translate(language, text);
   const labels: Record<Kind, string> = {
@@ -105,8 +123,12 @@ export default function Workshop() {
       { node: string; message: string; code?: string; count?: number }[] | null
     >(null),
     [busy, setBusy] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(() =>
-      new URLSearchParams(location.search).has("account"),
+  const [loginOpen, setLoginOpen] = useState(
+      () =>
+        new URLSearchParams(location.search).has("account") ||
+        ["campaign", "adventure"].includes(
+          new URLSearchParams(location.search).get("new") || "",
+        ),
     ),
     [username, setUsername] = useState(""),
     [password, setPassword] = useState("");
@@ -129,6 +151,12 @@ export default function Workshop() {
         setUser(session.user);
         setRegistrationEnabled(session.registration_enabled === true);
         if (!session.registration_enabled) setRegisterMode(false);
+        const nextAction = new URLSearchParams(location.search).get("new");
+        if (nextAction === "campaign" || nextAction === "adventure") {
+          setLoginOpen(!session.user);
+          if (!session.user && session.registration_enabled)
+            setRegisterMode(true);
+        }
         let initialStory = restoreDemo(demo, language);
         const requested = new URLSearchParams(location.search).get("scenario");
         if (session.user && requested)
@@ -141,12 +169,61 @@ export default function Workshop() {
       .catch((e) => setNotice(e.message));
   }, []);
   useEffect(() => {
+    let current = true;
     if (user)
       api("scenarios/")
-        .then(setItems)
-        .catch((e) => setNotice(e.message));
+        .then((value) => {
+          if (current) setItems(value);
+        })
+        .catch((e) => {
+          if (current) setNotice(e.message);
+        });
     else setItems([]);
+    return () => {
+      current = false;
+    };
   }, [user]);
+  useEffect(() => {
+    const restore = () => {
+      const params = new URLSearchParams(location.search);
+      setView(
+        params.get("view") === "editor" || params.has("scenario")
+          ? "editor"
+          : "home",
+      );
+    };
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, []);
+  useEffect(() => {
+    if (saved || story?.is_demo) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [saved, story?.is_demo]);
+  function navigateView(next: "home" | "editor") {
+    if (busy) return;
+    const url = new URL(location.href);
+    if (next === "home") {
+      url.searchParams.delete("scenario");
+      url.searchParams.delete("view");
+    } else {
+      url.searchParams.set("view", "editor");
+      url.searchParams.delete("new");
+    }
+    url.searchParams.set("lang", language);
+    history.pushState(null, "", url.pathname + url.search + url.hash);
+    setView(next);
+    if (next === "editor") {
+      setHasOpenedEditor(true);
+      setHomeAction(null);
+    }
+    setLoginOpen(false);
+    window.scrollTo({ top: 0 });
+  }
   const change = useCallback((fn: (s: Scenario) => Scenario) => {
     setStory((s) => (s ? fn(s) : s));
     setSaved(false);
@@ -348,6 +425,9 @@ export default function Workshop() {
       }
       setIssues(null);
       setLanguage(next);
+      const url = new URL(location.href);
+      url.searchParams.set("lang", next);
+      history.replaceState(null, "", url.pathname + url.search + url.hash);
     });
   }
   async function persist() {
@@ -394,6 +474,11 @@ export default function Workshop() {
     setStory(result);
     setSaved(true);
     setItems(await api("scenarios/"));
+    const url = new URL(location.href);
+    url.searchParams.set("scenario", result.id);
+    url.searchParams.delete("view");
+    url.searchParams.delete("new");
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
     setNotice(t("Zapisano na serwerze."));
   }
   return (
@@ -411,6 +496,18 @@ export default function Workshop() {
           {t("NARZĘDZIA DO OPOWIADANIA HISTORII")}
         </div>
         <div className="header-actions">
+          <button
+            aria-pressed={view === "home"}
+            onClick={() => navigateView("home")}
+          >
+            {language === "pl" ? "Pulpit" : "Dashboard"}
+          </button>
+          <a
+            className="wiki-entry"
+            href={`/workshop/?lang=${language}&new=campaign`}
+          >
+            {language === "pl" ? "Nowa kampania" : "New campaign"}
+          </a>
           <a className="wiki-entry" href={`/campaigns/?lang=${language}`}>
             {language === "pl" ? "Wiki kampanii" : "Campaign wiki"}
           </a>
@@ -439,39 +536,41 @@ export default function Workshop() {
           </button>
         </div>
       </header>
-      <div className="workspace-heading">
-        <div>
-          <div className="eyebrow">
-            {t("WARSZTAT / PRZYGODA NA JEDNĄ SESJĘ")}
+      {view === "editor" && (
+        <div className="workspace-heading">
+          <div>
+            <div className="eyebrow">
+              {t("WARSZTAT / PRZYGODA NA JEDNĄ SESJĘ")}
+            </div>
+            <input
+              className="story-title"
+              disabled={busy}
+              aria-label={t("Tytuł przygody")}
+              maxLength={200}
+              value={story.title}
+              onChange={(e) => change((s) => ({ ...s, title: e.target.value }))}
+            />
+            <p>
+              {t("Śledź powiązania. Odkrywaj luki. Zostaw graczom przestrzeń.")}
+            </p>
           </div>
-          <input
-            className="story-title"
-            disabled={busy}
-            aria-label={t("Tytuł przygody")}
-            maxLength={200}
-            value={story.title}
-            onChange={(e) => change((s) => ({ ...s, title: e.target.value }))}
-          />
-          <p>
-            {t("Śledź powiązania. Odkrywaj luki. Zostaw graczom przestrzeń.")}
-          </p>
+          <div className="save-panel">
+            <span className="status-dot" />
+            {story.is_demo
+              ? t("Kopia w tej przeglądarce")
+              : saved
+                ? t("Zapisano · wersja ") + story.version
+                : t("Niezapisane zmiany")}
+            <button
+              className="primary"
+              disabled={busy}
+              onClick={() => (user ? run(persist) : setLoginOpen(true))}
+            >
+              {story.is_demo ? t("Zapisz na koncie") : t("Zapisz zmiany")}
+            </button>
+          </div>
         </div>
-        <div className="save-panel">
-          <span className="status-dot" />
-          {story.is_demo
-            ? t("Kopia w tej przeglądarce")
-            : saved
-              ? t("Zapisano · wersja ") + story.version
-              : t("Niezapisane zmiany")}
-          <button
-            className="primary"
-            disabled={busy}
-            onClick={() => (user ? run(persist) : setLoginOpen(true))}
-          >
-            {story.is_demo ? t("Zapisz na koncie") : t("Zapisz zmiany")}
-          </button>
-        </div>
-      </div>
+      )}
       {loginOpen && (
         <section className="account-panel">
           <div>
@@ -497,6 +596,13 @@ export default function Workshop() {
                         "Demo działa bez konta. Konto tworzy administrator serwera.",
                       )}
             </p>
+            {!user && homeAction && (
+              <p>
+                {language === "pl"
+                  ? "Po zalogowaniu wrócisz do rozpoczętego tworzenia kampanii lub przygody."
+                  : "After signing in, continue creating your campaign or adventure."}
+              </p>
+            )}
           </div>
           {user ? (
             <>
@@ -554,6 +660,7 @@ export default function Workshop() {
                         ),
                       );
                     setSaved(true);
+                    navigateView("home");
                   })
                 }
               >
@@ -607,6 +714,7 @@ export default function Workshop() {
                   setPassword("");
                   setPasswordConfirm("");
                   setRegisterMode(false);
+                  if (view === "home") setLoginOpen(false);
                   const url = new URL(location.href);
                   url.searchParams.delete("account");
                   history.replaceState(
@@ -692,444 +800,532 @@ export default function Workshop() {
           </button>
         </div>
       )}
-      <main className="workbench" inert={busy}>
-        <aside className="outline">
-          <div className="section-label">
-            {t("ZAWARTOŚĆ")} <span>{doc.nodes.length}</span>
-          </div>
-          {(["scene", "npc", "location", "clue"] as Kind[]).map((kind) => (
-            <section key={kind}>
-              <h2>
-                <span style={{ background: colors[kind] }} />
-                {labels[kind]}
-              </h2>
-              {doc.nodes
-                .filter((n) => n.kind === kind)
-                .map((n) => (
-                  <button
-                    key={n.id}
-                    className={selected === n.id ? "selected" : ""}
-                    onClick={() => setSelected(n.id)}
-                  >
-                    {n.title}
-                    {doc.start === n.id && <small>START</small>}
-                  </button>
-                ))}
-              <button
-                className="add"
-                disabled={doc.nodes.length >= 250}
-                onClick={() => {
-                  const id = newUUID();
-                  change((s) => ({
-                    ...s,
-                    document: {
-                      ...s.document,
-                      nodes: [
-                        ...s.document.nodes,
-                        {
-                          id,
-                          kind,
-                          title: t(
-                            (
-                              {
-                                scene: "Nowa scena",
-                                npc: "Nowa postać",
-                                location: "Nowe miejsce",
-                                clue: "Nowa wskazówka",
-                              } as Record<Kind, string>
-                            )[kind],
-                          ),
-                          text: "",
-                          secret: "",
-                          x: 150 + Math.random() * 450,
-                          y: 100 + Math.random() * 300,
-                        },
-                      ],
-                    },
-                  }));
-                  setSelected(id);
-                }}
-              >
-                {t("+ Dodaj")}
-              </button>
-            </section>
-          ))}
-          <div className="outline-footer">
-            {t("DOBRA PRZYGODA")}
-            <br />
-            {t("MA WIĘCEJ NIŻ JEDNĄ DROGĘ.")}
-          </div>
-        </aside>
-        <section className="canvas-area" aria-label={t("Graf przygody")}>
-          <div className="canvas-toolbar">
-            <span>{t("Mapa powiązań")}</span>
-            <label>
-              {t("Nowe połączenie")}{" "}
-              <select
-                value={linkKind}
-                onChange={(e) => setLinkKind(e.target.value)}
-              >
-                <option value="leads_to">{t("prowadzi do")}</option>
-                <option value="reveals">{t("ujawnia")}</option>
-                <option value="involves">{t("angażuje")}</option>
-                <option value="located_at">{t("mieści się w")}</option>
-              </select>
-            </label>
-          </div>
-          <div className="graph">
-            <ReactFlow
-              fitView
-              ariaLabelConfig={
-                language === "pl"
-                  ? {
-                      "controls.zoomIn.ariaLabel": "Powiększ",
-                      "controls.zoomOut.ariaLabel": "Pomniejsz",
-                      "controls.fitView.ariaLabel": "Dopasuj widok",
-                      "controls.ariaLabel": "Sterowanie mapą",
-                      "node.a11yDescription.default":
-                        "Naciśnij Enter lub spację, aby wybrać element. Escape anuluje wybór.",
-                      "edge.a11yDescription.default":
-                        "Naciśnij Enter lub spację, aby wybrać połączenie. Delete usuwa je, Escape anuluje wybór.",
-                    }
-                  : {}
-              }
-              nodes={doc.nodes.map((n) => ({
-                id: n.id,
-                position: { x: n.x || 0, y: n.y || 0 },
-                data: {
-                  label: (
-                    <div className="graph-label">
-                      <small style={{ color: colors[n.kind] }}>
-                        {labels[n.kind]}
-                        {doc.start === n.id ? " / START" : ""}
-                      </small>
-                      <strong>{n.title}</strong>
-                    </div>
-                  ),
-                },
-                selected: n.id === selected,
-                style: { borderTop: "3px solid " + colors[n.kind] },
-                sourcePosition: Position.Right,
-                targetPosition: Position.Left,
-                type: "default",
-              }))}
-              edges={doc.edges.map((e) => ({
-                ...e,
-                label: (
-                  {
-                    leads_to: t("prowadzi do"),
-                    reveals: t("ujawnia"),
-                    involves: t("angażuje"),
-                    located_at: t("miejsce"),
-                  } as Record<string, string>
-                )[e.kind],
-                markerEnd: { type: MarkerType.ArrowClosed },
-                style: { stroke: e.kind === "reveals" ? "#a18335" : "#9ba9a2" },
-                labelStyle: { fill: "#627069", fontSize: 10 },
-              }))}
-              onNodesChange={(changes) => {
-                const positions = changes.filter(
-                  (c) => c.type === "position" && c.position,
-                );
-                if (positions.length)
-                  change((s) => ({
-                    ...s,
-                    document: {
-                      ...s.document,
-                      nodes: s.document.nodes.map((n) => {
-                        const c = positions.find(
-                          (c) => c.type === "position" && c.id === n.id,
-                        );
-                        return c && c.type === "position" && c.position
-                          ? { ...n, x: c.position.x, y: c.position.y }
-                          : n;
-                      }),
-                    },
-                  }));
-              }}
-              onNodeClick={(_, n) => setSelected(n.id)}
-              onNodeDragStop={(_, n) =>
-                change((s) => ({
-                  ...s,
-                  document: {
-                    ...s.document,
-                    nodes: s.document.nodes.map((v) =>
-                      v.id === n.id
-                        ? { ...v, x: n.position.x, y: n.position.y }
-                        : v,
-                    ),
-                  },
-                }))
-              }
-              onConnect={connect}
-              onEdgesDelete={(edges) =>
-                change((s) => ({
-                  ...s,
-                  document: {
-                    ...s.document,
-                    edges: s.document.edges.filter(
-                      (e) => !edges.some((d) => d.id === e.id),
-                    ),
-                  },
-                }))
-              }
-              nodesDraggable
-              nodesConnectable
-              deleteKeyCode={["Backspace", "Delete"]}
-            >
-              <Background color="#c9d1c9" gap={22} />
-              <Controls
-                showInteractive={false}
-                aria-label={
-                  language === "pl" ? "Sterowanie mapą" : "Map controls"
-                }
-              />
-            </ReactFlow>
-          </div>
-          <div className="canvas-footer">
-            <span>
-              {t("Przeciągnij między punktami, aby połączyć elementy.")}
-            </span>
-            <span>{phrase("{count} powiązań", doc.edges.length)}</span>
-          </div>
-        </section>
-        <aside className="inspector">
-          {n ? (
-            <>
+      {view === "home" ? (
+        <WorkshopHome
+          key={user || "anonymous"}
+          language={language}
+          user={user}
+          request={api}
+          initialAction={homeAction}
+          openPlays={() => {
+            navigateView("editor");
+            requestAnimationFrame(() =>
+              document
+                .querySelector(".plays")
+                ?.scrollIntoView({ block: "start" }),
+            );
+          }}
+          resume={
+            hasOpenedEditor
+              ? { title: story.title, unsaved: !saved && !story.is_demo }
+              : null
+          }
+          continueEditing={() => {
+            const url = new URL(location.href);
+            if (!story.is_demo) url.searchParams.set("scenario", story.id);
+            history.replaceState(
+              null,
+              "",
+              url.pathname + url.search + url.hash,
+            );
+            navigateView("editor");
+          }}
+          openDemo={() => {
+            if (
+              !saved &&
+              !story.is_demo &&
+              !confirm(
+                t("Otworzyć inną przygodę i odrzucić niezapisane zmiany?"),
+              )
+            )
+              return;
+            void run(async () => {
+              const demo = restoreDemo(
+                await api(`demo/?lang=${language}`),
+                language,
+              );
+              setStory(demo);
+              setSelected(demo.document.start);
+              setSaved(true);
+              setIssues(null);
+              const url = new URL(location.href);
+              url.searchParams.delete("scenario");
+              history.replaceState(
+                null,
+                "",
+                url.pathname + url.search + url.hash,
+              );
+              navigateView("editor");
+            });
+          }}
+          authenticate={(action) => {
+            setHomeAction(action);
+            const url = new URL(location.href);
+            url.searchParams.set("new", action);
+            history.replaceState(
+              null,
+              "",
+              url.pathname + url.search + url.hash,
+            );
+            setLoginOpen(true);
+            setRegisterMode(registrationEnabled);
+            requestAnimationFrame(() =>
+              document
+                .querySelector(".account-panel input")
+                ?.scrollIntoView({ block: "center" }),
+            );
+          }}
+        />
+      ) : (
+        <>
+          <main className="workbench" inert={busy}>
+            <aside className="outline">
               <div className="section-label">
-                {t("SZCZEGÓŁY")} <span>{labels[n.kind]}</span>
+                {t("ZAWARTOŚĆ")} <span>{doc.nodes.length}</span>
               </div>
-              {n.wiki_origin &&
-                typeof n.wiki_origin.campaign_id === "string" &&
-                typeof n.wiki_origin.page_id === "string" && (
-                  <p className="wiki-origin">
-                    <a
-                      href={`/campaigns/?campaign=${encodeURIComponent(n.wiki_origin.campaign_id)}&page=${encodeURIComponent(n.wiki_origin.page_id)}&lang=${language}`}
-                    >
-                      {language === "pl"
-                        ? "Źródło w wiki kampanii"
-                        : "Source in campaign wiki"}
-                    </a>{" "}
-                    · {language === "pl" ? "kopia wersji" : "copy of version"}{" "}
-                    {typeof n.wiki_origin.version === "number"
-                      ? n.wiki_origin.version
-                      : "?"}
-                  </p>
-                )}
-              <label>
-                {t("Tytuł")}
-                <input
-                  maxLength={200}
-                  value={n.title}
-                  onChange={(e) => update({ title: e.target.value })}
-                />
-              </label>
-              <label>
-                {t("Opis / tekst dla graczy")}
-                <textarea
-                  rows={6}
-                  maxLength={12000}
-                  value={n.text}
-                  onChange={(e) => update({ text: e.target.value })}
-                />
-              </label>
-              <label className="secret-label">
-                {t("Sekret dla prowadzącego")}
-                <textarea
-                  rows={5}
-                  maxLength={12000}
-                  aria-label={t("Sekret dla prowadzącego")}
-                  value={n.secret}
-                  onChange={(e) => update({ secret: e.target.value })}
-                />
-              </label>
-              {n.kind === "scene" && doc.start !== n.id && (
-                <button
-                  onClick={() =>
-                    change((s) => ({
-                      ...s,
-                      document: { ...s.document, start: n.id },
-                    }))
-                  }
-                >
-                  {t("Ustaw jako początek")}
-                </button>
-              )}
-              <h3>{t("Powiązania")}</h3>
-              {doc.edges
-                .filter((e) => e.source === n.id || e.target === n.id)
-                .map((e) => (
-                  <div className="link-row" key={e.id}>
-                    <span>
-                      {e.source === n.id ? "→" : "←"}{" "}
-                      {
-                        doc.nodes.find(
-                          (v) =>
-                            v.id === (e.source === n.id ? e.target : e.source),
-                        )?.title
-                      }
-                      <small>
-                        {t(
-                          (
+              {(["scene", "npc", "location", "clue"] as Kind[]).map((kind) => (
+                <section key={kind}>
+                  <h2>
+                    <span style={{ background: colors[kind] }} />
+                    {labels[kind]}
+                  </h2>
+                  {doc.nodes
+                    .filter((n) => n.kind === kind)
+                    .map((n) => (
+                      <button
+                        key={n.id}
+                        className={selected === n.id ? "selected" : ""}
+                        onClick={() => setSelected(n.id)}
+                      >
+                        {n.title}
+                        {doc.start === n.id && <small>START</small>}
+                      </button>
+                    ))}
+                  <button
+                    className="add"
+                    disabled={doc.nodes.length >= 250}
+                    onClick={() => {
+                      const id = newUUID();
+                      change((s) => ({
+                        ...s,
+                        document: {
+                          ...s.document,
+                          nodes: [
+                            ...s.document.nodes,
                             {
-                              leads_to: "prowadzi do",
-                              reveals: "ujawnia",
-                              involves: "angażuje",
-                              located_at: "mieści się w",
-                            } as Record<string, string>
-                          )[e.kind] || e.kind,
-                        )}
-                      </small>
-                    </span>
-                    <button
-                      aria-label={t("Usuń powiązanie")}
-                      onClick={() =>
-                        change((s) => ({
-                          ...s,
-                          document: {
-                            ...s.document,
-                            edges: s.document.edges.filter(
-                              (v) => v.id !== e.id,
-                            ),
-                          },
-                        }))
-                      }
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              {n.id !== doc.start && (
-                <button
-                  className="danger"
-                  onClick={() => {
-                    if (!confirm(t("Usunąć element i jego powiązania?")))
-                      return;
+                              id,
+                              kind,
+                              title: t(
+                                (
+                                  {
+                                    scene: "Nowa scena",
+                                    npc: "Nowa postać",
+                                    location: "Nowe miejsce",
+                                    clue: "Nowa wskazówka",
+                                  } as Record<Kind, string>
+                                )[kind],
+                              ),
+                              text: "",
+                              secret: "",
+                              x: 150 + Math.random() * 450,
+                              y: 100 + Math.random() * 300,
+                            },
+                          ],
+                        },
+                      }));
+                      setSelected(id);
+                    }}
+                  >
+                    {t("+ Dodaj")}
+                  </button>
+                </section>
+              ))}
+              <div className="outline-footer">
+                {t("DOBRA PRZYGODA")}
+                <br />
+                {t("MA WIĘCEJ NIŻ JEDNĄ DROGĘ.")}
+              </div>
+            </aside>
+            <section className="canvas-area" aria-label={t("Graf przygody")}>
+              <div className="canvas-toolbar">
+                <span>{t("Mapa powiązań")}</span>
+                <label>
+                  {t("Nowe połączenie")}{" "}
+                  <select
+                    value={linkKind}
+                    onChange={(e) => setLinkKind(e.target.value)}
+                  >
+                    <option value="leads_to">{t("prowadzi do")}</option>
+                    <option value="reveals">{t("ujawnia")}</option>
+                    <option value="involves">{t("angażuje")}</option>
+                    <option value="located_at">{t("mieści się w")}</option>
+                  </select>
+                </label>
+              </div>
+              <div className="graph">
+                <ReactFlow
+                  fitView
+                  ariaLabelConfig={
+                    language === "pl"
+                      ? {
+                          "controls.zoomIn.ariaLabel": "Powiększ",
+                          "controls.zoomOut.ariaLabel": "Pomniejsz",
+                          "controls.fitView.ariaLabel": "Dopasuj widok",
+                          "controls.ariaLabel": "Sterowanie mapą",
+                          "node.a11yDescription.default":
+                            "Naciśnij Enter lub spację, aby wybrać element. Escape anuluje wybór.",
+                          "edge.a11yDescription.default":
+                            "Naciśnij Enter lub spację, aby wybrać połączenie. Delete usuwa je, Escape anuluje wybór.",
+                        }
+                      : {}
+                  }
+                  nodes={doc.nodes.map((n) => ({
+                    id: n.id,
+                    position: { x: n.x || 0, y: n.y || 0 },
+                    data: {
+                      label: (
+                        <div className="graph-label">
+                          <small style={{ color: colors[n.kind] }}>
+                            {labels[n.kind]}
+                            {doc.start === n.id ? " / START" : ""}
+                          </small>
+                          <strong>{n.title}</strong>
+                        </div>
+                      ),
+                    },
+                    selected: n.id === selected,
+                    style: { borderTop: "3px solid " + colors[n.kind] },
+                    sourcePosition: Position.Right,
+                    targetPosition: Position.Left,
+                    type: "default",
+                  }))}
+                  edges={doc.edges.map((e) => ({
+                    ...e,
+                    label: (
+                      {
+                        leads_to: t("prowadzi do"),
+                        reveals: t("ujawnia"),
+                        involves: t("angażuje"),
+                        located_at: t("miejsce"),
+                      } as Record<string, string>
+                    )[e.kind],
+                    markerEnd: { type: MarkerType.ArrowClosed },
+                    style: {
+                      stroke: e.kind === "reveals" ? "#a18335" : "#9ba9a2",
+                    },
+                    labelStyle: { fill: "#627069", fontSize: 10 },
+                  }))}
+                  onNodesChange={(changes) => {
+                    const positions = changes.filter(
+                      (c) => c.type === "position" && c.position,
+                    );
+                    if (positions.length)
+                      change((s) => ({
+                        ...s,
+                        document: {
+                          ...s.document,
+                          nodes: s.document.nodes.map((n) => {
+                            const c = positions.find(
+                              (c) => c.type === "position" && c.id === n.id,
+                            );
+                            return c && c.type === "position" && c.position
+                              ? { ...n, x: c.position.x, y: c.position.y }
+                              : n;
+                          }),
+                        },
+                      }));
+                  }}
+                  onNodeClick={(_, n) => setSelected(n.id)}
+                  onNodeDragStop={(_, n) =>
                     change((s) => ({
                       ...s,
                       document: {
                         ...s.document,
-                        nodes: s.document.nodes.filter((v) => v.id !== n.id),
-                        edges: s.document.edges.filter(
-                          (e) => e.source !== n.id && e.target !== n.id,
+                        nodes: s.document.nodes.map((v) =>
+                          v.id === n.id
+                            ? { ...v, x: n.position.x, y: n.position.y }
+                            : v,
                         ),
                       },
-                    }));
-                    setSelected(doc.start);
-                  }}
+                    }))
+                  }
+                  onConnect={connect}
+                  onEdgesDelete={(edges) =>
+                    change((s) => ({
+                      ...s,
+                      document: {
+                        ...s.document,
+                        edges: s.document.edges.filter(
+                          (e) => !edges.some((d) => d.id === e.id),
+                        ),
+                      },
+                    }))
+                  }
+                  nodesDraggable
+                  nodesConnectable
+                  deleteKeyCode={["Backspace", "Delete"]}
                 >
-                  {t("Usuń element")}
-                </button>
+                  <Background color="#c9d1c9" gap={22} />
+                  <Controls
+                    showInteractive={false}
+                    aria-label={
+                      language === "pl" ? "Sterowanie mapą" : "Map controls"
+                    }
+                  />
+                </ReactFlow>
+              </div>
+              <div className="canvas-footer">
+                <span>
+                  {t("Przeciągnij między punktami, aby połączyć elementy.")}
+                </span>
+                <span>{phrase("{count} powiązań", doc.edges.length)}</span>
+              </div>
+            </section>
+            <aside className="inspector">
+              {n ? (
+                <>
+                  <div className="section-label">
+                    {t("SZCZEGÓŁY")} <span>{labels[n.kind]}</span>
+                  </div>
+                  {n.wiki_origin &&
+                    typeof n.wiki_origin.campaign_id === "string" &&
+                    typeof n.wiki_origin.page_id === "string" && (
+                      <p className="wiki-origin">
+                        <a
+                          href={`/campaigns/?campaign=${encodeURIComponent(n.wiki_origin.campaign_id)}&page=${encodeURIComponent(n.wiki_origin.page_id)}&lang=${language}`}
+                        >
+                          {language === "pl"
+                            ? "Źródło w wiki kampanii"
+                            : "Source in campaign wiki"}
+                        </a>{" "}
+                        ·{" "}
+                        {language === "pl" ? "kopia wersji" : "copy of version"}{" "}
+                        {typeof n.wiki_origin.version === "number"
+                          ? n.wiki_origin.version
+                          : "?"}
+                      </p>
+                    )}
+                  <label>
+                    {t("Tytuł")}
+                    <input
+                      maxLength={200}
+                      value={n.title}
+                      onChange={(e) => update({ title: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    {t("Opis / tekst dla graczy")}
+                    <textarea
+                      rows={6}
+                      maxLength={12000}
+                      value={n.text}
+                      onChange={(e) => update({ text: e.target.value })}
+                    />
+                  </label>
+                  <label className="secret-label">
+                    {t("Sekret dla prowadzącego")}
+                    <textarea
+                      rows={5}
+                      maxLength={12000}
+                      aria-label={t("Sekret dla prowadzącego")}
+                      value={n.secret}
+                      onChange={(e) => update({ secret: e.target.value })}
+                    />
+                  </label>
+                  {n.kind === "scene" && doc.start !== n.id && (
+                    <button
+                      onClick={() =>
+                        change((s) => ({
+                          ...s,
+                          document: { ...s.document, start: n.id },
+                        }))
+                      }
+                    >
+                      {t("Ustaw jako początek")}
+                    </button>
+                  )}
+                  <h3>{t("Powiązania")}</h3>
+                  {doc.edges
+                    .filter((e) => e.source === n.id || e.target === n.id)
+                    .map((e) => (
+                      <div className="link-row" key={e.id}>
+                        <span>
+                          {e.source === n.id ? "→" : "←"}{" "}
+                          {
+                            doc.nodes.find(
+                              (v) =>
+                                v.id ===
+                                (e.source === n.id ? e.target : e.source),
+                            )?.title
+                          }
+                          <small>
+                            {t(
+                              (
+                                {
+                                  leads_to: "prowadzi do",
+                                  reveals: "ujawnia",
+                                  involves: "angażuje",
+                                  located_at: "mieści się w",
+                                } as Record<string, string>
+                              )[e.kind] || e.kind,
+                            )}
+                          </small>
+                        </span>
+                        <button
+                          aria-label={t("Usuń powiązanie")}
+                          onClick={() =>
+                            change((s) => ({
+                              ...s,
+                              document: {
+                                ...s.document,
+                                edges: s.document.edges.filter(
+                                  (v) => v.id !== e.id,
+                                ),
+                              },
+                            }))
+                          }
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  {n.id !== doc.start && (
+                    <button
+                      className="danger"
+                      onClick={() => {
+                        if (!confirm(t("Usunąć element i jego powiązania?")))
+                          return;
+                        change((s) => ({
+                          ...s,
+                          document: {
+                            ...s.document,
+                            nodes: s.document.nodes.filter(
+                              (v) => v.id !== n.id,
+                            ),
+                            edges: s.document.edges.filter(
+                              (e) => e.source !== n.id && e.target !== n.id,
+                            ),
+                          },
+                        }));
+                        setSelected(doc.start);
+                      }}
+                    >
+                      {t("Usuń element")}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <p>{t("Wybierz element na mapie.")}</p>
               )}
-            </>
-          ) : (
-            <p>{t("Wybierz element na mapie.")}</p>
+            </aside>
+          </main>
+          <section className="review" inert={busy}>
+            <div>
+              <div className="eyebrow">{t("DRUGIE SPOJRZENIE")}</div>
+              <h2>{t("Sprawdź, zanim poprowadzisz.")}</h2>
+              <p>
+                {t(
+                  "Kontrola struktury wskazuje luki. O jakości historii decydujesz Ty.",
+                )}
+              </p>
+            </div>
+            <div className="review-actions">
+              <button
+                onClick={() =>
+                  story.is_demo
+                    ? check()
+                    : run(async () => {
+                        if (!saved)
+                          throw new Error(
+                            t("Zapisz zmiany przed walidacją serwera."),
+                          );
+                        const r = await api(
+                          `scenarios/${story.id}/validate/?lang=${language}`,
+                          "POST",
+                        );
+                        setIssues(r.issues);
+                      })
+                }
+              >
+                {t("Sprawdź strukturę ↗")}
+              </button>
+              <button onClick={() => download("md")}>
+                {t("Eksport Markdown ↓")}
+              </button>
+              <button onClick={() => download("json")}>JSON ↓</button>
+              <label className="import-button">
+                {t("Import JSON")}
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    run(async () => {
+                      if (file.size > 300000)
+                        throw new Error(
+                          t("Plik jest zbyt duży (maks. 300 KB)."),
+                        );
+                      const imported = JSON.parse(await file.text());
+                      const d = imported.document;
+                      if (!validJSON(imported) || !validDocument(d))
+                        throw new Error(
+                          t("Nieprawidłowy dokument narrative-web/1."),
+                        );
+                      if (
+                        typeof imported.title !== "string" ||
+                        !imported.title.trim() ||
+                        imported.title.length > 200
+                      )
+                        throw new Error(t("Nieprawidłowy tytuł przygody."));
+                      if (
+                        !confirm(
+                          t("Zastąpić bieżącą zawartość importowaną przygodą?"),
+                        )
+                      )
+                        return;
+                      change((s) => ({
+                        ...s,
+                        title: imported.title || t("Importowana przygoda"),
+                        document: d,
+                      }));
+                      setSelected(d.start);
+                    });
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+          </section>
+          {issues && (
+            <section className="issues" aria-live="polite">
+              <strong>
+                {issues.length
+                  ? phrase("{count} sugestie do przejrzenia", issues.length)
+                  : t("Brak uwag strukturalnych")}
+              </strong>
+              {issues.map((i, index) => (
+                <button key={index} onClick={() => setSelected(i.node)}>
+                  {doc.nodes.find((n) => n.id === i.node)?.title}:{" "}
+                  {formatIssue(language, i)}
+                </button>
+              ))}
+            </section>
           )}
-        </aside>
-      </main>
-      <section className="review" inert={busy}>
-        <div>
-          <div className="eyebrow">{t("DRUGIE SPOJRZENIE")}</div>
-          <h2>{t("Sprawdź, zanim poprowadzisz.")}</h2>
-          <p>
-            {t(
-              "Kontrola struktury wskazuje luki. O jakości historii decydujesz Ty.",
-            )}
-          </p>
-        </div>
-        <div className="review-actions">
-          <button
-            onClick={() =>
-              story.is_demo
-                ? check()
-                : run(async () => {
-                    if (!saved)
-                      throw new Error(
-                        t("Zapisz zmiany przed walidacją serwera."),
-                      );
-                    const r = await api(
-                      `scenarios/${story.id}/validate/?lang=${language}`,
-                      "POST",
-                    );
-                    setIssues(r.issues);
-                  })
-            }
-          >
-            {t("Sprawdź strukturę ↗")}
-          </button>
-          <button onClick={() => download("md")}>
-            {t("Eksport Markdown ↓")}
-          </button>
-          <button onClick={() => download("json")}>JSON ↓</button>
-          <label className="import-button">
-            {t("Import JSON")}
-            <input
-              type="file"
-              accept="application/json,.json"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                run(async () => {
-                  if (file.size > 300000)
-                    throw new Error(t("Plik jest zbyt duży (maks. 300 KB)."));
-                  const imported = JSON.parse(await file.text());
-                  const d = imported.document;
-                  if (!validJSON(imported) || !validDocument(d))
-                    throw new Error(
-                      t("Nieprawidłowy dokument narrative-web/1."),
-                    );
-                  if (
-                    typeof imported.title !== "string" ||
-                    !imported.title.trim() ||
-                    imported.title.length > 200
-                  )
-                    throw new Error(t("Nieprawidłowy tytuł przygody."));
-                  if (
-                    !confirm(
-                      t("Zastąpić bieżącą zawartość importowaną przygodą?"),
-                    )
-                  )
-                    return;
-                  change((s) => ({
-                    ...s,
-                    title: imported.title || t("Importowana przygoda"),
-                    document: d,
-                  }));
-                  setSelected(d.start);
-                });
-                e.target.value = "";
-              }}
-            />
-          </label>
-        </div>
-      </section>
-      {issues && (
-        <section className="issues" aria-live="polite">
-          <strong>
-            {issues.length
-              ? phrase("{count} sugestie do przejrzenia", issues.length)
-              : t("Brak uwag strukturalnych")}
-          </strong>
-          {issues.map((i, index) => (
-            <button key={index} onClick={() => setSelected(i.node)}>
-              {doc.nodes.find((n) => n.id === i.node)?.title}:{" "}
-              {formatIssue(language, i)}
-            </button>
-          ))}
-        </section>
+          <PlaysPanel
+            key={user || "anonymous"}
+            language={language}
+            user={user}
+            source={story}
+            sourceSaved={saved}
+            request={api}
+            onLogin={() => {
+              setLoginOpen(true);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        </>
       )}
-      <PlaysPanel
-        key={user || "anonymous"}
-        language={language}
-        user={user}
-        source={story}
-        sourceSaved={saved}
-        request={api}
-        onLogin={() => {
-          setLoginOpen(true);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
-      />
       <footer>
         <span>NARRATIVE FRAMEWORK · OPEN SOURCE</span>
         <span>{t("Warsztat 0.2 / RPG")}</span>

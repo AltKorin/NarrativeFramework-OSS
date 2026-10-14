@@ -86,3 +86,6 @@ PLAYWRIGHT_BROWSERS_PATH=/tmp/narrative-browsers web/.venv/bin/python web/tests/
 Use a test instance. Scripts create and remove disposable fictional accounts. PostgreSQL tests cover concurrent invitation consumption, publication/edit conflicts and revoked waiting writers. Browser checks cover invitations/login return, all roles, selected audiences, filtered graph/search/export, preview, drafts, demotion/revocation, PL/EN and mobile.
 
 Migration 0006 retains database defaults for new non-null wiki fields, so the owner-only code can still insert private pages/relations during a code rollback. Keep additive tables/data in place; reversing migrations discards sharing data.
+
+
+Workshop entry: `/workshop/` now opens the dashboard. Choose **New campaign**, sign in and name your world; saved campaigns and adventures are listed here. **New adventure** creates a separate scenario with one empty opening scene. **Open adventure demo** opens the sample instead. Existing `/campaigns/` and scenario links remain valid.
