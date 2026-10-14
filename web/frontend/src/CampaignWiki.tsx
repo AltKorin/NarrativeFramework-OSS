@@ -984,40 +984,42 @@ export default function CampaignWiki() {
                     · {campaign.pages.length} {t("artykułów", "articles")}
                   </p>
                 </div>
-                {canEdit && !editing && (
-                  <CampaignStart
-                    key={campaign.id}
-                    pl={pl}
-                    pages={campaign.pages}
-                    connected={campaign.relations.length > 0}
-                    graph={graph}
-                    add={addEntry}
-                    showMap={showMap}
-                    link={async (source, target, label) => {
-                      if (!mayLeave()) return;
-                      await run(async () => {
-                        await api(
-                          `campaigns/${campaign.id}/relations/`,
-                          "POST",
-                          {
-                            id: relationReceipt.current,
-                            source,
-                            target,
-                            label,
-                          },
-                        );
-                        relationReceipt.current = newUUID();
-                        await refresh(campaign.id);
-                        setGraph(true);
-                        setNotice(
-                          t(
-                            "Zapisano połączenie. Jest widoczne na mapie.",
-                            "Connection saved. It is now on your map.",
-                          ),
-                        );
-                      });
-                    }}
-                  />
+                {canEdit && (
+                  <div hidden={editing}>
+                    <CampaignStart
+                      key={campaign.id}
+                      pl={pl}
+                      pages={campaign.pages}
+                      connected={campaign.relations.length > 0}
+                      graph={graph}
+                      add={addEntry}
+                      showMap={showMap}
+                      link={async (source, target, label) => {
+                        if (!mayLeave()) return;
+                        await run(async () => {
+                          await api(
+                            `campaigns/${campaign.id}/relations/`,
+                            "POST",
+                            {
+                              id: relationReceipt.current,
+                              source,
+                              target,
+                              label,
+                            },
+                          );
+                          relationReceipt.current = newUUID();
+                          await refresh(campaign.id);
+                          setGraph(true);
+                          setNotice(
+                            t(
+                              "Zapisano połączenie. Jest widoczne na mapie.",
+                              "Connection saved. It is now on your map.",
+                            ),
+                          );
+                        });
+                      }}
+                    />
+                  </div>
                 )}
                 {graph && campaign.pages.length === 0 && (
                   <p className="wiki-hint">

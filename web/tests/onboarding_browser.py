@@ -62,6 +62,11 @@ try:
             page.get_by_role("button", name=t("Pokaż pierwsze kroki", "Show first steps")).click()
             page.locator(".wiki-map .react-flow__node").filter(has_text="Mira").click()
             page.locator(".wiki-article-title").get_by_text("Mira", exact=True).wait_for()
+            page.get_by_role("button", name=t("Ukryj wskazówki", "Hide tips")).click()
+            page.get_by_role("button", name=t("Edytuj", "Edit"), exact=True).click()
+            page.get_by_label(t("Treść (Markdown)", "Content (Markdown)"), exact=True).fill("An updated description.")
+            page.get_by_role("button", name=t("Zapisz artykuł", "Save article"), exact=True).click()
+            expect(page.get_by_role("button", name=t("Pokaż pierwsze kroki", "Show first steps"))).to_be_visible()
             assert not errors, errors
             context.close()
         browser.close()
