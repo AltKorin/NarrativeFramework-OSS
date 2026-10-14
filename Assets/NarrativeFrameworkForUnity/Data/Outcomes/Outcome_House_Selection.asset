@@ -1,0 +1,177 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921b52931942f11498c446591bcb1afd, type: 3}
+  m_Name: Outcome_House_Selection
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _type: 1
+  _targetEventId: 
+  _value: 0
+  _probability: 1
+  _outcomeDescription: You are House Drakenhart.
+  _targetEvent: {fileID: 11400000, guid: 8e6abe9e2601cba42bd4647f5d780b16, type: 2}
+  _targetResource: {fileID: 0}
+  _targetVariable: {fileID: 0}
+  _sourceActor: {fileID: 0}
+  _targetActor: {fileID: 11400000, guid: 4f84180210e12e748bf92cd982b5e6a7, type: 2}
+  _playerActor: {fileID: 0}
+  _storyArc: {fileID: 0}
+  _customLogic: {fileID: 0}
+  _flagsToAdd: []
+  _flagsToRemove: []
+  _actions:
+  - _type: 5
+    _probability: 1
+    _value: 10
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 90f48ea905955ed4880c115cb835ab28, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 3
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: c735b85e55df9a749bc08029f1b1924a, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 7
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 0251a9d4d38bcbe448f0e89d727f6323, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 3
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: a26625be47a55bc4483e914f6b91aee8, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 1
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 19995f5c3ec2da740adde833ee8eb2e2, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 10
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 662dd709fa2af8f4bb56ba810f52f12d, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 3
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: fb25246842aea084393df1e3924ea651, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 7
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: f5c7767c5706e134b913f64e8e1cd2ff, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 0
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: a1e0891caa2ed4c4da9d747946be0648, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 2
+    _probability: 1
+    _value: 0
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 11400000, guid: dca4ef35a6894bf4fb3aa7f4e44f81ef, type: 2}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 3
+    _probability: 1
+    _value: 0
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd:
+    - HouseDrakenhartisPlayer
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}

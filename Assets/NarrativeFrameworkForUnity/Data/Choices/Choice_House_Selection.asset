@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9c95682eaecb954fa14485cc0de6da9, type: 3}
+  m_Name: Choice_House_Selection
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _choiceId: choice_01
+  _choiceText: House Drakenhart is calling!
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _outcomes:
+  - {fileID: 11400000, guid: a7eb2e9ce62a1964cbc1f4a0859c233e, type: 2}
+  _nextEvent: {fileID: 11400000, guid: 8e6abe9e2601cba42bd4647f5d780b16, type: 2}
+  _goToNextDay: 1
+  _minChoiceTimeUnit: 1

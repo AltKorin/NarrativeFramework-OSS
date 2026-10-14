@@ -1,0 +1,204 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7973048559795465508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921b52931942f11498c446591bcb1afd, type: 3}
+  m_Name: Outcome_0
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _type: 5
+  _targetEventId: 
+  _value: -10
+  _probability: 1
+  _outcomeDescription: 
+  _targetEvent: {fileID: 0}
+  _targetResource: {fileID: 11400000, guid: c552601abb0ac2046a9b220eef5dc192, type: 2}
+  _targetVariable: {fileID: 0}
+  _sourceActor: {fileID: 0}
+  _targetActor: {fileID: 0}
+  _playerActor: {fileID: 0}
+  _storyArc: {fileID: 0}
+  _customLogic: {fileID: 0}
+  _flagsToAdd: []
+  _flagsToRemove: []
+  _actions:
+  - _type: 5
+    _probability: 1
+    _value: 0
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 405bdb583c474024f982906022808046, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 3
+    _probability: 1
+    _value: 0
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd:
+    - Temporary Chaos
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+--- !u!114 &-1997986264736182236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9c95682eaecb954fa14485cc0de6da9, type: 3}
+  m_Name: Choice_2
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _choiceId: choice_01
+  _choiceText: Leak a false fragment of information to flush the traitor.
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _outcomes:
+  - {fileID: -7973048559795465508}
+  _nextEvent: {fileID: 0}
+  _goToNextDay: 1
+  _minChoiceTimeUnit: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d89579546559c14b83056dcee19bbcd, type: 3}
+  m_Name: Shadows_Among_Kin
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  Outcomes: []
+  simEventId: EVT_7
+  simEventNumericId: 0
+  simEventTitle: Shadows Among Kin
+  simEventDescription: "In the quiet hours, your trusted kin presents a sealed missive
+    intercepted from an unknown hand \u2014 cryptic words that suggest a plot to
+    sell House secrets to a rival magnate."
+  mainIllustration: {fileID: -728896145157033188, guid: 5f3f6b71706d89e4d8f32e0e06744eeb, type: 3}
+  backgroundImage: {fileID: 4765747136834640093, guid: f2418c31305e78646a80032c22f022ce, type: 3}
+  ambientSound: {fileID: 0}
+  MinTimeUnit: 1
+  MaxTimeUnit: 30
+  Probability: 1
+  Type: 0
+  StoryArc: {fileID: 11400000, guid: dfed1cbf831ecea47b0bd96e0b8310da, type: 2}
+  LinkedEvents: []
+  requiredFlags: []
+  storyTags: []
+  choices:
+  - {fileID: 11400000, guid: 59e4837e18c913742a2759e05c02b127, type: 2}
+  - {fileID: 895754298887057276}
+  - {fileID: -1997986264736182236}
+  forbiddenFlags: []
+  InvolvedActors: []
+--- !u!114 &895754298887057276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9c95682eaecb954fa14485cc0de6da9, type: 3}
+  m_Name: Choice_1
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _choiceId: choice_01
+  _choiceText: Confront the suspected kin directly in private counsel
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _outcomes:
+  - {fileID: 3424470356156598280}
+  _nextEvent: {fileID: 0}
+  _goToNextDay: 1
+  _minChoiceTimeUnit: 1
+--- !u!114 &3424470356156598280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921b52931942f11498c446591bcb1afd, type: 3}
+  m_Name: Outcome_0
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _type: 5
+  _targetEventId: 
+  _value: -5
+  _probability: 1
+  _outcomeDescription: 
+  _targetEvent: {fileID: 0}
+  _targetResource: {fileID: 11400000, guid: 405bdb583c474024f982906022808046, type: 2}
+  _targetVariable: {fileID: 0}
+  _sourceActor: {fileID: 0}
+  _targetActor: {fileID: 0}
+  _playerActor: {fileID: 0}
+  _storyArc: {fileID: 0}
+  _customLogic: {fileID: 0}
+  _flagsToAdd: []
+  _flagsToRemove: []
+  _actions:
+  - _type: 5
+    _probability: 0.5
+    _value: -10
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 856067abc40daa24989d9db00c993b01, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 8
+    _probability: 1
+    _value: 5
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 11400000, guid: ab8f8964c65af4a4790fba6e2092b26a, type: 2}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d89579546559c14b83056dcee19bbcd, type: 3}
+  m_Name: New_Ending
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  Outcomes: []
+  simEventId: ENDING_f2adfa66
+  simEventNumericId: 0
+  simEventTitle: New Ending
+  simEventDescription: 
+  mainIllustration: {fileID: -852422968276955775, guid: c1ea9801dbcf67645a7d60fe2305ca84, type: 3}
+  backgroundImage: {fileID: 0}
+  ambientSound: {fileID: 0}
+  MinTimeUnit: 1
+  MaxTimeUnit: 1
+  Probability: 1
+  Type: 3
+  StoryArc: {fileID: 0}
+  LinkedEvents: []
+  requiredFlags: []
+  storyTags: []
+  choices: []
+  forbiddenFlags: []
+  InvolvedActors: []

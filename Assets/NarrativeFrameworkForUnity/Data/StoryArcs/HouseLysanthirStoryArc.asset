@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3761c48bb8c0a8a46990dc80c8294e42, type: 3}
+  m_Name: HouseLysanthirStoryArc
+  m_EditorClassIdentifier: 
+  Id: HouseLysanthirStoryArc
+  Title: 
+  Description: 
+  _arcName: HouseLysanthirStoryArc
+  _arcDescription: Describe what this arc is about.
+  _arcIllustration: {fileID: 0}
+  _eventsInArc: []
+  _allowMultipleActivations: 0
+  _minDay: 2
+  _maxDay: 13
+  _involvedActors: []
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _requiredEvents: []
+  _additionalConditions: []
+  _triggeredEvent: {fileID: 11400000, guid: f27dc5fa8656a914b94e4963351f6a9d, type: 2}

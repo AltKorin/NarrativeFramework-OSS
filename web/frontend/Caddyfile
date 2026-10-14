@@ -1,0 +1,43 @@
+{
+ servers {
+  trusted_proxies static {$TRUSTED_PROXY_CIDRS:127.0.0.1/32}
+  trusted_proxies_strict
+ }
+}
+{$SITE_ADDRESS:localhost} {
+ @public_http {
+  host {$PUBLIC_HOSTS:localhost.invalid}
+  header X-Forwarded-Proto http
+ }
+ redir @public_http https://{host}{uri} 308
+ encode zstd gzip
+ request_body {
+  max_size 512KB
+ }
+ handle /api/* {
+  reverse_proxy api:8000 {
+   header_up X-Forwarded-For {client_ip}
+  }
+ }
+ handle /play/mcp* {
+  reverse_proxy mcp:8001 {
+   header_up X-Forwarded-For {client_ip}
+  }
+ }
+ handle /mcp* {
+  reverse_proxy mcp:8001 {
+   header_up X-Forwarded-For {client_ip}
+  }
+ }
+ handle {
+  root * /srv
+  try_files {path}/index.html {path} /index.html
+  file_server
+ }
+ header {
+  X-Content-Type-Options nosniff
+  Referrer-Policy same-origin
+  X-Frame-Options DENY
+  Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+ }
+}

@@ -1,0 +1,107 @@
+{
+  "title": "Noc poza drużyną — zaginiony latarnik",
+  "document": {
+    "schema": "narrative-web/1",
+    "start": "harbor",
+    "nodes": [
+      {
+        "id": "harbor",
+        "kind": "scene",
+        "title": "Dzwon pod wodą",
+        "text": "O północy z zatopionej kaplicy dobiega bicie dzwonu. Rano znika latarnik. W porcie czeka jego córka, Mira.",
+        "secret": "Dzwon odpowiada na rytuał odprawiany w starej solni.",
+        "x": 40,
+        "y": 140
+      },
+      {
+        "id": "market",
+        "kind": "scene",
+        "title": "Targ milczących rybaków",
+        "text": "Rybacy sprzedają połów w zupełnej ciszy. Ktoś wykupił cały zapas soli.",
+        "secret": "Sprzedawczyni widziała wozy jadące do solni.",
+        "x": 350,
+        "y": 40
+      },
+      {
+        "id": "salt",
+        "kind": "scene",
+        "title": "Stara solnia",
+        "text": "Ślady wozów kończą się przy zaryglowanej bramie. W środku płonie zielone światło.",
+        "secret": "Latarnik żyje. Próbuje przerwać rytuał, który sam rozpoczął.",
+        "x": 670,
+        "y": 140
+      },
+      {
+        "id": "mira",
+        "kind": "npc",
+        "title": "Mira, córka latarnika",
+        "text": "Chce odzyskać ojca. Zna przejście do solni przez kanał odpływowy.",
+        "secret": "Ukryła dziennik ojca, bo boi się oskarżeń.",
+        "x": 40,
+        "y": 390
+      },
+      {
+        "id": "ledger",
+        "kind": "clue",
+        "title": "Sól tłumi głos dzwonu",
+        "text": "Notatki latarnika i stare pieśni wskazują, że krąg soli może przerwać rytuał.",
+        "secret": "Zniszczenie dzwonu uwolni to, co jest pod kaplicą.",
+        "x": 670,
+        "y": 390
+      },
+      {
+        "id": "chapel",
+        "kind": "location",
+        "title": "Zatopiona kaplica",
+        "text": "Przy odpływie odsłaniają się schody. Na kamieniach świeże znaki ochronne.",
+        "secret": "Kaplica jest pieczęcią, nie siedzibą potwora.",
+        "x": 350,
+        "y": 390
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "harbor",
+        "target": "market",
+        "kind": "leads_to"
+      },
+      {
+        "id": "e2",
+        "source": "market",
+        "target": "salt",
+        "kind": "leads_to"
+      },
+      {
+        "id": "e3",
+        "source": "harbor",
+        "target": "salt",
+        "kind": "leads_to"
+      },
+      {
+        "id": "e4",
+        "source": "harbor",
+        "target": "mira",
+        "kind": "involves"
+      },
+      {
+        "id": "e5",
+        "source": "mira",
+        "target": "ledger",
+        "kind": "reveals"
+      },
+      {
+        "id": "e6",
+        "source": "salt",
+        "target": "ledger",
+        "kind": "reveals"
+      },
+      {
+        "id": "e7",
+        "source": "harbor",
+        "target": "chapel",
+        "kind": "located_at"
+      }
+    ]
+  }
+}

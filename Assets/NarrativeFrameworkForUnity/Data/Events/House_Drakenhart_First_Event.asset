@@ -1,0 +1,299 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8945592952956049061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921b52931942f11498c446591bcb1afd, type: 3}
+  m_Name: Outcome_0
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _type: 5
+  _targetEventId: 
+  _value: 20
+  _probability: 1
+  _outcomeDescription: ou summon the northern dark elf envoy from shadowed realms.
+    A fragile accord dances between ancient rivalry and mutual necessity. Their eyes
+    gleam with secrets, their gifts carry whispers of arcane power yet untamed.
+  _targetEvent: {fileID: 0}
+  _targetResource: {fileID: 11400000, guid: 856067abc40daa24989d9db00c993b01, type: 2}
+  _targetVariable: {fileID: 0}
+  _sourceActor: {fileID: 0}
+  _targetActor: {fileID: 0}
+  _playerActor: {fileID: 0}
+  _storyArc: {fileID: 0}
+  _customLogic: {fileID: 0}
+  _flagsToAdd: []
+  _flagsToRemove: []
+  _actions:
+  - _type: 5
+    _probability: 1
+    _value: 10
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 3c0e2c6ddb3161c448fb72e444cdeb83, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 10
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: c552601abb0ac2046a9b220eef5dc192, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 9
+    _probability: 1
+    _value: 0
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 11400000, guid: ef621c15742bf814db4d82ea344d95ba, type: 2}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 8
+    _probability: 1
+    _value: 3
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 11400000, guid: ef621c15742bf814db4d82ea344d95ba, type: 2}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d89579546559c14b83056dcee19bbcd, type: 3}
+  m_Name: House_Drakenhart_First_Event
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  Outcomes: []
+  simEventId: EVT_2
+  simEventNumericId: 0
+  simEventTitle: House Drakenhart Grand Banquet
+  simEventDescription: The noble family of House Drakenhart hosts a grand banquet
+    to celebrate their ascension to power, drawing the attention of allies and rivals
+    alike. The great hall swells with voices heavy with flattery, veiled threats,
+    and whispered schemes beneath flickering chandeliers
+  mainIllustration: {fileID: 4765747136834640093, guid: f2418c31305e78646a80032c22f022ce, type: 3}
+  backgroundImage: {fileID: -8698806435444372048, guid: 6fbd8fb7e05c07141913ac0b7c64249b, type: 3}
+  ambientSound: {fileID: 0}
+  MinTimeUnit: 1
+  MaxTimeUnit: 30
+  Probability: 1
+  Type: 0
+  StoryArc: {fileID: 11400000, guid: dca4ef35a6894bf4fb3aa7f4e44f81ef, type: 2}
+  LinkedEvents: []
+  requiredFlags: []
+  storyTags: []
+  choices:
+  - {fileID: 11400000, guid: 4dcd7b30965e04849a320ae023fb266b, type: 2}
+  - {fileID: 7467486245279401681}
+  - {fileID: 2105011922847930136}
+  forbiddenFlags: []
+  InvolvedActors: []
+--- !u!114 &2105011922847930136
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9c95682eaecb954fa14485cc0de6da9, type: 3}
+  m_Name: Choice_2
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _choiceId: choice_01
+  _choiceText: Propose a sudden military levy to parade strength and dissuade opportunists."
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _outcomes:
+  - {fileID: 4781286333698685489}
+  _nextEvent: {fileID: 0}
+  _goToNextDay: 1
+  _minChoiceTimeUnit: 1
+--- !u!114 &4781286333698685489
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921b52931942f11498c446591bcb1afd, type: 3}
+  m_Name: Outcome_0
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _type: 5
+  _targetEventId: 
+  _value: 10
+  _probability: 1
+  _outcomeDescription: "You issue an urgent call to arms. Armor clangs, ranks swell,
+    and banners unfurl \u2014 a grim spectacle meant to cow enemies abroad and quell
+    unrest within. Yet the cost weighs heavy on your people and coffers alike."
+  _targetEvent: {fileID: 0}
+  _targetResource: {fileID: 11400000, guid: 405bdb583c474024f982906022808046, type: 2}
+  _targetVariable: {fileID: 0}
+  _sourceActor: {fileID: 0}
+  _targetActor: {fileID: 0}
+  _playerActor: {fileID: 0}
+  _storyArc: {fileID: 0}
+  _customLogic: {fileID: 0}
+  _flagsToAdd: []
+  _flagsToRemove: []
+  _actions:
+  - _type: 5
+    _probability: 1
+    _value: -5
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 88356e5910c12934da2caba293bb1167, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: -5
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 6410d287dbc4a2b4ba1d2df1f9e449be, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 15
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 856067abc40daa24989d9db00c993b01, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 9
+    _probability: 1
+    _value: 0
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 11400000, guid: 4ae0238961ae9f243b99d06f2cc4d99b, type: 2}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 8
+    _probability: 1
+    _value: 4
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 11400000, guid: 4ae0238961ae9f243b99d06f2cc4d99b, type: 2}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 7
+    _probability: 1
+    _value: 15
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 11400000, guid: 9efec6004effe984d9953b6cc9363149, type: 2}
+    _targetActor: {fileID: 11400000, guid: f63246bfa6ef55c45a1b361be22cfae6, type: 2}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 7
+    _probability: 1
+    _value: -15
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 11400000, guid: 9efec6004effe984d9953b6cc9363149, type: 2}
+    _targetActor: {fileID: 11400000, guid: 4dd3b574964dea8488b94b5656ba359b, type: 2}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+--- !u!114 &7467486245279401681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9c95682eaecb954fa14485cc0de6da9, type: 3}
+  m_Name: Choice_1
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _choiceId: choice_01
+  _choiceText: Extend a delicate invitation to the northern dark elf envoy
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _outcomes:
+  - {fileID: -8945592952956049061}
+  _nextEvent: {fileID: 0}
+  _goToNextDay: 1
+  _minChoiceTimeUnit: 1

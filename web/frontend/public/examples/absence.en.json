@@ -1,0 +1,107 @@
+{
+  "title": "A Night Away — the Missing Keeper",
+  "document": {
+    "schema": "narrative-web/1",
+    "start": "harbor",
+    "nodes": [
+      {
+        "id": "harbor",
+        "kind": "scene",
+        "title": "The Bell Beneath the Water",
+        "text": "At midnight, a bell rings from the submerged chapel. By morning the lighthouse keeper has vanished. His daughter Mira waits at the harbor.",
+        "secret": "The bell responds to a ritual being performed in the old saltworks.",
+        "x": 40,
+        "y": 140
+      },
+      {
+        "id": "market",
+        "kind": "scene",
+        "title": "The Silent Fish Market",
+        "text": "The fishers sell their catch in complete silence. Someone has bought every sack of salt.",
+        "secret": "A vendor saw carts heading toward the saltworks.",
+        "x": 350,
+        "y": 40
+      },
+      {
+        "id": "salt",
+        "kind": "scene",
+        "title": "The Old Saltworks",
+        "text": "Cart tracks end at a barred gate. A green light burns inside.",
+        "secret": "The lighthouse keeper is alive. He is trying to stop the ritual he started.",
+        "x": 670,
+        "y": 140
+      },
+      {
+        "id": "mira",
+        "kind": "npc",
+        "title": "Mira, the Keeper’s Daughter",
+        "text": "She wants her father back. She knows a way into the saltworks through the drainage channel.",
+        "secret": "She hid her father’s journal because she fears he will be blamed.",
+        "x": 40,
+        "y": 390
+      },
+      {
+        "id": "ledger",
+        "kind": "clue",
+        "title": "Salt Silences the Bell",
+        "text": "The keeper’s notes and old songs suggest that a circle of salt can interrupt the ritual.",
+        "secret": "Destroying the bell will release what lies beneath the chapel.",
+        "x": 670,
+        "y": 390
+      },
+      {
+        "id": "chapel",
+        "kind": "location",
+        "title": "The Submerged Chapel",
+        "text": "At low tide, steps emerge from the water. Fresh protective marks cover the stones.",
+        "secret": "The chapel is a seal, not the creature’s home.",
+        "x": 350,
+        "y": 390
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "harbor",
+        "target": "market",
+        "kind": "leads_to"
+      },
+      {
+        "id": "e2",
+        "source": "market",
+        "target": "salt",
+        "kind": "leads_to"
+      },
+      {
+        "id": "e3",
+        "source": "harbor",
+        "target": "salt",
+        "kind": "leads_to"
+      },
+      {
+        "id": "e4",
+        "source": "harbor",
+        "target": "mira",
+        "kind": "involves"
+      },
+      {
+        "id": "e5",
+        "source": "mira",
+        "target": "ledger",
+        "kind": "reveals"
+      },
+      {
+        "id": "e6",
+        "source": "salt",
+        "target": "ledger",
+        "kind": "reveals"
+      },
+      {
+        "id": "e7",
+        "source": "harbor",
+        "target": "chapel",
+        "kind": "located_at"
+      }
+    ]
+  }
+}

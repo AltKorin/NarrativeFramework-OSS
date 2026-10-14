@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921b52931942f11498c446591bcb1afd, type: 3}
+  m_Name: Outcome_House_Drakenhart_First_Event
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _type: 2
+  _targetEventId: 
+  _value: 1
+  _probability: 0
+  _outcomeDescription: "You summon a trusted kin away from the festivities. Words
+    lean heavy with suspicion and resolve; discreet inquiries begin. Loyalties will
+    be tested, and the shadows within your house may reveal friends\u2014or foes."
+  _targetEvent: {fileID: 0}
+  _targetResource: {fileID: 0}
+  _targetVariable: {fileID: 0}
+  _sourceActor: {fileID: 0}
+  _targetActor: {fileID: 0}
+  _playerActor: {fileID: 0}
+  _storyArc: {fileID: 11400000, guid: dfed1cbf831ecea47b0bd96e0b8310da, type: 2}
+  _customLogic: {fileID: 0}
+  _flagsToAdd: []
+  _flagsToRemove: []
+  _actions:
+  - _type: 5
+    _probability: 1
+    _value: -5
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 929cfb01d55435743a3b7f39d12b4a57, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: 10
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: 405bdb583c474024f982906022808046, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 5
+    _probability: 1
+    _value: -5
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 11400000, guid: c552601abb0ac2046a9b220eef5dc192, type: 2}
+    _targetVariable: {fileID: 0}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 9
+    _probability: 1
+    _value: 0
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 11400000, guid: ab8f8964c65af4a4790fba6e2092b26a, type: 2}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}
+  - _type: 8
+    _probability: 1
+    _value: 2
+    _targetId: 
+    _targetEvent: {fileID: 0}
+    _targetResource: {fileID: 0}
+    _targetVariable: {fileID: 11400000, guid: ab8f8964c65af4a4790fba6e2092b26a, type: 2}
+    _sourceActor: {fileID: 0}
+    _targetActor: {fileID: 0}
+    _storyArc: {fileID: 0}
+    _flagsToAdd: []
+    _flagsToRemove: []
+    _customLogic: {fileID: 0}

@@ -1,0 +1,12 @@
+{
+  "name": "SimulationGame.Runtime",
+  "rootNamespace": "SimulationGame",
+  "references": [
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true,
+  "noEngineReferences": false
+}

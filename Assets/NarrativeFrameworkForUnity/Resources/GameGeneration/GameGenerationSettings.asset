@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c55bf65b94821bd47b0f404600ddfe83, type: 3}
+  m_Name: GameGenerationSettings
+  m_EditorClassIdentifier: 
+  gameTheme: 
+  numberOfMainEvents: 10
+  numberOfRandomEvents: 20
+  numberOfCriticalEvents: 3
+  numberOfEndingEvents: 1
+  numberOfStoryArcs: 5
+  numberOfMainCharacters: 3
+  numberOfResources: 5
+  openAIModel: gpt-3.5-turbo
+  openAITemperature: 0.7
+  eventAssetPrefix: GEN_Event_
+  storyArcAssetPrefix: GEN_StoryArc_
+  actorAssetPrefix: GEN_Actor_
+  resourceAssetPrefix: GEN_Resource_

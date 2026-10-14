@@ -1,0 +1,34 @@
+from django.urls import path
+from stories import views, play_views, registration, wiki_views
+
+urlpatterns = [
+    path("api/campaigns/", wiki_views.campaigns),
+    path("api/campaigns/<uuid:campaign_id>/", wiki_views.campaign),
+    path("api/campaigns/<uuid:campaign_id>/export/", wiki_views.export_campaign),
+    path("api/campaigns/<uuid:campaign_id>/pages/", wiki_views.pages),
+    path("api/campaigns/<uuid:campaign_id>/pages/<uuid:page_id>/", wiki_views.page),
+    path(
+        "api/campaigns/<uuid:campaign_id>/pages/<uuid:page_id>/use/",
+        wiki_views.use_page,
+    ),
+    path("api/campaigns/<uuid:campaign_id>/relations/", wiki_views.relations),
+    path(
+        "api/campaigns/<uuid:campaign_id>/relations/<uuid:relation_id>/",
+        wiki_views.relation,
+    ),
+    path("api/register/", registration.register),
+    path("api/plays/", play_views.plays),
+    path("api/plays/<uuid:pk>/", play_views.detail),
+    path("api/plays/<uuid:pk>/access/", play_views.access),
+    path("api/plays/<uuid:pk>/journal/", play_views.journal),
+    path("api/plays/<uuid:pk>/review/", play_views.review),
+    path("api/plays/<uuid:pk>/report/", play_views.report),
+    path("api/health/", views.health),
+    path("api/session/", views.session),
+    path("api/demo/", views.demo),
+    path("api/scenarios/", views.scenarios),
+    path("api/scenarios/<uuid:pk>/", views.scenario),
+    path("api/scenarios/<uuid:pk>/validate/", views.validate),
+    path("api/scenarios/<uuid:pk>/export/", views.export),
+    path("api/token/", views.token),
+]

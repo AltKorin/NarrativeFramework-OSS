@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d89579546559c14b83056dcee19bbcd, type: 3}
+  m_Name: Glory-Chasing_Eagle-Bearers
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  Outcomes: []
+  simEventId: EVT_3
+  simEventNumericId: 0
+  simEventTitle: Glory-Chasing Eagle-Bearers
+  simEventDescription: The legions of House Vaelmont march for renown in pursuit
+    of glory.
+  mainIllustration: {fileID: -535282305199880361, guid: b69f844ccb81fc0479732d84d3f427f2, type: 3}
+  backgroundImage: {fileID: -535282305199880361, guid: b69f844ccb81fc0479732d84d3f427f2, type: 3}
+  ambientSound: {fileID: 0}
+  MinTimeUnit: 1
+  MaxTimeUnit: 30
+  Probability: 1
+  Type: 0
+  StoryArc: {fileID: 11400000, guid: 66a13dbf5cd814a4798fdb54a5ca7f7f, type: 2}
+  LinkedEvents: []
+  requiredFlags: []
+  storyTags: []
+  choices:
+  - {fileID: 11400000, guid: f0a4ec0dfd0816148986a778097f675e, type: 2}
+  forbiddenFlags: []
+  InvolvedActors: []

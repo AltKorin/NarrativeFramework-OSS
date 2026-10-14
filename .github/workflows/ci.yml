@@ -1,0 +1,65 @@
+name: Web workshop checks
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check publication contents
+        run: python scripts/check-release.py
+      - name: Configure disposable local instance
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import secrets
+          config = Path('web/.env.example').read_text()
+          config = config.replace('replace-with-a-long-random-secret', secrets.token_urlsafe(48))
+          config = config.replace('replace-with-a-long-random-password', secrets.token_urlsafe(48))
+          Path('web/.env').write_text(config)
+          Path('web/.env').chmod(0o600)
+          PY
+      - name: Build and start Compose (includes TypeScript and static HTML)
+        run: docker compose -f web/compose.yaml up --build --wait --wait-timeout 180 -d
+      - name: PostgreSQL regressions and migration consistency
+        run: |
+          docker compose -f web/compose.yaml exec -T api python manage.py test stories --noinput
+          docker compose -f web/compose.yaml exec -T api python manage.py makemigrations --check --dry-run
+      - name: Real author, player and wiki MCP integrations
+        run: |
+          docker compose -f web/compose.yaml exec -T api python < web/tests/integration.py
+          docker compose -f web/compose.yaml exec -T api python < web/tests/play_integration.py
+          docker compose -f web/compose.yaml exec -T api python < web/tests/wiki_integration.py
+      - name: Install browser test tools
+        run: |
+          python -m pip install -r web/backend/requirements.lock playwright==1.64.0
+          python -m playwright install --with-deps chromium
+      - name: Browser workflows (fictional disposable accounts)
+        run: |
+          python web/tests/browser.py
+          python web/tests/languages.py
+          python web/tests/site_browser.py
+          python web/tests/wiki_browser.py
+          python web/tests/play_browser.py
+      - name: Stop disposable stack
+        if: always()
+        run: docker compose -f web/compose.yaml down -v --remove-orphans

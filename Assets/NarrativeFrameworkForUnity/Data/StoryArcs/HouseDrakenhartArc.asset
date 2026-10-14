@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3761c48bb8c0a8a46990dc80c8294e42, type: 3}
+  m_Name: HouseDrakenhartArc
+  m_EditorClassIdentifier: 
+  Id: "House\u202FDrakenhart Arc"
+  Title: 
+  Description: 
+  _arcName: "House\u202FDrakenhart Arc"
+  _arcDescription: Story of noble horse lords
+  _arcIllustration: {fileID: 0}
+  _eventsInArc:
+  - {fileID: 11400000, guid: 8e6abe9e2601cba42bd4647f5d780b16, type: 2}
+  _allowMultipleActivations: 0
+  _minDay: 1
+  _maxDay: 13
+  _involvedActors: []
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _requiredEvents: []
+  _additionalConditions: []
+  _triggeredEvent: {fileID: 11400000, guid: 8e6abe9e2601cba42bd4647f5d780b16, type: 2}

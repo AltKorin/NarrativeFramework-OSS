@@ -1,0 +1,14 @@
+{
+  "name": "SimulationGame.Editor",
+  "rootNamespace": "SimulationGame.Editor",
+  "references": [
+    "SimulationGame.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true,
+  "noEngineReferences": false
+}

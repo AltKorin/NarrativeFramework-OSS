@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53e69121b5b2d414f8da6b8a7264ae85, type: 3}
+  m_Name: GameData_Demo
+  m_EditorClassIdentifier: 
+  _campaignLength: 8
+  _startingEvent: {fileID: 11400000, guid: 2351b4fcb0f6f0744a591840f22e6d77, type: 2}
+  DefaultStoryStack: {fileID: 11400000, guid: 93338475301845a4cbb01227d2fa2d7c, type: 2}
+  _events:
+  - {fileID: 11400000, guid: 2351b4fcb0f6f0744a591840f22e6d77, type: 2}
+  - {fileID: 11400000, guid: 8e6abe9e2601cba42bd4647f5d780b16, type: 2}
+  - {fileID: 11400000, guid: 76df2f059c4946c4b90eeb48603f4a54, type: 2}
+  - {fileID: 11400000, guid: f27dc5fa8656a914b94e4963351f6a9d, type: 2}
+  - {fileID: 11400000, guid: a5b74af189377fc459650d4cf7a7f8f4, type: 2}
+  - {fileID: 11400000, guid: be37015ece4c58d4283095e4d007a61a, type: 2}
+  - {fileID: 11400000, guid: e279f166e1d7c3043b05f663f64cf34b, type: 2}
+  - {fileID: 11400000, guid: 20bf390df9c7960429d0b57fe3ae6119, type: 2}
+  _storyArcs:
+  - {fileID: 11400000, guid: dca4ef35a6894bf4fb3aa7f4e44f81ef, type: 2}
+  - {fileID: 11400000, guid: a9415e0194db2694197e39b3bb376ca6, type: 2}
+  - {fileID: 11400000, guid: 66a13dbf5cd814a4798fdb54a5ca7f7f, type: 2}
+  _actors:
+  - {fileID: 11400000, guid: 42ff08f1ad8e6a845a9bf4ac90820dbe, type: 2}
+  - {fileID: 11400000, guid: 4f84180210e12e748bf92cd982b5e6a7, type: 2}
+  - {fileID: 11400000, guid: 8add842dfaf66fa458c018e78cabff68, type: 2}
+  - {fileID: 11400000, guid: 44fd43afc7ec39f419d26e6ee3cf4977, type: 2}
+  - {fileID: 11400000, guid: 9acd84b3f3ea1b848a255db71115ae36, type: 2}
+  _relationships:
+  - Source: {fileID: 11400000, guid: 9efec6004effe984d9953b6cc9363149, type: 2}
+    Target: {fileID: 11400000, guid: f63246bfa6ef55c45a1b361be22cfae6, type: 2}
+    Strength: 75
+    RelationshipType: Undefined
+  - Source: {fileID: 11400000, guid: 9efec6004effe984d9953b6cc9363149, type: 2}
+    Target: {fileID: 11400000, guid: 4dd3b574964dea8488b94b5656ba359b, type: 2}
+    Strength: -75
+    RelationshipType: Undefined
+  _resources:
+  - {fileID: 11400000, guid: bce7c925ece1b345e8501ce6a202a014, type: 2}
+  - {fileID: 11400000, guid: 64a54c77cee5bf3aab256deb2d84df58, type: 2}
+  - {fileID: 11400000, guid: 2085b83082ff190a3b6b9e0908ed2f16, type: 2}
+  - {fileID: 11400000, guid: 7ff6858d8929eb2d99733b6a2b12d611, type: 2}
+  - {fileID: 11400000, guid: 45df62566a2067e82857743d0fdeb1b7, type: 2}
+  _requiredFlags: []
+  _narrativeVariables: []
+  _customOutcomes: []
+  _enableResourceFailStates: 1
+  _failOnAnyResourceAtMin: 1
+  _resourceFailRules:
+  - Resource: {fileID: 11400000, guid: 253163fda9d4dc9459b947174d94ba97, type: 2}
+    Enabled: 0
+    Threshold: 0
+    SpecificEnding: {fileID: 0}
+    FlagOnFail: 
+    MessageOverride: 
+  _defaultGameOverEvent: {fileID: 11400000, guid: 91192fe56216ec14caaea55f83f88d4d, type: 2}
+  _gameOverFlag: game_over
+  _lastEventId: 10
+  _enableResourceDeaths: 1
+  _resourceDeathRules:
+  - resourceId: gold
+    threshold: 0
+    endingEvent: {fileID: 11400000, guid: 91192fe56216ec14caaea55f83f88d4d, type: 2}
+    flagOnDeath: 
+  - resourceId: food
+    threshold: 0
+    endingEvent: {fileID: 11400000, guid: 91192fe56216ec14caaea55f83f88d4d, type: 2}
+    flagOnDeath: 
+  - resourceId: prestige
+    threshold: 0
+    endingEvent: {fileID: 11400000, guid: 91192fe56216ec14caaea55f83f88d4d, type: 2}
+    flagOnDeath: 
+  - resourceId: order
+    threshold: 0
+    endingEvent: {fileID: 11400000, guid: 91192fe56216ec14caaea55f83f88d4d, type: 2}
+    flagOnDeath: 
+  _campaignEnding: {fileID: 11400000, guid: 91192fe56216ec14caaea55f83f88d4d, type: 2}
+  _gameOverFlags:
+  - Failure

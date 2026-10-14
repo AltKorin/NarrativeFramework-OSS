@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3761c48bb8c0a8a46990dc80c8294e42, type: 3}
+  m_Name: HouseVaelmontArc
+  m_EditorClassIdentifier: 
+  Id: "House\u202FVaelmont"
+  Title: 
+  Description: 
+  _arcName: "House\u202FVaelmont"
+  _arcDescription: "House\u202FVaelmont"
+  _arcIllustration: {fileID: 0}
+  _eventsInArc:
+  - {fileID: 11400000, guid: 76df2f059c4946c4b90eeb48603f4a54, type: 2}
+  - {fileID: 11400000, guid: be37015ece4c58d4283095e4d007a61a, type: 2}
+  _allowMultipleActivations: 0
+  _minDay: 1
+  _maxDay: 30
+  _involvedActors: []
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _requiredEvents: []
+  _additionalConditions: []
+  _triggeredEvent: {fileID: 11400000, guid: 76df2f059c4946c4b90eeb48603f4a54, type: 2}

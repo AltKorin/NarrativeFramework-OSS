@@ -1,0 +1,73 @@
+name: narrative-workshop
+x-backend: &backend
+  build: ./backend
+  env_file: .env
+  environment: &environment
+    POSTGRES_HOST: db
+    REDIS_URL: redis://redis:6379/0
+  restart: unless-stopped
+  init: true
+  read_only: true
+  tmpfs: [/tmp]
+services:
+  db:
+    image: postgres:17-alpine
+    env_file: .env
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    mem_limit: 2g
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --maxmemory, 128mb, --maxmemory-policy, noeviction, --save, '']
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    mem_limit: 192m
+  migrate:
+    <<: *backend
+    restart: 'no'
+    command: [sh, -c, 'python manage.py migrate --noinput && python manage.py seed_demo']
+    depends_on:
+      db: {condition: service_healthy}
+  api:
+    <<: *backend
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    mem_limit: 768m
+    cpus: 2
+  mcp:
+    <<: *backend
+    command: [uvicorn, stories.mcp_server:application, --host, 0.0.0.0, --port, '8001', --workers, '2', --limit-concurrency, '32', --timeout-keep-alive, '5', --proxy-headers, --forwarded-allow-ips, '*']
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    mem_limit: 512m
+    cpus: 1
+  web:
+    build: ./frontend
+    env_file: .env
+    ports: ['${HTTP_PORT:-8080}:80', '${HTTPS_PORT:-8443}:443']
+    depends_on:
+      api: {condition: service_healthy}
+      mcp: {condition: service_started}
+    volumes: [caddy_data:/data, caddy_config:/config]
+    restart: unless-stopped
+    mem_limit: 128m
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

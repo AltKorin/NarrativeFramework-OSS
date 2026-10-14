@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9c95682eaecb954fa14485cc0de6da9, type: 3}
+  m_Name: Choice_House_Drakenhart_First_Event
+  m_EditorClassIdentifier: 
+  Id: 
+  Title: 
+  Description: 
+  _choiceId: choice_01
+  _choiceText: Engage a trusted kin in a private counsel to root out traitors.
+  _requiredFlags: []
+  _forbiddenFlags: []
+  _outcomes:
+  - {fileID: 11400000, guid: 96d0efb84dd611c4a8f9a1de024325ad, type: 2}
+  _nextEvent: {fileID: 11400000, guid: a5b74af189377fc459650d4cf7a7f8f4, type: 2}
+  _goToNextDay: 1
+  _minChoiceTimeUnit: 1

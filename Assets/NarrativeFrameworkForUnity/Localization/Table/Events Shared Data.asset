@@ -1,0 +1,148 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Events Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: Events
+  m_TableCollectionNameGuidString: a81e9b31bb227cd47a6df0bd03e83c80
+  m_Entries:
+  - m_Id: 51999449088
+    m_Key: EVENT_TITLE_A_KINGS_DUTY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52049780736
+    m_Key: EVENT_DESC_A_KINGS_DUTY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52053975040
+    m_Key: CHOICE_A_KINGS_DUTY_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169344
+    m_Key: CHOICE_A_KINGS_DUTY_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169345
+    m_Key: CHOICE_A_KINGS_DUTY_3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169346
+    m_Key: EVENT_TITLE_A_RUMOR_OF_SHADOWS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169347
+    m_Key: EVENT_DESC_A_RUMOR_OF_SHADOWS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169348
+    m_Key: CHOICE_A_RUMOR_OF_SHADOWS_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169349
+    m_Key: CHOICE_A_RUMOR_OF_SHADOWS_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169350
+    m_Key: CHOICE_A_RUMOR_OF_SHADOWS_3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662769541120
+    m_Key: EVENT_TITLE_EVENT_ENDING_AURELIUS_BAD
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844288
+    m_Key: EVENT_DESC_EVENT_ENDING_AURELIUS_BAD
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844289
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_BAD_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844290
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_BAD_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844291
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_BAD_3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844292
+    m_Key: EVENT_TITLE_EVENT_ENDING_AURELIUS_HAPPY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844293
+    m_Key: EVENT_DESC_EVENT_ENDING_AURELIUS_HAPPY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844294
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_HAPPY_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844295
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_HAPPY_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844296
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_HAPPY_3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844297
+    m_Key: EVENT_TITLE_EVENT_ENDING_AURELIUS_NEUTRAL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844298
+    m_Key: EVENT_DESC_EVENT_ENDING_AURELIUS_NEUTRAL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844299
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_NEUTRAL_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844300
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_NEUTRAL_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844301
+    m_Key: CHOICE_EVENT_ENDING_AURELIUS_NEUTRAL_3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844302
+    m_Key: EVENT_TITLE_A_TRAIL_GROWN_COLD
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844303
+    m_Key: EVENT_DESC_A_TRAIL_GROWN_COLD
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844304
+    m_Key: CHOICE_A_TRAIL_GROWN_COLD_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844305
+    m_Key: CHOICE_A_TRAIL_GROWN_COLD_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844306
+    m_Key: CHOICE_A_TRAIL_GROWN_COLD_3
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 3521288323401777152
+  references:
+    version: 2
+    RefIds:
+    - rid: 3521288323401777152
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1756906886415

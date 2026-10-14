@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0288cd0df5225f438b307ea047cb455, type: 3}
+  m_Name: PromptSettings
+  m_EditorClassIdentifier: 
+  ResourcePromptTemplate: 'Generate a resource for a game with the theme: {0}. Provide
+    the output as a JSON object with ''name'', ''initialValue'', ''minValue'', and
+    ''maxValue'' fields. Example: {{ "name": "Gold", "initialValue": 100, "minValue":
+    0, "maxValue": 1000 }}. Respond with pure JSON only. No markdown, no explanations,
+    no code blocks.'
+  ActorPromptTemplate: 'Generate a main character for a game with the theme: {0}.
+    Provide the output as a JSON object with ''name'' and ''description'' fields.
+    Example: {{ "name": "Sir Reginald", "description": "A noble knight." }}. Respond
+    with pure JSON only. No markdown, no explanations, no code blocks.'
+  StoryArcPromptTemplate: 'Generate a story arc for a game with the theme: {0}. Provide
+    the output as a JSON object with ''name'', ''description'', and ''involvedActorNames''
+    (array of strings) fields. Example: {{ "name": "The Lost Artifact", "description":
+    "A quest to find a powerful artifact.", "involvedActorNames": ["Sir Reginald"]
+    }}. Respond with pure JSON only. No markdown, no explanations, no code blocks.'
+  MainEventPromptTemplate: 'Generate a main event for a game with the theme: {0}.
+    Provide the output as a JSON object with ''title'', ''description'', ''type''
+    (always ''Main''), ''storyArcName'' (optional, link to an existing story arc
+    name), ''linkedEventNames'' (optional, array of existing event titles), ''involvedActorNames''
+    (optional, array of existing actor names), ''choices'' (array of choice objects).
+    Each choice object should have ''choiceText'', ''requiredFlags'' (array of strings),
+    ''forbiddenFlags'' (array of strings), ''outcomes'' (array of outcome objects),
+    ''nextEventTitle'' (optional, string), and ''goToNextDay'' (boolean). Each outcome
+    object should have ''type'' (e.g., AddFlag, ModifyResource), ''targetId'' (string,
+    e.g., flag name, resource name), ''value'' (float), ''probability'' (float, 0-1),
+    and ''outcomeDescription''. Example: {{ "title": "Forest Encounter", "description":
+    "You encounter a mysterious creature in the forest.", "type": "Main", "storyArcName":
+    "The Lost Artifact", "involvedActorNames": ["Sir Reginald"], "choices": [{{ "choiceText":
+    "Fight the creature", "requiredFlags": ["hasSword"], "forbiddenFlags": [], "outcomes":
+    [{{ "type": "ModifyResource", "targetId": "Health", "value": -10, "probability":
+    1.0, "outcomeDescription": "You lose 10 health." }}, {{ "type": "AddFlag", "targetId":
+    "foughtCreature", "value": 0, "probability": 1.0, "outcomeDescription": "You
+    fought the creature." }}], "nextEventTitle": "CreatureDefeated", "goToNextDay":
+    false }}] }}. Respond with pure JSON only. No markdown, no explanations, no code
+    blocks.'
+  RandomEventPromptTemplate: 'Generate a random event for a game with the theme:
+    {0}. Provide the output as a JSON object with ''title'', ''description'', ''type''
+    (always ''Random''), ''storyArcName'' (optional, link to an existing story arc
+    name), ''linkedEventNames'' (optional, array of existing event titles), ''involvedActorNames''
+    (optional, array of existing actor names), ''choices'' (array of choice objects).
+    Each choice object should have ''choiceText'', ''requiredFlags'' (array of strings),
+    ''forbiddenFlags'' (array of strings), ''outcomes'' (array of outcome objects),
+    ''nextEventTitle'' (optional, string), and ''goToNextDay'' (boolean). Each outcome
+    object should have ''type'' (e.g., AddFlag, ModifyResource), ''targetId'' (string,
+    e.g., flag name, resource name), ''value'' (float), ''probability'' (float, 0-1),
+    and ''outcomeDescription''. Example: {{ "title": "Sudden Rain", "description":
+    "A sudden downpour soaks everything.", "type": "Random", "choices": [{{ "choiceText":
+    "Seek shelter", "requiredFlags": [], "forbiddenFlags": [], "outcomes": [{{ "type":
+    "ModifyResource", "targetId": "Mood", "value": 5, "probability": 1.0, "outcomeDescription":
+    "You feel a bit better after finding shelter." }}], "nextEventTitle": null, "goToNextDay":
+    false }}] }}. Respond with pure JSON only. No markdown, no explanations, no code
+    blocks.'
+  CriticalEventPromptTemplate: 'Generate a critical event for a game with the theme:
+    {0}. Provide the output as a JSON object with ''title'', ''description'', ''type''
+    (always ''Critical''), ''storyArcName'' (optional, link to an existing story
+    arc name), ''linkedEventNames'' (optional, array of existing event titles), ''involvedActorNames''
+    (optional, array of existing actor names), ''choices'' (array of choice objects).
+    Each choice object should have ''choiceText'', ''requiredFlags'' (array of strings),
+    ''forbiddenFlags'' (array of strings), ''outcomes'' (array of outcome objects),
+    ''nextEventTitle'' (optional, string), and ''goToNextDay'' (boolean). Each outcome
+    object should have ''type'' (e.g., AddFlag, ModifyResource), ''targetId'' (string,
+    e.g., flag name, resource name), ''value'' (float), ''probability'' (float, 0-1),
+    and ''outcomeDescription''. Example: {{ "title": "Plague Outbreak", "description":
+    "A deadly plague sweeps through the land.", "type": "Critical", "choices": [{{
+    "choiceText": "Quarantine the city", "requiredFlags": [], "forbiddenFlags": [],
+    "outcomes": [{{ "type": "ModifyResource", "targetId": "Population", "value":
+    -50, "probability": 1.0, "outcomeDescription": "Population decreases due to quarantine."
+    }}], "nextEventTitle": null, "goToNextDay": true }}] }}. Respond with pure JSON
+    only. No markdown, no explanations, no code blocks.'
+  EndingEventPromptTemplate: 'Generate an ending event for a game with the theme:
+    {0}. Provide the output as a JSON object with ''title'', ''description'', ''type''
+    (always ''Ending''), ''storyArcName'' (optional, link to an existing story arc
+    name), ''linkedEventNames'' (optional, array of existing event titles), and ''involvedActorNames''
+    (optional, array of existing actor names), ''choices'' (array of choice objects).
+    Each choice object should have ''choiceText'', ''requiredFlags'' (array of strings),
+    ''forbiddenFlags'' (array of strings), ''outcomes'' (array of outcome objects),
+    ''nextEventTitle'' (optional, string), and ''goToNextDay'' (boolean). Each outcome
+    object should have ''type'' (e.g., AddFlag, ModifyResource), ''targetId'' (string,
+    e.g., flag name, resource name), ''value'' (float), ''probability'' (float, 0-1),
+    and ''outcomeDescription''. Example: {{ "title": "The Grand Finale", "description":
+    "The culmination of all your choices.", "type": "Ending", "choices": [{{ "choiceText":
+    "Live happily ever after", "requiredFlags": [], "forbiddenFlags": [], "outcomes":
+    [{{ "type": "AddFlag", "targetId": "gameWon", "value": 0, "probability": 1.0,
+    "outcomeDescription": "You won the game!" }}], "nextEventTitle": null, "goToNextDay":
+    true }}] }}. Respond with pure JSON only. No markdown, no explanations, no code
+    blocks.'

@@ -1,0 +1,180 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Events_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: a81e9b31bb227cd47a6df0bd03e83c80, type: 2}
+  m_Metadata:
+    m_Items:
+    - rid: 3521288323481731073
+  m_TableData:
+  - m_Id: 51999449088
+    m_Localized: A King''s Duty
+    m_Metadata:
+      m_Items:
+      - rid: 3521288323481731073
+  - m_Id: 52049780736
+    m_Localized: I watch as Aurelius listens patiently to a farmer''s dispute, his
+      presence commanding yet gentle. He delivers a judgment that is both fair and
+      compassionate, and the farmers leave with grateful bows. He is every inch the
+      noble king. But as the throne room empties, his shoulders slump slightly. He
+      turns to me, the warmth in his golden eyes replaced by a distant, haunted look.
+      "A king''s duty is to his people," he says quietly. "But what of the duties
+      a man owes to himself? To his own past?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52053975040
+    m_Localized: Your duty to your people is what matters most. You are a good king.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169344
+    m_Localized: What duties do you feel you''ve left undone?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169345
+    m_Localized: The crown must be a heavy burden to bear alone.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169346
+    m_Localized: A Rumor of Shadows
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169347
+    m_Localized: Aurelius paces in front of the hearth, his brow furrowed. "These
+      rumors from the borderlands... a figure turning villagers against the crown,
+      promising power... it feels like his work." He stops and looks at me, his gaze
+      intense. "The council thinks it''s just a common brigand. They advise ignoring
+      it. But I know better. This is the start of something."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169348
+    m_Localized: Trust the council''s process. We''ll send official investigators.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169349
+    m_Localized: The council is blind. Use your own agents. Find the truth quietly.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169350
+    m_Localized: Let''s go ourselves. We can''t trust this to anyone else.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662769541120
+    m_Localized: Aurelius''s Downfall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844288
+    m_Localized: The kingdom is in chaos. Aurelius, broken by his past, has become
+      a tyrant. The people suffer under his iron fist, and the whispers of rebellion
+      have grown into a roar. I stand before him in the throne room, the weight of
+      his failure heavy in the air. He looks at me, his eyes hollow, the golden light
+      extinguished. "This is what I have wrought," he says, his voice a mere shadow
+      of its former strength. "This is the legacy of a king who could not escape
+      his own darkness."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844289
+    m_Localized: You have failed your people.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844290
+    m_Localized: There is still time to make amends.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844291
+    m_Localized: I will stand with you, no matter what.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844292
+    m_Localized: Aurelius''s Redemption
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844293
+    m_Localized: The kingdom is at peace. Aurelius, having confronted his past, rules
+      with a just and gentle hand. The people flourish, and the land heals. I stand
+      with him on the balcony of the palace, overlooking the thriving city. He turns
+      to me, his golden eyes bright with a newfound serenity. "We did it," he says,
+      his voice filled with a quiet strength. "We built a future worthy of the sacrifices
+      made."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844294
+    m_Localized: You did it, Aurelius. You saved them all.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844295
+    m_Localized: The kingdom is stronger than ever before.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844296
+    m_Localized: I am proud to have stood by your side.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844297
+    m_Localized: Aurelius''s Uneasy Peace
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844298
+    m_Localized: The immediate threat is gone, but the kingdom remains scarred. Aurelius,
+      though victorious, is a changed man. The warmth in his eyes is now tempered
+      by a permanent shadow of vigilance. He rules justly, but without the easy grace
+      he once possessed. The peace is real, but it is a fragile thing, bought at
+      a high price."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844299
+    m_Localized: The kingdom is safe. That is what matters.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844300
+    m_Localized: You carry a heavy burden.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844301
+    m_Localized: We will face whatever comes next together.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844302
+    m_Localized: A Trail Grown Cold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844303
+    m_Localized: Weeks of searching have yielded nothing. The trail of the shadow
+      figure has gone cold, and the borderlands have fallen quiet. Aurelius is frustrated,
+      his every instinct telling him the danger has not passed. "He''s still out
+      there, I know it," he says, slamming a fist on the table. "He''s planning something,
+      and we''re sitting here blind."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844304
+    m_Localized: Patience, Aurelius. He will make a mistake eventually.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844305
+    m_Localized: Let''s expand the search. Double our efforts.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844306
+    m_Localized: Perhaps the danger has passed. We can''t chase ghosts forever.
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 3521288323481731073
+      type: {class: SmartFormatTag, ns: UnityEngine.Localization.Metadata, asm: Unity.Localization}
+      data:
+        m_Entries: 
+        m_SharedEntries:
+        - id: 51999449088

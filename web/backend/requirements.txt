@@ -1,0 +1,7 @@
+Django>=5.2,<5.3
+djangorestframework>=3.16,<3.17
+psycopg[binary]>=3.2,<3.3
+uvicorn>=0.34,<0.35
+mcp>=1.26,<2
+redis>=5.2,<6
+httpx>=0.28,<0.29

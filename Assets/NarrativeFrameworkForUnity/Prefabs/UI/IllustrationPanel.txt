@@ -1,0 +1,1 @@
+Placeholder for IllustrationPanel prefab (Image with AspectRatioFitter)

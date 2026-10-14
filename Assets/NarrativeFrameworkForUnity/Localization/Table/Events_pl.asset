@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Events_pl
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: pl
+  m_SharedData: {fileID: 11400000, guid: a81e9b31bb227cd47a6df0bd03e83c80, type: 2}
+  m_Metadata:
+    m_Items:
+    - rid: 3521288323481731072
+  m_TableData:
+  - m_Id: 51999449088
+    m_Localized: "Obowi\u0105zek Kr\xF3la"
+    m_Metadata:
+      m_Items:
+      - rid: 3521288323481731072
+  - m_Id: 52049780736
+    m_Localized: "Obserwuj\u0119, jak Aurelius cierpliwie s\u0142ucha sporu rolnika,
+      jego obecno\u015B\u0107 jest w\u0142adcza, a jednocze\u015Bnie delikatna. Wydaje
+      sprawiedliwy i wsp\xF3\u0142czuj\u0105cy wyrok, a rolnicy odchodz\u0105 z wdzi\u0119cznymi
+      uk\u0142onami. Jest ka\u017Cdym calem szlachetnego kr\xF3la. Ale gdy sala tronowa
+      pustoszeje, jego ramiona lekko opadaj\u0105. Odwraca si\u0119 do mnie, ciep\u0142o
+      w jego z\u0142otych oczach zast\u0105pione odleg\u0142ym, nawiedzonym spojrzeniem.
+      \u201EObowi\u0105zkiem kr\xF3la jest jego lud\u201D \u2013 m\xF3wi cicho. \u201EAle
+      co z obowi\u0105zkami, kt\xF3re cz\u0142owiek ma wobec siebie? Wobec swojej
+      przesz\u0142o\u015Bci?\u201D"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52053975040
+    m_Localized: "Tw\xF3j obowi\u0105zek wobec ludu jest najwa\u017Cniejszy. Jeste\u015B
+      dobrym kr\xF3lem."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169344
+    m_Localized: "Jakie obowi\u0105zki czujesz, \u017Ce zaniedba\u0142e\u015B?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169345
+    m_Localized: "Korona musi by\u0107 ci\u0119\u017Ckim brzemieniem do noszenia
+      w pojedynk\u0119."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169346
+    m_Localized: Plotka o Cieniach
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169347
+    m_Localized: "Aurelius przechadza si\u0119 przed kominkiem, jego brwi s\u0105
+      zmarszczone. \u201ETe plotki z pogranicza\u2026 posta\u0107, kt\xF3ra zwraca
+      wie\u015Bniak\xF3w przeciwko koronie, obiecuj\u0105c w\u0142adz\u0119\u2026
+      to wygl\u0105da na jego robot\u0119.\u201D Zatrzymuje si\u0119 i patrzy na
+      mnie, jego spojrzenie jest intensywne. \u201ERada my\u015Bli, \u017Ce to tylko
+      zwyk\u0142y bandyta. Radz\u0105 to zignorowa\u0107. Ale ja wiem lepiej. To
+      pocz\u0105tek czego\u015B.\u201D"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169348
+    m_Localized: "Zaufaj procesowi rady. Wy\u015Blemy oficjalnych \u015Bledczych."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169349
+    m_Localized: "Rada jest \u015Blepa. U\u017Cyj swoich w\u0142asnych agent\xF3w.
+      Znajd\u017A prawd\u0119 po cichu."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52058169350
+    m_Localized: "Chod\u017Amy sami. Nie mo\u017Cemy tego powierzy\u0107 nikomu innemu."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662769541120
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844288
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844289
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844290
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844291
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844292
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844293
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844294
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844295
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844296
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844297
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844298
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844299
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844300
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844301
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844302
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844303
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844304
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844305
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64662840844306
+    m_Localized: ' '
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 3521288323481731072
+      type: {class: SmartFormatTag, ns: UnityEngine.Localization.Metadata, asm: Unity.Localization}
+      data:
+        m_Entries: 
+        m_SharedEntries:
+        - id: 51999449088

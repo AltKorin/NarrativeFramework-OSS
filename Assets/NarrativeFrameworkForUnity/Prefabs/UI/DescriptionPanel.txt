@@ -1,0 +1,1 @@
+Placeholder for ScrollView with event description
