@@ -427,10 +427,6 @@ body {
   line-height: 1.6;
   margin: 0 0 10px;
 }
-.nf-faq-quote cite {
-  font-size: 12px;
-  font-style: normal;
-}
 .nf-faq details {
   border-bottom: 1px solid var(--nf-line);
   padding-block: 20px;

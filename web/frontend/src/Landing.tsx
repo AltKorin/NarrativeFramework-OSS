@@ -562,7 +562,6 @@ export default function Landing({
             <h2>{t.faqTitle}</h2>
             <blockquote className="nf-faq-quote">
               <p>„{t.faqQuote}”</p>
-              <cite>— Baldur’s Gate</cite>
             </blockquote>
           </div>
           <div>
