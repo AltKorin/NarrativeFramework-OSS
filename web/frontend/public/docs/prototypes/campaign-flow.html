@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="pl">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Makieta prowadzenia kampanii</title>
+  <style>
+    :root {
+      font:
+        16px/1.5 system-ui,
+        sans-serif;
+      color: #233b32;
+      background: #f4f3ec;
+      --accent: #31594a;
+      --line: #c4cebf;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+    }
+    button {
+      font: inherit;
+      cursor: pointer;
+      padding: 9px 14px;
+      border: 1px solid var(--line);
+      background: #fffef9;
+      color: inherit;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #e5ece0;
+    }
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #967a2b;
+      outline-offset: 3px;
+    }
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 28px;
+      line-height: 1.2;
+    }
+    h2 {
+      font-size: 21px;
+    }
+    h3 {
+      font-size: 18px;
+    }
+    small,
+    .muted {
+      color: #526655;
+    }
+    header {
+      padding: 14px 24px;
+      background: #e5ece0;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      font-size: 13px;
+    }
+    .shell {
+      display: grid;
+      grid-template-columns: 200px minmax(0, 1fr);
+      max-width: 1400px;
+      margin: auto;
+    }
+    nav {
+      padding: 28px 20px;
+      position: sticky;
+      top: 0;
+      align-self: start;
+    }
+    nav strong {
+      display: block;
+      margin-bottom: 24px;
+    }
+    nav button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin: 5px 0;
+      background: transparent;
+      border-color: transparent;
+    }
+    nav button[aria-current="page"] {
+      background: #dce7d9;
+      font-weight: 700;
+    }
+    main {
+      padding: 32px;
+      min-width: 0;
+    }
+    .heading {
+      display: flex;
+      gap: 20px;
+      justify-content: space-between;
+      align-items: start;
+    }
+    .heading > div {
+      min-width: 0;
+    }
+    .heading p {
+      font-size: 14px;
+    }
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 20px 0 32px;
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .summary span {
+      display: block;
+    }
+    .summary b {
+      font-size: 24px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      gap: 28px;
+    }
+    .main-list {
+      min-width: 0;
+    }
+    .event {
+      padding: 20px 0;
+      border-top: 1px solid var(--line);
+    }
+    .event:first-of-type {
+      border-top: 2px solid var(--accent);
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .status {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #31594a;
+    }
+    .alert {
+      color: #8b4027;
+    }
+    .event p {
+      font-size: 14px;
+    }
+    .person {
+      border: 0;
+      padding: 3px 0;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      background: transparent;
+      font-size: 14px;
+    }
+    .next {
+      padding: 18px;
+      background: #e9eee3;
+    }
+    .next section {
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--line);
+    }
+    .next section:last-child {
+      border: 0;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+    .next p {
+      font-size: 14px;
+    }
+    .next h3 {
+      font-size: 16px;
+    }
+    .activity {
+      margin-top: 28px;
+      border-top: 1px solid var(--line);
+      padding-top: 20px;
+    }
+    .activity li {
+      padding-bottom: 10px;
+      font-size: 14px;
+    }
+    .notice {
+      padding: 14px 18px;
+      background: #dce7d9;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .notice[hidden],
+    section[hidden] {
+      display: none;
+    }
+    dialog {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      max-width: 590px;
+      width: calc(100% - 32px);
+      max-height: 90dvh;
+      overflow: auto;
+      padding: 25px;
+      background: #fffef9;
+      color: inherit;
+    }
+    dialog::backdrop {
+      background: #172f2580;
+    }
+    .dialog-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .dialog-head button {
+      align-self: start;
+    }
+    .choices {
+      display: grid;
+      gap: 12px;
+    }
+    .choice {
+      padding: 16px;
+      border: 1px solid var(--line);
+      text-align: left;
+    }
+    .choice strong,
+    .choice span {
+      display: block;
+    }
+    .choice span {
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .change {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .change b {
+      font-size: 20px;
+    }
+    .preview {
+      margin: 20px 0;
+    }
+    .preview p {
+      margin-top: 15px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .stat-grid > div {
+      padding: 10px;
+      border: 1px solid var(--line);
+    }
+    .stat-grid strong {
+      display: block;
+      font-size: 24px;
+    }
+    details {
+      border-top: 1px solid var(--line);
+      padding: 18px 0;
+      margin-top: 20px;
+    }
+    summary {
+      cursor: pointer;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+    td,
+    th {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .note {
+      margin: 18px 0;
+      padding: 14px;
+      border-left: 3px solid var(--accent);
+      background: #e9eee3;
+    }
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .next {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .next section {
+        border: 0;
+        margin: 0;
+        padding: 0;
+      }
+      .shell {
+        grid-template-columns: 170px 1fr;
+      }
+      main {
+        padding: 24px;
+      }
+    }
+    @media (max-width: 650px) {
+      header {
+        padding: 12px 16px;
+      }
+      .shell {
+        display: block;
+      }
+      nav {
+        position: static;
+        padding: 12px 16px;
+        display: flex;
+        gap: 4px;
+        overflow: auto;
+        border-bottom: 1px solid var(--line);
+      }
+      nav strong {
+        display: none;
+      }
+      nav button {
+        width: auto;
+        white-space: nowrap;
+        margin: 0;
+        font-size: 14px;
+        padding: 8px;
+      }
+      main {
+        padding: 22px 16px;
+      }
+      .heading {
+        flex-wrap: wrap;
+      }
+      .heading > button {
+        width: 100%;
+      }
+      .summary {
+        gap: 22px;
+        margin-bottom: 22px;
+      }
+      .summary b {
+        font-size: 22px;
+      }
+      .next {
+        grid-template-columns: 1fr;
+      }
+      .row {
+        align-items: start;
+      }
+      .notice {
+        align-items: start;
+      }
+      .stat-grid {
+        gap: 6px;
+      }
+      .stat-grid > div {
+        font-size: 13px;
+      }
+      dialog {
+        padding: 20px;
+      }
+    }
+    @media (max-width: 650px) {
+      header {
+        font-size: 11px;
+        gap: 6px;
+        padding: 8px 12px;
+      }
+      header button {
+        font-size: 11px;
+        padding: 5px 8px;
+      }
+      nav {
+        padding: 8px 12px;
+      }
+      main {
+        padding: 18px 16px;
+      }
+      .heading {
+        gap: 10px;
+      }
+      .heading h1 {
+        font-size: 24px;
+      }
+      .heading > button {
+        width: auto;
+        font-size: 13px;
+        padding: 6px 10px;
+      }
+      .summary {
+        gap: 16px;
+        margin: 16px 0 22px;
+        padding: 10px 0;
+      }
+      .summary span {
+        font-size: 12px;
+      }
+      .summary b {
+        font-size: 20px;
+      }
+      .event {
+        padding: 16px 0;
+      }
+    }
+  </style>
+  <header>
+    <span
+      ><b>MAKIETA PRZEBIEGU</b> · dane przykładowe · zmiany tylko w tej karcie
+      przeglądarki</span
+    ><button id="reset">Zacznij od nowa</button>
+  </header>
+  <div class="shell">
+    <nav aria-label="Kampania">
+      <strong>Narrative Framework</strong
+      ><button data-tab="today" aria-current="page">Prowadzenie</button
+      ><button data-tab="timeline">Oś czasu</button
+      ><button data-tab="people">Postacie</button
+      ><button data-tab="world">Materiały świata</button>
+    </nav>
+    <main>
+      <div class="heading">
+        <div>
+          <p class="muted">CIENIE NAD ZATOKĄ · <span id="day">Dzień 3</span></p>
+          <h1 id="title">Co wymaga Twojej decyzji?</h1>
+          <p id="subtitle">
+            Port zostanie zamknięty dziś. Drużyna jest przy bramie.
+          </p>
+        </div>
+        <button id="advance">Przesuń czas</button>
+      </div>
+      <div id="notice" class="notice" role="status" hidden>
+        <span id="notice-text"></span
+        ><button id="undo">Cofnij ostatnią zmianę</button>
+      </div>
+      <section id="today">
+        <div class="summary">
+          <div>
+            <span>Do rozegrania</span><b id="available">2 wydarzenia</b>
+          </div>
+          <div><span>Złoto drużyny</span><b id="gold">120</b></div>
+          <div><span>Zapasy</span><b>8 dni</b></div>
+        </div>
+        <div class="layout">
+          <div class="main-list">
+            <h2>Teraz</h2>
+            <article class="event" id="gate">
+              <div class="row">
+                <span class="status alert">OSTATNI DZIEŃ NA REAKCJĘ</span
+                ><span class="muted">Port</span>
+              </div>
+              <h3>Patrol zamyka port</h3>
+              <p>
+                Kapitan Voss czeka na decyzję. Bez porozumienia drużyna straci
+                drogę do magazynu.
+              </p>
+              <p>
+                <button class="person" data-person="voss">
+                  Kapitan Voss · zaufanie <span class="trust">25</span>
+                </button>
+              </p>
+              <button class="primary" id="resolve">Rozegraj wydarzenie</button>
+            </article>
+            <article class="event">
+              <span class="status">DOSTĘPNE DO DNIA 5</span>
+              <h3>Kupiec oferuje pomoc</h3>
+              <p>Nela zna drogę przez kanały. To druga droga do magazynu.</p>
+              <button class="person" data-person="nela">
+                Nela · znajomość portu 8
+              </button>
+            </article>
+            <article class="event" id="warehouse" hidden>
+              <span class="status">ODBLOKOWANE PRZEZ OSTATNIĄ DECYZJĘ</span>
+              <h3>Wejście do magazynu</h3>
+              <p>
+                Kapitan zezwolił na przejście. Straż przy bramie przepuszcza
+                drużynę.
+              </p>
+            </article>
+            <article class="event" id="reinforcements" hidden>
+              <span class="status">NOWE W DNIU 4</span>
+              <h3>Przybycie posiłków</h3>
+              <p>
+                Nowy oddział wkracza do portu. Kapitan ma więcej ludzi do
+                pilnowania bram.
+              </p>
+            </article>
+          </div>
+          <aside class="next">
+            <section>
+              <h2>Co nadchodzi</h2>
+              <h3 id="reinforcement-time">Jutro: przybycie posiłków</h3>
+              <p>
+                Patrol w porcie zostanie wzmocniony. Warto zakończyć rozmowę z
+                Vossem dziś.
+              </p>
+            </section>
+            <section>
+              <h3>Kto jest na miejscu</h3>
+              <p>
+                <button class="person" data-person="voss">Kapitan Voss</button
+                ><br /><button class="person" data-person="nela">Nela</button
+                ><br /><button class="person" data-person="arin">
+                  Arin · postać gracza
+                </button>
+              </p>
+            </section>
+          </aside>
+        </div>
+        <div class="activity">
+          <h2>Ostatnia zmiana</h2>
+          <p id="last-change">
+            Drużyna przybyła do portu. Rozpoczął się dzień 3.
+          </p>
+        </div>
+      </section>
+      <section id="timeline" hidden>
+        <p class="note">
+          Plan i przebieg kampanii w jednym miejscu. Zakończone wydarzenia są
+          zwinięte.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Kiedy</th>
+              <th>Wydarzenie</th>
+              <th>Stan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Dziś</td>
+              <td>Patrol zamyka port</td>
+              <td id="gate-status">Do decyzji</td>
+            </tr>
+            <tr>
+              <td>Dziś–dzień 5</td>
+              <td>Kupiec oferuje pomoc</td>
+              <td>Dostępne</td>
+            </tr>
+            <tr>
+              <td>Dziś</td>
+              <td>Wejście do magazynu</td>
+              <td id="warehouse-status">Brakuje zgody kapitana</td>
+            </tr>
+            <tr>
+              <td>Jutro</td>
+              <td>Przybycie posiłków</td>
+              <td>Nadchodzi</td>
+            </tr>
+            <tr>
+              <td>Dzień 5</td>
+              <td>Sztorm</td>
+              <td>Nadchodzi</td>
+            </tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>
+            Wcześniej: 2 rozegrane wydarzenia, 1 przekroczony termin
+          </summary>
+          <p>Zaginięcie rybaka · Rozmowa z Mirą · Ostatni prom</p>
+        </details>
+        <h2>Historia decyzji</h2>
+        <ol id="history">
+          <li>Dzień 3: drużyna przybyła do portu.</li>
+        </ol>
+      </section>
+      <section id="people" hidden>
+        <p class="note">
+          Karta łączy opis, aktualne statystyki, relacje i związane wydarzenia.
+        </p>
+        <article class="event">
+          <h2>NPC</h2>
+          <p>
+            <button class="person" data-person="voss">
+              Kapitan Voss · zaufanie <span class="trust">25</span> · Patrol
+              zamyka port
+            </button>
+          </p>
+          <p>
+            <button class="person" data-person="nela">
+              Nela · Kupiec oferuje pomoc
+            </button>
+          </p>
+        </article>
+        <article class="event">
+          <h2>Postacie graczy</h2>
+          <button class="person" data-person="arin">
+            Arin · zdrowie 10/10 · przy bramie portowej
+          </button>
+        </article>
+      </section>
+      <section id="world" hidden>
+        <h2>Port</h2>
+        <p>Opisy miejsc, postaci, wskazówki i pozostałe materiały kampanii.</p>
+        <p class="note">
+          Materiały są zapleczem prowadzenia. Odnośnik przy wydarzeniu lub
+          postaci otwiera potrzebny fragment bez opuszczania sytuacji.
+        </p>
+      </section>
+    </main>
+  </div>
+  <dialog id="person">
+    <div class="dialog-head">
+      <div>
+        <p class="muted" id="person-kind">NPC · PORT</p>
+        <h2 id="person-name">Kapitan Voss</h2>
+      </div>
+      <button data-close="person">Zamknij</button>
+    </div>
+    <p id="person-goal">
+      Chce utrzymać kontrolę nad portem i nie dopuścić do zamieszek.
+    </p>
+    <div class="stat-grid">
+      <div>Zdrowie<strong>10/10</strong></div>
+      <div>Obrona<strong>3</strong></div>
+      <div id="person-stat">
+        Zaufanie do Arina<strong class="trust">25</strong>
+      </div>
+    </div>
+    <h3>W tej sytuacji</h3>
+    <p id="person-context">
+      Prowadzi patrol. Zgoda Vossa umożliwia wejście do magazynu.
+    </p>
+    <h3>Ostatni kontakt</h3>
+    <p>Rozmowa przed bramą. Drużyna usłyszała warunki przejścia.</p>
+  </dialog>
+  <dialog id="decision">
+    <div class="dialog-head">
+      <div>
+        <p class="muted">ROZSTRZYGNIĘCIE WYDARZENIA</p>
+        <h2>Patrol zamyka port</h2>
+      </div>
+      <button data-close="decision">Zamknij</button>
+    </div>
+    <p>Jak zakończyła się rozmowa z kapitanem?</p>
+    <div class="choices">
+      <button class="choice" data-choice="pay">
+        <strong>Drużyna zapłaciła za przejście</strong
+        ><span>Złoto −20 · zaufanie +10 · zgoda kapitana</span></button
+      ><button class="choice" data-choice="leave">
+        <strong>Drużyna zrezygnowała z rozmowy</strong
+        ><span>Port zamknięty · magazyn pozostaje niedostępny</span>
+      </button>
+    </div>
+  </dialog>
+  <dialog id="preview">
+    <div class="dialog-head">
+      <h2 id="preview-title">Skutki decyzji</h2>
+      <button data-close="preview">Zamknij</button>
+    </div>
+    <div id="changes" class="preview"></div>
+    <div class="actions">
+      <button id="back">Wróć</button
+      ><button class="primary" id="apply">Zapisz rozstrzygnięcie</button>
+    </div>
+  </dialog>
+  <dialog id="clock">
+    <div class="dialog-head">
+      <h2>Przejście do dnia 4</h2>
+      <button data-close="clock">Zamknij</button>
+    </div>
+    <div id="clock-impact"></div>
+    <div class="actions">
+      <button data-close="clock">Zostań w dniu 3</button
+      ><button class="primary" id="apply-clock">Przejdź do dnia 4</button>
+    </div>
+  </dialog>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let state = {
+        day: 3,
+        gold: 120,
+        trust: 25,
+        resolved: false,
+        permission: false,
+        history: [],
+      },
+      previous = null,
+      choice = "pay";
+    const headings = {
+      today: [
+        "Co wymaga Twojej decyzji?",
+        "Port zostanie zamknięty dziś. Drużyna jest przy bramie.",
+      ],
+      timeline: [
+        "Plan i przebieg kampanii",
+        "Co nadchodzi, co się wydarzyło i dlaczego.",
+      ],
+      people: [
+        "Postacie w tej kampanii",
+        "Opisy i aktualny stan dostępne w jednej karcie.",
+      ],
+      world: [
+        "Materiały świata",
+        "Miejsca, wskazówki i opisy potrzebne do prowadzenia.",
+      ],
+    };
+    function render() {
+      $("day").textContent = "Dzień " + state.day;
+      $("gold").textContent = state.gold;
+      document
+        .querySelectorAll(".trust")
+        .forEach((e) => (e.textContent = state.trust));
+      $("gate").hidden = state.resolved || state.day > 3;
+      $("warehouse").hidden = !state.permission;
+      $("available").textContent =
+        1 +
+        Number(!state.resolved && state.day === 3) +
+        Number(state.permission) +
+        Number(state.day >= 4) +
+        " wydarzenia";
+      $("gate-status").textContent = state.resolved
+        ? "Rozegrano"
+        : state.day > 3
+          ? "Termin minął"
+          : "Do decyzji";
+      $("warehouse-status").textContent = state.permission
+        ? "Odblokowane"
+        : "Brakuje zgody kapitana";
+      $("advance").disabled = state.day >= 4;
+      $("reinforcements").hidden = state.day < 4;
+      $("reinforcement-time").textContent =
+        state.day < 4
+          ? "Jutro: przybycie posiłków"
+          : "Dziś: przybycie posiłków";
+      if (!$("today").hidden)
+        $("subtitle").textContent =
+          state.day >= 4
+            ? "Do portu przybywa nowy oddział."
+            : state.resolved
+              ? "Rozmowa zakończona. Zobacz, co zmieniło się w świecie."
+              : "Port zostanie zamknięty dziś. Drużyna jest przy bramie.";
+      $("last-change").textContent =
+        state.history.at(-1) ||
+        "Drużyna przybyła do portu. Rozpoczął się dzień 3.";
+      $("history").replaceChildren(
+        ...[...state.history].reverse().map((text) => {
+          const li = document.createElement("li");
+          li.textContent = text;
+          return li;
+        }),
+      );
+    }
+    document.querySelectorAll("[data-tab]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          document
+            .querySelectorAll("[data-tab]")
+            .forEach((x) => x.removeAttribute("aria-current"));
+          b.setAttribute("aria-current", "page");
+          Object.keys(headings).forEach(
+            (id) => ($(id).hidden = id !== b.dataset.tab),
+          );
+          $("title").textContent = headings[b.dataset.tab][0];
+          $("subtitle").textContent = headings[b.dataset.tab][1];
+          render();
+        }),
+    );
+    document
+      .querySelectorAll("[data-close]")
+      .forEach((b) => (b.onclick = () => $(b.dataset.close).close()));
+    document.querySelectorAll("[data-person]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          const id = b.dataset.person;
+          const data =
+            id === "voss"
+              ? [
+                  "Kapitan Voss",
+                  "NPC · PORT",
+                  "Chce utrzymać kontrolę nad portem i nie dopuścić do zamieszek.",
+                  "Prowadzi patrol. Zgoda Vossa umożliwia wejście do magazynu.",
+                ]
+              : id === "nela"
+                ? [
+                    "Nela",
+                    "NPC · PORT",
+                    "Chce przeprowadzić transport przez kanały.",
+                    "Oferuje alternatywną drogę do magazynu.",
+                  ]
+                : [
+                    "Arin",
+                    "POSTAĆ GRACZA · PORT",
+                    "Szuka zaginionego rybaka.",
+                    "Rozmawia z kapitanem w imieniu drużyny.",
+                  ];
+          $("person-name").textContent = data[0];
+          $("person-kind").textContent = data[1];
+          $("person-goal").textContent = data[2];
+          $("person-context").textContent = data[3];
+          $("person-stat").hidden = id !== "voss";
+          $("person").showModal();
+        }),
+    );
+    $("resolve").onclick = () => $("decision").showModal();
+    document.querySelectorAll("[data-choice]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          choice = b.dataset.choice;
+          $("decision").close();
+          $("changes").innerHTML =
+            choice === "pay"
+              ? '<div class="change"><span>Złoto drużyny</span><b>' +
+                state.gold +
+                " → " +
+                (state.gold - 20) +
+                '</b></div><div class="change"><span>Zaufanie Vossa do Arina</span><b>' +
+                state.trust +
+                " → " +
+                (state.trust + 10) +
+                "</b></div><p><strong>Odblokuje: Wejście do magazynu</strong><br>W świecie pojawi się fakt „Zgoda kapitana”.</p>"
+              : "<p><strong>Port zostanie zamknięty.</strong></p><p>Magazyn pozostanie niedostępny przez główną bramę. Oferta Neli nadal pozwala szukać innej drogi.</p>";
+          $("preview").showModal();
+        }),
+    );
+    $("back").onclick = () => {
+      $("preview").close();
+      $("decision").showModal();
+    };
+    function notify(text) {
+      $("notice").hidden = false;
+      $("notice-text").textContent = text;
+      render();
+    }
+    $("apply").onclick = () => {
+      previous = structuredClone(state);
+      state.resolved = true;
+      if (choice === "pay") {
+        state.gold -= 20;
+        state.trust += 10;
+        state.permission = true;
+      }
+      const text =
+        choice === "pay"
+          ? "Dzień 3: drużyna zapłaciła 20 złota. Voss udzielił zgody; wejście do magazynu odblokowane."
+          : "Dzień 3: drużyna zakończyła rozmowę. Port został zamknięty.";
+      state.history.push(text);
+      $("preview").close();
+      notify(text);
+    };
+    $("undo").onclick = () => {
+      if (!previous) return;
+      const history = state.history;
+      state = previous;
+      state.history = [
+        ...history,
+        "Cofnięto ostatnią zmianę; przywrócono poprzedni stan.",
+      ];
+      previous = null;
+      $("notice").hidden = true;
+      render();
+    };
+    $("advance").onclick = () => {
+      $("clock-impact").innerHTML = state.resolved
+        ? "<p>Jutro przybędą posiłki. Oferta Neli nadal będzie dostępna.</p>"
+        : '<p class="alert"><strong>Minie termin wydarzenia „Patrol zamyka port”.</strong></p><p>Wydarzenie nie zostało rozstrzygnięte. Jutro przybędą posiłki.</p>';
+      $("clock").showModal();
+    };
+    $("apply-clock").onclick = () => {
+      previous = structuredClone(state);
+      state.day = 4;
+      state.history.push("Czas przesunięto do dnia 4. Nadchodzą posiłki.");
+      $("clock").close();
+      notify("Dzień 4. Przybywają posiłki.");
+    };
+    $("reset").onclick = () => location.reload();
+    render();
+  </script>
+</html>

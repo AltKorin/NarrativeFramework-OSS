@@ -25,7 +25,7 @@ from .domain_errors import DomainError
 from .models import Campaign, CampaignAuditEvent, Scenario, WikiPage, WikiRelation
 from .transport import bounded_json, storage_string
 
-KINDS = {"npc", "location", "organization", "item", "lore", "journal", "scene", "clue"}
+KINDS = {"pc", "timeline", "npc", "location", "organization", "item", "lore", "journal", "scene", "clue"}
 
 
 def identifier(value):
@@ -284,6 +284,9 @@ def save_page(user, campaign_id, page_id, data):
     version = data.get("version")
     if type(version) is not int or version != p.version:
         raise DomainError("Wiki version conflict; reload before saving", 409)
+    from .narrative_engine import actor_ids
+    if values["kind"] not in {"npc", "pc", "organization"} and str(p.id) in actor_ids(c.runtime):
+        raise DomainError("Character is used by the campaign engine", 409)
     for key, value in values.items():
         setattr(p, key, value)
     p.version += 1
@@ -298,6 +301,9 @@ def delete_page(user, campaign_id, page_id, version):
     p = page_for(c, page_id)
     if type(version) is not int or version != p.version:
         raise DomainError("Wiki version conflict; reload before saving", 409)
+    from .narrative_engine import actor_ids
+    if str(p.id) in actor_ids(c.runtime):
+        raise DomainError("Character is used by the campaign engine", 409)
     p.delete()
     touch(c, user, "page.deleted", page_id)
     return {"deleted": True}
@@ -421,6 +427,9 @@ def export_campaign(user, campaign_id, preview=None):
     result["pages"] = [
         public_page(p) if role == "player" else page_json(p) for p in pages
     ]
+    if role != "player":
+        from .narrative_engine import initial_state
+        result["runtime"] = c.runtime or initial_state()
     return result
 
 

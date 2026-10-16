@@ -91,6 +91,7 @@ try:
             "Shared northern coast"
         )
         owner.get_by_role("button", name="Create campaign", exact=True).click()
+        owner.get_by_role("button", name="World material", exact=True).click()
         idle(owner)
         owner.get_by_role("button", name="New article", exact=True).wait_for()
         cid = parse_qs(urlparse(owner.url).query)["campaign"][0]
@@ -138,6 +139,7 @@ try:
         gm.locator("header").get_by_role("button", name=names["gm"]).wait_for()
         gm.goto(invite("gm"), wait_until="networkidle")
         gm.get_by_role("button", name="Accept invitation", exact=True).click()
+        gm.get_by_role("button", name="World material", exact=True).click()
         gm.get_by_role("button", name="New article", exact=True).wait_for()
         idle(gm)
         members = req(owner, root + "members/")["body"]["members"]

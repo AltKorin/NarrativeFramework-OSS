@@ -2,6 +2,8 @@ from django.urls import path
 from stories import views, play_views, registration, wiki_views
 
 urlpatterns = [
+    path("api/campaigns/<uuid:campaign_id>/runtime/", wiki_views.runtime),
+    path("api/campaigns/<uuid:campaign_id>/runtime/preview/", wiki_views.runtime_preview),
     path("api/campaign-invitations/inspect/", wiki_views.inspect_invitation),
     path("api/campaign-invitations/accept/", wiki_views.accept_invitation),
     path("api/campaigns/<uuid:campaign_id>/members/", wiki_views.members),

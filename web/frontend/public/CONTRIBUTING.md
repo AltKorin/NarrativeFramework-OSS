@@ -11,6 +11,7 @@ The repository contains the original Unity assets and an independently hosted RP
 | `Assets/NarrativeFrameworkForUnity/` | Original Unity runtime/editor and documentation |
 | `web/backend/stories/domain.py` | Scenario schema, save/version rules, structural checks, author export |
 | `web/backend/stories/play.py` | Assignment snapshots, player access, memory/turns, receipts, approvals, report |
+| `web/backend/stories/narrative_engine.py`, `campaign_runtime.py` | Deterministic Unity core port, GM-only campaign state, versioned preview/commit |
 | `web/backend/stories/models.py` and `migrations/` | Database schema and additive migrations |
 | `web/backend/stories/views.py`, `play_views.py` | Session-authenticated HTTP adapters |
 | `web/backend/stories/mcp_server.py` | Separate author/player MCP catalogs and shared admission gate |
@@ -31,6 +32,7 @@ For domain changes run `python manage.py test stories` using the project environ
 - Player-scoped tokens never authenticate to author MCP or REST. Store only scoped-token digests, and do not log or commit plaintext tokens.
 - A turn commits working memory, event, consequences, version and receipt together. Same operation UUID + same normalized body replays; changed content conflicts. Concurrency needs real PostgreSQL tests.
 - Only the server chooses consequence status. Only an activity's GM reviews its pending effects. Narrative text is not mechanically validated campaign canon; do not advertise semantic enforcement or automatic campaign merging.
+- Runtime preview and commit must execute the same engine; preview must not persist state, history, audit or campaign version. Keep actor references campaign-local and live runtime out of player publications/exports. Preserve the documented supported Unity subset.
 - Keep public-facing labels and new user workflows in both English and Polish. IDs, enum values and schemas remain stable across locales. Changing UI language must not translate/overwrite authored text.
 
 ## Explain behavior for reviewers

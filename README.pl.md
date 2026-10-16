@@ -11,6 +11,7 @@ Otwarty warsztat RPG: wizualne przygotowanie przygód, wiki świata kampanii i i
 ## Co działa
 
 - Graf scen, postaci, miejsc i wskazówek; kontrola struktury i osobne sekrety MG.
+- Osobne widoki prowadzenia, osi czasu, postaci i materiałów świata. Karty NPC i graczy łączą opis ze statystykami; port deterministycznego rdzenia Unity oblicza warunki i skutki decyzji przed ich zapisaniem.
 - Wiki Markdown z członkostwem kampanii, oddzielnymi szkicami/publikacjami, podglądem MG jako gracz i filtrowanymi relacjami, wyszukiwaniem oraz mapą.
 - Kopiowanie wersjonowanych materiałów wiki do wielu przygód.
 - Przydzielanie indywidualnych przygód, pamięć i dziennik gracza oraz zatwierdzanie konsekwencji przez MG.
@@ -44,6 +45,7 @@ Przed wystawieniem do Internetu przeczytaj [instrukcję instalacji i HTTPS](web/
 
 ## Dokumentacja i ograniczenia
 
+- [Prowadzenie kampanii, oś czasu i statystyki](web/docs/pl/campaign-runtime.md).
 - [Wiki kampanii](web/docs/pl/campaign-wiki.md).
 - [Przygody indywidualne](web/docs/pl/individual-play.md) i [kontrakt MCP gracza](web/docs/pl/mcp-play.md).
 - [Plan udostępniania kampanii grupie](web/docs/pl/campaign-sharing-plan.md) — etapy 1–2 są wdrożone; osobne MCP czytelnika pozostaje kolejnym etapem.
@@ -54,7 +56,7 @@ Nie ma jeszcze importu z Kanki, MCP czytelnika kampanii, edycji w czasie rzeczyw
 
 ## Początki i licencja
 
-Projekt zaczął się jako framework narracyjny do Unity. Później rozwinął się w kierunku wykorzystania w grze, a ten otwarty warsztat RPG stał się niezależną wersją dla wszystkich. Oryginalne [assety Unity](Assets/NarrativeFrameworkForUnity/Documentation/README.md) pozostają częścią historyczną; aplikacja webowa ich nie potrzebuje. Nie były sprawdzane testami wydania webowego i mają inny format danych, bez gotowej konwersji.
+Projekt zaczął się jako framework narracyjny do Unity. Później rozwinął się w kierunku wykorzystania w grze, a ten otwarty warsztat RPG stał się niezależną wersją dla wszystkich. Oryginalne [assety Unity](Assets/NarrativeFrameworkForUnity/Documentation/README.md) pozostają implementacją dla Unity. Aplikacja webowa korzysta teraz z [portu deterministycznego rdzenia do Pythona](web/docs/narrative-runtime.md), udostępnionego w tym samym repozytorium na MIT i testowanego osobno. Do uruchomienia aplikacji nie potrzeba edytora Unity. Oryginalnej implementacji Unity nie sprawdzano testami wydania webowego; formaty danych pozostają osobne, bez gotowej konwersji.
 
 Kod i dokumentacja: [MIT](LICENSE), z osobno opisanymi [zasadami używania marki](BRANDING.md). Ilustracje demonstracyjne wygenerowano z pomocą AI i udostępniono bez gwarancji; szczegóły w [informacji o materiałach](THIRD_PARTY_NOTICES.md).
 

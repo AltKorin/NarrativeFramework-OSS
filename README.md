@@ -11,6 +11,7 @@ An open-source RPG adventure workshop: connect scenes, characters, places and cl
 ## What works
 
 - A visual adventure editor, structural checks and separate GM secrets.
+- Campaign session view, timeline, NPC/player character sheets and world material in separate views. Numeric stats, conditions and consequences use a deterministic Python port of the MIT-licensed Unity narrative core; preview real changes before saving a decision.
 - Campaign memberships/invitations, draft/publication separation, selected audiences, GM preview and filtered Markdown/search/relationships/map.
 - Explicit, version-checked wiki copies into multiple adventures.
 - GM-assigned downtime/solo adventures, scoped player MCP access, persistent memory/journal and human review of lasting consequences.
@@ -38,7 +39,7 @@ Then start the stack:
 docker compose -f web/compose.yaml up --build -d
 ```
 
-Open **http://localhost:8080**. The workshop dashboard (new campaign, new adventure and saved material) is at `/workshop/`, the campaign wiki at `/campaigns/`. The example configuration enables signup. PostgreSQL persists in a Docker volume; `docker compose down -v` deletes that data. No AI provider key is needed to run the application or tests. An external agent/client is required for AI-led play.
+Open **http://localhost:8080**. The workshop dashboard (new campaign, new adventure and saved material) is at `/workshop/`, the campaign workspace at `/campaigns/`. The example configuration enables signup. PostgreSQL persists in a Docker volume; `docker compose down -v` deletes that data. No AI provider key is needed to run the application or tests. An external agent/client is required for AI-led play.
 
 Before public deployment, follow the [setup and HTTPS instructions](web/README.md), set your own hostnames, secure cookies and trusted proxy addresses, and arrange backups. Do not commit `.env`, tokens or real campaign data. The hosted test instance is separate from a self-hosted installation.
 
@@ -47,6 +48,7 @@ Before public deployment, follow the [setup and HTTPS instructions](web/README.m
 | Topic | English | Polski |
 | --- | --- | --- |
 | Setup and operation | [Guide](web/README.md) | [Instrukcja](web/README.pl.md) |
+| Running a campaign and character stats | [Guide](web/docs/narrative-runtime.md) | [Instrukcja](web/docs/pl/campaign-runtime.md) |
 | Campaign wiki | [Guide](web/docs/en/campaign-wiki.md) | [Instrukcja](web/docs/pl/campaign-wiki.md) |
 | Individual adventures | [Guide](web/docs/en/individual-play.md) | [Instrukcja](web/docs/pl/individual-play.md) |
 | Player MCP contract | [Contract](web/docs/en/mcp-play.md) | [Kontrakt](web/docs/pl/mcp-play.md) |
@@ -61,7 +63,7 @@ Kanka import, player wiki editing and a separate campaign-reader MCP are not imp
 
 ## Where it started
 
-Narrative Framework began as a Unity toolkit for branching narrative simulations. As its game-focused use evolved, this independently hosted RPG workshop became the public open-source direction. The original code remains in [`Assets/NarrativeFrameworkForUnity`](Assets/NarrativeFrameworkForUnity/Documentation/README.md) as a legacy component; it is not required for the web app and was not validated by the web release tests. Its JSON format is separate, with no Unity/web conversion promise. Unity setup: [quick start](Assets/NarrativeFrameworkForUnity/Documentation/QUICK_START.md).
+Narrative Framework began as a Unity toolkit for branching narrative simulations. As its game-focused use evolved, this independently hosted RPG workshop became the public open-source direction. The original code remains in [`Assets/NarrativeFrameworkForUnity`](Assets/NarrativeFrameworkForUnity/Documentation/README.md) as the Unity implementation. The web application now uses a documented [Python port of its deterministic core](web/docs/narrative-runtime.md), tested separately from Unity. Running the web app does not require the Unity editor; the original Unity implementation was not validated by the web release tests. Its JSON format is separate, with no Unity/web conversion promise. Unity setup: [quick start](Assets/NarrativeFrameworkForUnity/Documentation/QUICK_START.md).
 
 ## License and support
 

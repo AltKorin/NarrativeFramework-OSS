@@ -39,6 +39,23 @@ class WikiTests(TestCase):
         )
         self.root = f"/api/campaigns/{self.campaign.id}/"
 
+    def test_character_and_timeline_pages_round_trip(self):
+        for kind in ("npc", "pc", "timeline"):
+            with self.subTest(kind=kind):
+                body = "| When / attribute | Value |\n| --- | --- |\n| Day 3 / Health | 12 |"
+                response = self.client.post(
+                    self.root + "pages/",
+                    {"id": str(uuid.uuid4()), "title": kind, "kind": kind,
+                     "body": body, "gm_notes": "Secret trigger"},
+                    format="json",
+                )
+                self.assertEqual(response.status_code, 201, response.content)
+                page_id = response.json()["id"]
+                saved = self.client.get(self.root + f"pages/{page_id}/").json()
+                self.assertEqual(saved["kind"], kind)
+                self.assertEqual(saved["body"], body)
+                self.assertEqual(saved["gm_notes"], "Secret trigger")
+
     def test_anonymous_cannot_list_or_read_wiki(self):
         client = APIClient()
         for path in (

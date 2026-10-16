@@ -10,6 +10,19 @@ from . import wiki, wiki_sharing
 from .domain_errors import DomainError
 
 
+@api_view(["GET", "POST"])
+def runtime(request, campaign_id):
+    from . import campaign_runtime
+
+    try:
+        result = (campaign_runtime.read(request.user, campaign_id)
+                  if request.method == "GET"
+                  else campaign_runtime.command(request.user, campaign_id, request.data))
+        return Response(result)
+    except DomainError as error:
+        return Response({"error": str(error)}, status=error.status)
+
+
 def errors(fn):
     @wraps(fn)
     def wrapped(*args, **kwargs):
@@ -19,6 +32,15 @@ def errors(fn):
             return Response({"error": str(error)}, status=error.status)
 
     return wrapped
+
+
+@api_view(["POST"])
+@errors
+def runtime_preview(request, campaign_id):
+    from . import campaign_runtime
+
+    return Response(campaign_runtime.command(
+        request.user, campaign_id, request.data, preview=True))
 
 
 @api_view(["GET", "POST"])

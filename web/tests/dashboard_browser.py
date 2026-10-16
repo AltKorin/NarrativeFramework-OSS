@@ -44,6 +44,8 @@ try:
             expect(campaign_name).to_have_value("My campaign "+lang)
             page.get_by_role("button",name=t("Utwórz kampanię","Create campaign"),exact=True).click()
             page.wait_for_url("**/campaigns/**")
+            page.get_by_role("button",name=t("Materiały świata","World material"),exact=True).click()
+            page.locator(".materials-guide > summary").click()
             page.locator(".wiki-start").get_by_role("button",name=t("Dodaj postać","Add a character"),exact=True).wait_for()
             campaign_id=parse_qs(urlparse(page.url).query)["campaign"][0]
             # Follow the real first-map flow from the newly created campaign.

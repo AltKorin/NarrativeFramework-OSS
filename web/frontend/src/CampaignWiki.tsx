@@ -13,6 +13,8 @@ import { initialLanguage, translate, type Language } from "./i18n";
 import { newUUID } from "./uuid";
 import "./wiki.css";
 import CampaignStart from "./CampaignStart";
+import CampaignRuntime from "./CampaignRuntime";
+import type { CampaignView } from "./campaignRuntimeTypes";
 import {
   CampaignSharing,
   PublicationControls,
@@ -47,6 +49,8 @@ type Campaign = {
 type Draft = { title: string; kind: string; body: string; gm_notes: string };
 const kinds = [
   "npc",
+  "pc",
+  "timeline",
   "location",
   "organization",
   "item",
@@ -56,7 +60,9 @@ const kinds = [
   "clue",
 ];
 const categories: Record<string, [string, string]> = {
-  npc: ["Postacie", "Characters"],
+  npc: ["NPC", "NPCs"],
+  pc: ["Postacie graczy", "Player characters"],
+  timeline: ["Kronika (notatki)", "Chronicle (notes)"],
   location: ["Miejsca", "Locations"],
   organization: ["Organizacje", "Organizations"],
   item: ["Przedmioty", "Items"],
@@ -65,6 +71,17 @@ const categories: Record<string, [string, string]> = {
   scene: ["Sceny", "Scenes"],
   clue: ["Wskazówki", "Clues"],
 };
+function entryTemplate(kind: string, pl: boolean): string {
+  if (kind === "timeline")
+    return pl
+      ? "## Oś czasu kampanii\n\nWpisuj wydarzenia w kolejności chronologicznej. Używaj dat świata gry, numerów sesji lub czasu względnego (np. dzień 3, świt).\n\n| Kiedy | Co się wydarza | Kto / gdzie | Status | Konsekwencje |\n| --- | --- | --- | --- | --- |\n| Sesja 1, dzień 1, świt | | | Planowane | |\n\n## Warunki i terminy\n\n- Jeśli gracze nie zareagują do…: …\n- Po wydarzeniu… następuje…\n"
+      : "## Campaign timeline\n\nKeep events in chronological order. Use in-world dates, session numbers or relative time (e.g. day 3, dawn).\n\n| When | What happens | Who / where | Status | Consequences |\n| --- | --- | --- | --- | --- |\n| Session 1, day 1, dawn | | | Planned | |\n\n## Triggers and deadlines\n\n- Unless the players act by…: …\n- After event… comes…\n";
+  if (kind !== "npc" && kind !== "pc") return "";
+  const player = kind === "pc";
+  return pl
+    ? `## ${player ? "Karta postaci gracza" : "Karta NPC"}\n\n- ${player ? "Gracz" : "Rola w kampanii"}: \n- System RPG: \n- Pochodzenie / profesja: \n- Opis i wygląd: \n- Cel i motywacja: \n\n## Statystyki\n\nAktualne wartości prowadź w karcie w widoku „Postacie”. Tutaj opisz zasady i dodatkowe uwagi do systemu RPG.\n\n## Umiejętności i zdolności\n\n- \n\n## Ekwipunek\n\n- \n\n## Relacje i historia\n\n- \n`
+    : `## ${player ? "Player character sheet" : "NPC sheet"}\n\n- ${player ? "Player" : "Campaign role"}: \n- RPG system: \n- Background / profession: \n- Description and appearance: \n- Goal and motivation: \n\n## Statistics\n\nTrack current values in the sheet in the “Characters” view. Use this section for RPG system rules and additional notes.\n\n## Skills and abilities\n\n- \n\n## Equipment\n\n- \n\n## Relationships and history\n\n- \n`;
+}
 const emptyDraft = (): Draft => ({
   title: "",
   kind: "lore",
@@ -72,6 +89,8 @@ const emptyDraft = (): Draft => ({
   gm_notes: "",
 });
 const messages: Record<string, string> = {
+  "Character is used by the campaign engine":
+    "Ta postać ma statystyki lub uczestniczy w wydarzeniach kampanii. Zachowaj jej kartę; możesz opisać odejście postaci w treści.",
   "Invitation unavailable":
     "Zaproszenie wygasło, zostało użyte lub unieważnione.",
   "Already a campaign member":
@@ -145,6 +164,7 @@ export default function CampaignWiki() {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [graph, setGraph] = useState(false);
+  const [view, setView] = useState<CampaignView>("run");
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Meta[] | null>(null);
   const [target, setTarget] = useState("");
@@ -274,7 +294,11 @@ export default function CampaignWiki() {
       ? c.pages.some((p) => p.id === pageId)
         ? pageId
         : undefined
-      : c.pages[0]?.id;
+      : c.role === "player"
+        ? c.pages[0]?.id
+        : undefined;
+    setView(pageId || c.role === "player" ? "materials" : "run");
+    setGraph(false);
     if (pageId && !first) setNotice("Wiki page not found");
     if (first) await openPage(id, first);
     else {
@@ -287,6 +311,8 @@ export default function CampaignWiki() {
   async function openPage(campaignId: string, id: string) {
     const p = await api(`campaigns/${campaignId}/pages/${id}/`);
     setPage(p);
+    setView("materials");
+    setGraph(false);
     setDraft({
       title: p.title,
       kind: p.kind,
@@ -301,8 +327,8 @@ export default function CampaignWiki() {
   useEffect(() => {
     document.documentElement.lang = language;
     document.title = t(
-      "Wiki kampanii — Narrative Framework",
-      "Campaign wiki — Narrative Framework",
+      "Prowadzenie kampanii — Narrative Framework",
+      "Run campaign — Narrative Framework",
     );
     try {
       localStorage.setItem("narrative-framework-language", language);
@@ -486,9 +512,10 @@ export default function CampaignWiki() {
   }
   function addEntry(kind = "lore") {
     if (!mayLeave()) return;
+    setView("materials");
     setNewId(newUUID());
     setPage(null);
-    setDraft({ ...emptyDraft(), kind });
+    setDraft({ ...emptyDraft(), kind, body: entryTemplate(kind, pl) });
     setEditing(true);
     setGraph(false);
     setCopiedTo("");
@@ -498,16 +525,12 @@ export default function CampaignWiki() {
   }
   function showMap() {
     if (!mayLeave()) return;
+    setView("materials");
     setGraph(true);
     requestAnimationFrame(() =>
       document.querySelector(".wiki-map")?.scrollIntoView({ block: "center" }),
     );
   }
-  useEffect(() => {
-    if (campaign && canEdit && !editing) {
-      document.querySelector(".wiki-start")?.scrollIntoView({ block: "start" });
-    }
-  }, [campaign?.id, campaign?.pages.length, editing]);
   const visible = hits || campaign?.pages || [];
   const connections =
     campaign?.relations.filter(
@@ -545,17 +568,42 @@ export default function CampaignWiki() {
               "THE SHARED WORLD OF YOUR ADVENTURES",
             )}
           </p>
-          <h1>{t("Wiki kampanii", "Campaign wiki")}</h1>
+          <h1>{campaign?.title || t("Kampanie", "Campaigns")}</h1>
         </div>
-        {user && (
-          <div className="wiki-switch">
-            <button aria-pressed={!graph} onClick={() => setGraph(false)}>
-              {t("Artykuły", "Articles")}
-            </button>
-            <button aria-pressed={graph} onClick={showMap}>
-              {t("Mapa powiązań", "Relationship map")}
-            </button>
-          </div>
+        {user && campaign && (
+          <nav
+            className="campaign-tabs"
+            aria-label={t("Widoki kampanii", "Campaign views")}
+          >
+            {(canEdit
+              ? (["run", "timeline", "actors", "materials"] as CampaignView[])
+              : (["materials"] as CampaignView[])
+            ).map((tab) => (
+              <button
+                key={tab}
+                aria-current={view === tab ? "page" : undefined}
+                onClick={() => {
+                  if (mayLeave()) {
+                    setView(tab);
+                    setEditing(false);
+                    changeURL(
+                      campaign.id,
+                      tab === "materials" ? page?.id : undefined,
+                    );
+                  }
+                }}
+              >
+                {
+                  {
+                    run: t("Prowadzenie", "Run session"),
+                    timeline: t("Oś czasu", "Timeline"),
+                    actors: t("Postacie", "Characters"),
+                    materials: t("Materiały świata", "World material"),
+                  }[tab]
+                }
+              </button>
+            ))}
+          </nav>
         )}
       </div>
       {inviteToken && (
@@ -664,8 +712,14 @@ export default function CampaignWiki() {
           </a>
         </section>
       ) : (
-        <main className="wiki-layout" inert={busy}>
-          <aside className="wiki-sidebar">
+        <main
+          className={`wiki-layout ${campaign && canEdit && view !== "materials" ? "session-layout" : ""}`}
+          inert={busy}
+        >
+          <aside
+            className="wiki-sidebar"
+            hidden={!!campaign && canEdit && view !== "materials"}
+          >
             <label>
               {t("Kampania", "Campaign")}
               <select
@@ -899,11 +953,16 @@ export default function CampaignWiki() {
                   {kinds.map((kind) => {
                     const entries = visible.filter((p) => p.kind === kind);
                     return (
-                      entries.length > 0 && (
+                      (entries.length > 0 || (canEdit && !query)) && (
                         <section key={kind}>
                           <h2>
                             {category(kind)} <span>{entries.length}</span>
                           </h2>
+                          {canEdit && (
+                            <button onClick={() => addEntry(kind)}>
+                              + {t("Dodaj", "Add")}: {category(kind)}
+                            </button>
+                          )}
                           {entries.map((p) => (
                             <button
                               aria-current={
@@ -974,7 +1033,21 @@ export default function CampaignWiki() {
               </div>
             ) : (
               <>
-                <div className="wiki-campaign-title">
+                <div
+                  className="wiki-campaign-title"
+                  hidden={canEdit && view !== "materials"}
+                >
+                  <div className="wiki-switch">
+                    <button
+                      aria-pressed={!graph}
+                      onClick={() => setGraph(false)}
+                    >
+                      {t("Artykuły", "Articles")}
+                    </button>
+                    <button aria-pressed={graph} onClick={showMap}>
+                      {t("Mapa powiązań", "Relationship map")}
+                    </button>
+                  </div>
                   <h2>{campaign.title}</h2>
                   {campaign.summary && <p>{campaign.summary}</p>}
                   <p>
@@ -985,566 +1058,618 @@ export default function CampaignWiki() {
                   </p>
                 </div>
                 {canEdit && (
-                  <div hidden={editing}>
-                    <CampaignStart
-                      key={campaign.id}
-                      pl={pl}
-                      pages={campaign.pages}
-                      connected={campaign.relations.length > 0}
-                      graph={graph}
-                      add={addEntry}
-                      showMap={showMap}
-                      link={async (source, target, label) => {
-                        if (!mayLeave()) return;
-                        await run(async () => {
-                          await api(
-                            `campaigns/${campaign.id}/relations/`,
-                            "POST",
-                            {
-                              id: relationReceipt.current,
-                              source,
-                              target,
-                              label,
-                            },
-                          );
-                          relationReceipt.current = newUUID();
-                          await refresh(campaign.id);
-                          setGraph(true);
-                          setNotice(
-                            t(
-                              "Zapisano połączenie. Jest widoczne na mapie.",
-                              "Connection saved. It is now on your map.",
-                            ),
-                          );
-                        });
-                      }}
-                    />
-                  </div>
+                  <CampaignRuntime
+                    key={campaign.id}
+                    campaignId={campaign.id}
+                    version={campaign.version}
+                    pages={campaign.pages}
+                    pl={pl}
+                    request={api}
+                    onChanged={async () => {
+                      await refresh(campaign.id);
+                    }}
+                    onPage={goPage}
+                    view={view}
+                    onAdd={addEntry}
+                  />
                 )}
-                {graph && campaign.pages.length === 0 && (
-                  <p className="wiki-hint">
-                    {t(
-                      "Mapa zapełni się, gdy dodasz pierwszą postać lub miejsce.",
-                      "Your first character or place will appear here on the map.",
-                    )}
-                  </p>
-                )}
-                {graph && (
-                  <div
-                    className="wiki-map"
-                    aria-label={t("Graf kampanii", "Campaign graph")}
-                  >
-                    <ReactFlow
-                      nodes={campaign.pages.map((p, i) => ({
-                        id: p.id,
-                        position: {
-                          x: (i % 4) * 260,
-                          y: Math.floor(i / 4) * 140,
-                        },
-                        data: {
-                          label: (
-                            <>
-                              <small>{category(p.kind)}</small>
-                              <strong>{p.title}</strong>
-                            </>
-                          ),
-                        },
-                        selected: page?.id === p.id,
-                        style: {
-                          background: page?.id === p.id ? "#e1ece2" : "#fffef9",
-                          border: "1px solid #a5b5a2",
-                          borderRadius: 4,
-                          width: 200,
-                          padding: 15,
-                        },
-                      }))}
-                      edges={campaign.relations.map((r) => ({
-                        id: r.id,
-                        source: r.source,
-                        target: r.target,
-                        label: r.label,
-                        markerEnd: { type: MarkerType.ArrowClosed },
-                      }))}
-                      onlyRenderVisibleElements
-                      nodesDraggable={false}
-                      nodesConnectable={false}
-                      fitView
-                      minZoom={0.15}
-                      maxZoom={1.5}
-                      onNodeClick={(_, node) => {
-                        goPage(node.id);
-                        setGraph(false);
-                      }}
-                    >
-                      <FitCampaignMap />
-                      <Background gap={24} />
-                      <Controls showInteractive={false} />
-                    </ReactFlow>
-                  </div>
-                )}
-                {!graph &&
-                  (!draft ? (
-                    <div className="wiki-empty">
-                      <h3>
+                <div hidden={canEdit && view !== "materials"}>
+                  {canEdit && (
+                    <details className="materials-guide" hidden={editing}>
+                      <summary>
                         {t(
-                          canEdit
-                            ? "Pierwszy artykuł czeka."
-                            : "Brak udostępnionych artykułów.",
-                          canEdit
-                            ? "Your first article awaits."
-                            : "No shared articles yet.",
+                          "Jak połączyć materiały świata",
+                          "How to connect world material",
                         )}
-                      </h3>
-                      <p>
-                        {t(
-                          canEdit
-                            ? "Dodaj postać, miejsce albo wiedzę o świecie. Relacje między artykułami pojawią się też na mapie."
-                            : "Prowadzący może opublikować dla Ciebie materiały kampanii.",
-                          canEdit
-                            ? "Add a character, a place or world lore. Article relationships also appear on the map."
-                            : "A GM can publish campaign material for you.",
-                        )}
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="wiki-article-toolbar">
-                        <span>
-                          {category(draft.kind)}
-                          {page ? ` · v${page.version}` : ""}
-                          {dirty
-                            ? ` · ${t("Niezapisane zmiany", "Unsaved changes")}`
-                            : ""}
-                        </span>
-                        <div>
-                          {canEdit && (
-                            <button onClick={() => setEditing(!editing)}>
-                              {editing
-                                ? t("Podgląd", "Preview")
-                                : t("Edytuj", "Edit")}
-                            </button>
-                          )}
-                          {page && (
-                            <button
-                              onClick={() => {
-                                if (mayLeave())
-                                  run(async () => {
-                                    await refresh(campaign.id);
-                                    await openPage(campaign.id, page.id);
-                                  });
-                              }}
-                            >
-                              {t("Odśwież", "Reload")}
-                            </button>
-                          )}
-                          {canEdit && (
-                            <button
-                              className="wiki-primary"
-                              disabled={!dirty || !draft.title.trim()}
-                              onClick={() => run(save)}
-                            >
-                              {t("Zapisz artykuł", "Save article")}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      {canEdit && editing ? (
-                        <div className="wiki-editor">
-                          <label>
-                            {t("Tytuł artykułu", "Article title")}
-                            <input
-                              required
-                              maxLength={200}
-                              id="wiki-entry-title"
-                              placeholder={t(
-                                "np. Mira, właścicielka karczmy",
-                                "e.g. Mira, the innkeeper",
-                              )}
-                              value={draft.title}
-                              onChange={(e) =>
-                                setDraft({ ...draft, title: e.target.value })
-                              }
-                            />
-                          </label>
-                          <label>
-                            {t("Kategoria", "Category")}
-                            <select
-                              aria-label={t("Kategoria", "Category")}
-                              value={draft.kind}
-                              onChange={(e) =>
-                                setDraft({ ...draft, kind: e.target.value })
-                              }
-                            >
-                              {kinds.map((kind) => (
-                                <option key={kind} value={kind}>
-                                  {category(kind)}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label>
-                            {t("Treść (Markdown)", "Content (Markdown)")}
-                            <textarea
-                              aria-label={t(
-                                "Treść (Markdown)",
-                                "Content (Markdown)",
-                              )}
-                              placeholder={t(
-                                "Jedno zdanie wystarczy. Kim jest ta postać? Co wyróżnia to miejsce?",
-                                "One sentence is enough. Who is this character? What makes this place special?",
-                              )}
-                              rows={8}
-                              maxLength={12000}
-                              value={draft.body}
-                              onChange={(e) =>
-                                setDraft({ ...draft, body: e.target.value })
-                              }
-                            />
-                          </label>
-                          <label className="wiki-private-label">
-                            {t("Prywatne notatki MG", "Private GM notes")}
-                            <textarea
-                              aria-label={t(
-                                "Prywatne notatki MG",
-                                "Private GM notes",
-                              )}
-                              rows={5}
-                              maxLength={12000}
-                              value={draft.gm_notes}
-                              onChange={(e) =>
-                                setDraft({ ...draft, gm_notes: e.target.value })
-                              }
-                            />
-                          </label>
-                          <p className="wiki-hint">
-                            {t(
-                              "Nagłówki: ## Tytuł · pogrubienie: **tekst** · listy: - element. Maksymalnie 12 000 znaków w każdym polu tekstowym.",
-                              "Headings: ## Title · bold: **text** · lists: - item. Up to 12,000 characters in each text field.",
-                            )}
-                          </p>
-                        </div>
-                      ) : (
-                        <article className="wiki-article">
-                          <h2 className="wiki-article-title">
-                            {draft.title || t("Bez tytułu", "Untitled")}
-                          </h2>
-                          <div className="wiki-markdown">
-                            <Markdown
-                              remarkPlugins={[remarkGfm]}
-                              skipHtml
-                              urlTransform={defaultUrlTransform}
-                              components={{
-                                img: () => null,
-                                h1: ({ children }) => <h2>{children}</h2>,
-                                a: ({ href, children }) => (
-                                  <a href={href} rel="noopener noreferrer">
-                                    {children}
-                                  </a>
-                                ),
-                              }}
-                            >
-                              {draft.body ||
-                                t(
-                                  "*Ten artykuł nie ma jeszcze treści.*",
-                                  "*This article has no content yet.*",
-                                )}
-                            </Markdown>
-                          </div>
-                          {draft.gm_notes && (
-                            <details className="wiki-private-notes">
-                              <summary>
-                                {t("Prywatne notatki MG", "Private GM notes")}
-                              </summary>
-                              <p>{draft.gm_notes}</p>
-                            </details>
-                          )}
-                        </article>
-                      )}
-                      {page && canEdit && (
-                        <PublicationControls
-                          key={page.id}
-                          campaignId={campaign.id}
-                          api={api}
-                          t={t}
-                          run={run}
-                          dirty={!!dirty}
-                          resource={page}
-                          changed={async () => {
+                      </summary>
+                      <CampaignStart
+                        key={campaign.id}
+                        pl={pl}
+                        pages={campaign.pages}
+                        connected={campaign.relations.length > 0}
+                        graph={graph}
+                        add={addEntry}
+                        showMap={showMap}
+                        link={async (source, target, label) => {
+                          if (!mayLeave()) return;
+                          await run(async () => {
+                            await api(
+                              `campaigns/${campaign.id}/relations/`,
+                              "POST",
+                              {
+                                id: relationReceipt.current,
+                                source,
+                                target,
+                                label,
+                              },
+                            );
+                            relationReceipt.current = newUUID();
                             await refresh(campaign.id);
-                            await openPage(campaign.id, page.id);
-                          }}
-                        />
+                            setGraph(true);
+                            setNotice(
+                              t(
+                                "Zapisano połączenie. Jest widoczne na mapie.",
+                                "Connection saved. It is now on your map.",
+                              ),
+                            );
+                          });
+                        }}
+                      />
+                    </details>
+                  )}
+                  {graph && campaign.pages.length === 0 && (
+                    <p className="wiki-hint">
+                      {t(
+                        "Mapa zapełni się, gdy dodasz pierwszą postać lub miejsce.",
+                        "Your first character or place will appear here on the map.",
                       )}
-                      {page && !canEdit && (
-                        <button
-                          onClick={() =>
-                            download(
-                              "wiki-article.md",
-                              `# ${draft.title}\n\n${draft.body}`,
-                              "text/markdown",
-                            )
-                          }
-                        >
-                          {t("Pobierz Markdown", "Download Markdown")}
-                        </button>
-                      )}
-                      {page && (
-                        <section className="wiki-relations">
-                          <h3>
-                            {t(
-                              "Powiązania i odnośniki zwrotne",
-                              "Relationships and backlinks",
-                            )}
-                          </h3>
-                          {connections.length === 0 && (
-                            <p>
-                              {t(
-                                "Ten artykuł nie ma jeszcze powiązań.",
-                                "This article has no relationships yet.",
-                              )}
-                            </p>
+                    </p>
+                  )}
+                  {graph && (
+                    <div
+                      className="wiki-map"
+                      aria-label={t("Graf kampanii", "Campaign graph")}
+                    >
+                      <ReactFlow
+                        nodes={campaign.pages.map((p, i) => ({
+                          id: p.id,
+                          position: {
+                            x: (i % 4) * 260,
+                            y: Math.floor(i / 4) * 140,
+                          },
+                          data: {
+                            label: (
+                              <>
+                                <small>{category(p.kind)}</small>
+                                <strong>{p.title}</strong>
+                              </>
+                            ),
+                          },
+                          selected: page?.id === p.id,
+                          style: {
+                            background:
+                              page?.id === p.id ? "#e1ece2" : "#fffef9",
+                            border: "1px solid #a5b5a2",
+                            borderRadius: 4,
+                            width: 200,
+                            padding: 15,
+                          },
+                        }))}
+                        edges={campaign.relations.map((r) => ({
+                          id: r.id,
+                          source: r.source,
+                          target: r.target,
+                          label: r.label,
+                          markerEnd: { type: MarkerType.ArrowClosed },
+                        }))}
+                        onlyRenderVisibleElements
+                        nodesDraggable={false}
+                        nodesConnectable={false}
+                        fitView
+                        minZoom={0.15}
+                        maxZoom={1.5}
+                        onNodeClick={(_, node) => {
+                          goPage(node.id);
+                          setGraph(false);
+                        }}
+                      >
+                        <FitCampaignMap />
+                        <Background gap={24} />
+                        <Controls showInteractive={false} />
+                      </ReactFlow>
+                    </div>
+                  )}
+                  {!graph &&
+                    (!draft ? (
+                      <div className="wiki-empty">
+                        <h3>
+                          {t(
+                            canEdit
+                              ? "Pierwszy artykuł czeka."
+                              : "Brak udostępnionych artykułów.",
+                            canEdit
+                              ? "Your first article awaits."
+                              : "No shared articles yet.",
                           )}
-                          {connections.map((r) => {
-                            const other =
-                              r.source === page.id ? r.target : r.source;
-                            const meta = campaign.pages.find(
-                              (p) => p.id === other,
-                            );
-                            return (
-                              <div className="wiki-relation" key={r.id}>
-                                <button onClick={() => goPage(other)}>
-                                  {r.source === page.id ? "→" : "←"}{" "}
-                                  {meta?.title || "?"}
-                                </button>
-                                <span>{r.label}</span>
-                                {canEdit && (
-                                  <button
-                                    aria-label={t(
-                                      "Usuń powiązanie",
-                                      "Remove relationship",
-                                    )}
-                                    onClick={() =>
-                                      run(async () => {
-                                        await api(
-                                          `campaigns/${campaign.id}/relations/${r.id}/`,
-                                          "DELETE",
-                                        );
-                                        await refresh(campaign.id);
-                                      })
-                                    }
-                                  >
-                                    ×
-                                  </button>
-                                )}
-                                {canEdit && (
-                                  <PublicationControls
-                                    key={r.id}
-                                    campaignId={campaign.id}
-                                    api={api}
-                                    t={t}
-                                    run={run}
-                                    resource={r}
-                                    relation
-                                    changed={async () => {
-                                      await refresh(campaign.id);
-                                    }}
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                          {canEdit && (
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                run(async () => {
-                                  await api(
-                                    `campaigns/${campaign.id}/relations/`,
-                                    "POST",
-                                    {
-                                      id: relationReceipt.current,
-                                      source: page.id,
-                                      target,
-                                      label: relationLabel,
-                                    },
-                                  );
-                                  relationReceipt.current = newUUID();
-                                  setTarget("");
-                                  setRelationLabel("");
-                                  await refresh(campaign.id);
-                                });
-                              }}
-                            >
-                              <label>
-                                {t("Powiąż z artykułem", "Link to article")}
-                                <select
-                                  aria-label={t(
-                                    "Powiąż z artykułem",
-                                    "Link to article",
-                                  )}
-                                  required
-                                  value={target}
-                                  onChange={(e) => setTarget(e.target.value)}
-                                >
-                                  <option value="">
-                                    {t("Wybierz artykuł", "Choose an article")}
-                                  </option>
-                                  {campaign.pages
-                                    .filter((p) => p.id !== page.id)
-                                    .map((p) => (
-                                      <option value={p.id} key={p.id}>
-                                        {p.title}
-                                      </option>
-                                    ))}
-                                </select>
-                              </label>
-                              <label>
-                                {t("Opis relacji", "Relationship label")}
-                                <input
-                                  required
-                                  maxLength={80}
-                                  placeholder={t(
-                                    "np. należy do, mieszka w",
-                                    "e.g. belongs to, lives in",
-                                  )}
-                                  value={relationLabel}
-                                  onChange={(e) =>
-                                    setRelationLabel(e.target.value)
-                                  }
-                                />
-                              </label>
-                              <button>
-                                {t("Dodaj powiązanie", "Add relationship")}
+                        </h3>
+                        <p>
+                          {t(
+                            canEdit
+                              ? "Dodaj postać, miejsce albo wiedzę o świecie. Relacje między artykułami pojawią się też na mapie."
+                              : "Prowadzący może opublikować dla Ciebie materiały kampanii.",
+                            canEdit
+                              ? "Add a character, a place or world lore. Article relationships also appear on the map."
+                              : "A GM can publish campaign material for you.",
+                          )}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="wiki-article-toolbar">
+                          <span>
+                            {category(draft.kind)}
+                            {page ? ` · v${page.version}` : ""}
+                            {dirty
+                              ? ` · ${t("Niezapisane zmiany", "Unsaved changes")}`
+                              : ""}
+                          </span>
+                          <div>
+                            {canEdit && (
+                              <button onClick={() => setEditing(!editing)}>
+                                {editing
+                                  ? t("Podgląd", "Preview")
+                                  : t("Edytuj", "Edit")}
                               </button>
-                            </form>
-                          )}
-                        </section>
-                      )}
-                      {page && canEdit && (
-                        <section className="wiki-use">
-                          <h3>
-                            {t(
-                              "Wykorzystaj w przygodzie",
-                              "Use in an adventure",
                             )}
-                          </h3>
-                          <p>
-                            {t(
-                              "Kopia zachowuje wersję źródła. Kolejne zmiany wiki nie zmienią przygody ani trwającej rozgrywki. Notatki MG trafią do sekretu węzła.",
-                              "The copy records its source version. Later wiki changes do not rewrite the adventure or ongoing play. GM notes become the node's secret.",
-                            )}
-                          </p>
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              if (dirty) {
-                                setNotice(
-                                  t(
-                                    "Najpierw zapisz artykuł.",
-                                    "Save the article first.",
-                                  ),
-                                );
-                                return;
-                              }
-                              run(async () => {
-                                const s = await api(`scenarios/${scenarioId}/`);
-                                await api(
-                                  `campaigns/${campaign.id}/pages/${page.id}/use/`,
-                                  "POST",
-                                  {
-                                    scenario_id: s.id,
-                                    version: s.version,
-                                    source_version: page.version,
-                                  },
-                                );
-                                setCopiedTo(s.id);
-                                setNotice(
-                                  t(
-                                    "Skopiowano zapisany artykuł do przygody.",
-                                    "Saved article copied to the adventure.",
-                                  ),
-                                );
-                              });
-                            }}
-                          >
-                            <label>
-                              {t("Przygoda docelowa", "Target adventure")}
-                              <select
-                                aria-label={t(
-                                  "Przygoda docelowa",
-                                  "Target adventure",
-                                )}
-                                required
-                                value={scenarioId}
-                                onChange={(e) => setScenarioId(e.target.value)}
+                            {page && (
+                              <button
+                                onClick={() => {
+                                  if (mayLeave())
+                                    run(async () => {
+                                      await refresh(campaign.id);
+                                      await openPage(campaign.id, page.id);
+                                    });
+                                }}
                               >
-                                <option value="">
-                                  {t(
-                                    "Wybierz zapisaną przygodę",
-                                    "Choose a saved adventure",
-                                  )}
-                                </option>
-                                {scenarios.map((s) => (
-                                  <option key={s.id} value={s.id}>
-                                    {s.title}
+                                {t("Odśwież", "Reload")}
+                              </button>
+                            )}
+                            {canEdit && (
+                              <button
+                                className="wiki-primary"
+                                disabled={!dirty || !draft.title.trim()}
+                                onClick={() => run(save)}
+                              >
+                                {t("Zapisz artykuł", "Save article")}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {canEdit && editing ? (
+                          <div className="wiki-editor">
+                            <label>
+                              {t("Tytuł artykułu", "Article title")}
+                              <input
+                                required
+                                maxLength={200}
+                                id="wiki-entry-title"
+                                placeholder={t(
+                                  "np. Mira, właścicielka karczmy",
+                                  "e.g. Mira, the innkeeper",
+                                )}
+                                value={draft.title}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, title: e.target.value })
+                                }
+                              />
+                            </label>
+                            <label>
+                              {t("Kategoria", "Category")}
+                              <select
+                                aria-label={t("Kategoria", "Category")}
+                                value={draft.kind}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, kind: e.target.value })
+                                }
+                              >
+                                {kinds.map((kind) => (
+                                  <option key={kind} value={kind}>
+                                    {category(kind)}
                                   </option>
                                 ))}
                               </select>
                             </label>
-                            <button>
-                              {t("Skopiuj do przygody", "Copy to adventure")}
-                            </button>
-                          </form>
-                          {copiedTo && (
-                            <a
-                              href={`/workshop/?scenario=${copiedTo}&lang=${language}`}
-                            >
-                              {t("Otwórz przygodę", "Open adventure")} ↗
-                            </a>
-                          )}
-                          <div className="wiki-page-actions">
-                            <button
-                              onClick={() =>
-                                download(
-                                  "wiki-article.md",
-                                  `# ${draft.title}\n\n${draft.body}\n\n## ${t("Prywatne notatki MG", "Private GM notes")}\n\n${draft.gm_notes}`,
-                                  "text/markdown",
-                                )
-                              }
-                            >
+                            {entryTemplate(draft.kind, pl) && (
+                              <button
+                                type="button"
+                                disabled={!!draft.body.trim()}
+                                onClick={() =>
+                                  setDraft({
+                                    ...draft,
+                                    body: entryTemplate(draft.kind, pl),
+                                  })
+                                }
+                              >
+                                {t(
+                                  "Wstaw szablon karty / osi czasu (do pustej treści)",
+                                  "Insert sheet / timeline template (into empty content)",
+                                )}
+                              </button>
+                            )}
+                            <label>
+                              {t("Treść (Markdown)", "Content (Markdown)")}
+                              <textarea
+                                aria-label={t(
+                                  "Treść (Markdown)",
+                                  "Content (Markdown)",
+                                )}
+                                placeholder={t(
+                                  "Jedno zdanie wystarczy. Kim jest ta postać? Co wyróżnia to miejsce?",
+                                  "One sentence is enough. Who is this character? What makes this place special?",
+                                )}
+                                rows={8}
+                                maxLength={12000}
+                                value={draft.body}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, body: e.target.value })
+                                }
+                              />
+                            </label>
+                            <label className="wiki-private-label">
+                              {t("Prywatne notatki MG", "Private GM notes")}
+                              <textarea
+                                aria-label={t(
+                                  "Prywatne notatki MG",
+                                  "Private GM notes",
+                                )}
+                                rows={5}
+                                maxLength={12000}
+                                value={draft.gm_notes}
+                                onChange={(e) =>
+                                  setDraft({
+                                    ...draft,
+                                    gm_notes: e.target.value,
+                                  })
+                                }
+                              />
+                            </label>
+                            <p className="wiki-hint">
                               {t(
-                                "Pobierz Markdown (MG)",
-                                "Download Markdown (GM)",
+                                "Nagłówki: ## Tytuł · pogrubienie: **tekst** · listy: - element. Maksymalnie 12 000 znaków w każdym polu tekstowym.",
+                                "Headings: ## Title · bold: **text** · lists: - item. Up to 12,000 characters in each text field.",
                               )}
-                            </button>
-                            <button
-                              className="wiki-danger"
-                              onClick={() => {
-                                if (
-                                  confirm(
-                                    t(
-                                      "Usunąć artykuł i jego powiązania? Kopie w przygodach pozostaną.",
-                                      "Delete this article and its relationships? Adventure copies remain.",
-                                    ),
-                                  )
-                                )
+                            </p>
+                          </div>
+                        ) : (
+                          <article className="wiki-article">
+                            <h2 className="wiki-article-title">
+                              {draft.title || t("Bez tytułu", "Untitled")}
+                            </h2>
+                            <div className="wiki-markdown">
+                              <Markdown
+                                remarkPlugins={[remarkGfm]}
+                                skipHtml
+                                urlTransform={defaultUrlTransform}
+                                components={{
+                                  img: () => null,
+                                  h1: ({ children }) => <h2>{children}</h2>,
+                                  a: ({ href, children }) => (
+                                    <a href={href} rel="noopener noreferrer">
+                                      {children}
+                                    </a>
+                                  ),
+                                }}
+                              >
+                                {draft.body ||
+                                  t(
+                                    "*Ten artykuł nie ma jeszcze treści.*",
+                                    "*This article has no content yet.*",
+                                  )}
+                              </Markdown>
+                            </div>
+                            {draft.gm_notes && (
+                              <details className="wiki-private-notes">
+                                <summary>
+                                  {t("Prywatne notatki MG", "Private GM notes")}
+                                </summary>
+                                <p>{draft.gm_notes}</p>
+                              </details>
+                            )}
+                          </article>
+                        )}
+                        {page && canEdit && (
+                          <PublicationControls
+                            key={page.id}
+                            campaignId={campaign.id}
+                            api={api}
+                            t={t}
+                            run={run}
+                            dirty={!!dirty}
+                            resource={page}
+                            changed={async () => {
+                              await refresh(campaign.id);
+                              await openPage(campaign.id, page.id);
+                            }}
+                          />
+                        )}
+                        {page && !canEdit && (
+                          <button
+                            onClick={() =>
+                              download(
+                                "wiki-article.md",
+                                `# ${draft.title}\n\n${draft.body}`,
+                                "text/markdown",
+                              )
+                            }
+                          >
+                            {t("Pobierz Markdown", "Download Markdown")}
+                          </button>
+                        )}
+                        {page && (
+                          <section className="wiki-relations">
+                            <h3>
+                              {t(
+                                "Powiązania i odnośniki zwrotne",
+                                "Relationships and backlinks",
+                              )}
+                            </h3>
+                            {connections.length === 0 && (
+                              <p>
+                                {t(
+                                  "Ten artykuł nie ma jeszcze powiązań.",
+                                  "This article has no relationships yet.",
+                                )}
+                              </p>
+                            )}
+                            {connections.map((r) => {
+                              const other =
+                                r.source === page.id ? r.target : r.source;
+                              const meta = campaign.pages.find(
+                                (p) => p.id === other,
+                              );
+                              return (
+                                <div className="wiki-relation" key={r.id}>
+                                  <button onClick={() => goPage(other)}>
+                                    {r.source === page.id ? "→" : "←"}{" "}
+                                    {meta?.title || "?"}
+                                  </button>
+                                  <span>{r.label}</span>
+                                  {canEdit && (
+                                    <button
+                                      aria-label={t(
+                                        "Usuń powiązanie",
+                                        "Remove relationship",
+                                      )}
+                                      onClick={() =>
+                                        run(async () => {
+                                          await api(
+                                            `campaigns/${campaign.id}/relations/${r.id}/`,
+                                            "DELETE",
+                                          );
+                                          await refresh(campaign.id);
+                                        })
+                                      }
+                                    >
+                                      ×
+                                    </button>
+                                  )}
+                                  {canEdit && (
+                                    <PublicationControls
+                                      key={r.id}
+                                      campaignId={campaign.id}
+                                      api={api}
+                                      t={t}
+                                      run={run}
+                                      resource={r}
+                                      relation
+                                      changed={async () => {
+                                        await refresh(campaign.id);
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+                            {canEdit && (
+                              <form
+                                onSubmit={(e) => {
+                                  e.preventDefault();
                                   run(async () => {
                                     await api(
-                                      `campaigns/${campaign.id}/pages/${page.id}/`,
-                                      "DELETE",
-                                      { version: page.version },
+                                      `campaigns/${campaign.id}/relations/`,
+                                      "POST",
+                                      {
+                                        id: relationReceipt.current,
+                                        source: page.id,
+                                        target,
+                                        label: relationLabel,
+                                      },
                                     );
-                                    await openCampaign(campaign.id);
+                                    relationReceipt.current = newUUID();
+                                    setTarget("");
+                                    setRelationLabel("");
+                                    await refresh(campaign.id);
                                   });
+                                }}
+                              >
+                                <label>
+                                  {t("Powiąż z artykułem", "Link to article")}
+                                  <select
+                                    aria-label={t(
+                                      "Powiąż z artykułem",
+                                      "Link to article",
+                                    )}
+                                    required
+                                    value={target}
+                                    onChange={(e) => setTarget(e.target.value)}
+                                  >
+                                    <option value="">
+                                      {t(
+                                        "Wybierz artykuł",
+                                        "Choose an article",
+                                      )}
+                                    </option>
+                                    {campaign.pages
+                                      .filter((p) => p.id !== page.id)
+                                      .map((p) => (
+                                        <option value={p.id} key={p.id}>
+                                          {p.title}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </label>
+                                <label>
+                                  {t("Opis relacji", "Relationship label")}
+                                  <input
+                                    required
+                                    maxLength={80}
+                                    placeholder={t(
+                                      "np. należy do, mieszka w",
+                                      "e.g. belongs to, lives in",
+                                    )}
+                                    value={relationLabel}
+                                    onChange={(e) =>
+                                      setRelationLabel(e.target.value)
+                                    }
+                                  />
+                                </label>
+                                <button>
+                                  {t("Dodaj powiązanie", "Add relationship")}
+                                </button>
+                              </form>
+                            )}
+                          </section>
+                        )}
+                        {page && canEdit && (
+                          <section className="wiki-use">
+                            <h3>
+                              {t(
+                                "Wykorzystaj w przygodzie",
+                                "Use in an adventure",
+                              )}
+                            </h3>
+                            <p>
+                              {t(
+                                "Kopia zachowuje wersję źródła. Kolejne zmiany wiki nie zmienią przygody ani trwającej rozgrywki. Notatki MG trafią do sekretu węzła.",
+                                "The copy records its source version. Later wiki changes do not rewrite the adventure or ongoing play. GM notes become the node's secret.",
+                              )}
+                            </p>
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                if (dirty) {
+                                  setNotice(
+                                    t(
+                                      "Najpierw zapisz artykuł.",
+                                      "Save the article first.",
+                                    ),
+                                  );
+                                  return;
+                                }
+                                run(async () => {
+                                  const s = await api(
+                                    `scenarios/${scenarioId}/`,
+                                  );
+                                  await api(
+                                    `campaigns/${campaign.id}/pages/${page.id}/use/`,
+                                    "POST",
+                                    {
+                                      scenario_id: s.id,
+                                      version: s.version,
+                                      source_version: page.version,
+                                    },
+                                  );
+                                  setCopiedTo(s.id);
+                                  setNotice(
+                                    t(
+                                      "Skopiowano zapisany artykuł do przygody.",
+                                      "Saved article copied to the adventure.",
+                                    ),
+                                  );
+                                });
                               }}
                             >
-                              {t("Usuń artykuł", "Delete article")}
-                            </button>
-                          </div>
-                        </section>
-                      )}
-                    </>
-                  ))}
+                              <label>
+                                {t("Przygoda docelowa", "Target adventure")}
+                                <select
+                                  aria-label={t(
+                                    "Przygoda docelowa",
+                                    "Target adventure",
+                                  )}
+                                  required
+                                  value={scenarioId}
+                                  onChange={(e) =>
+                                    setScenarioId(e.target.value)
+                                  }
+                                >
+                                  <option value="">
+                                    {t(
+                                      "Wybierz zapisaną przygodę",
+                                      "Choose a saved adventure",
+                                    )}
+                                  </option>
+                                  {scenarios.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                      {s.title}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <button>
+                                {t("Skopiuj do przygody", "Copy to adventure")}
+                              </button>
+                            </form>
+                            {copiedTo && (
+                              <a
+                                href={`/workshop/?scenario=${copiedTo}&lang=${language}`}
+                              >
+                                {t("Otwórz przygodę", "Open adventure")} ↗
+                              </a>
+                            )}
+                            <div className="wiki-page-actions">
+                              <button
+                                onClick={() =>
+                                  download(
+                                    "wiki-article.md",
+                                    `# ${draft.title}\n\n${draft.body}\n\n## ${t("Prywatne notatki MG", "Private GM notes")}\n\n${draft.gm_notes}`,
+                                    "text/markdown",
+                                  )
+                                }
+                              >
+                                {t(
+                                  "Pobierz Markdown (MG)",
+                                  "Download Markdown (GM)",
+                                )}
+                              </button>
+                              <button
+                                className="wiki-danger"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      t(
+                                        "Usunąć artykuł i jego powiązania? Kopie w przygodach pozostaną.",
+                                        "Delete this article and its relationships? Adventure copies remain.",
+                                      ),
+                                    )
+                                  )
+                                    run(async () => {
+                                      await api(
+                                        `campaigns/${campaign.id}/pages/${page.id}/`,
+                                        "DELETE",
+                                        { version: page.version },
+                                      );
+                                      await openCampaign(campaign.id);
+                                    });
+                                }}
+                              >
+                                {t("Usuń artykuł", "Delete article")}
+                              </button>
+                            </div>
+                          </section>
+                        )}
+                      </>
+                    ))}
+                </div>
               </>
             )}
           </section>

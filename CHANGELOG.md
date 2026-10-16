@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Campaign workspace in PL/EN: Run session opens actionable events ordered by deadline; Timeline separates current/upcoming events from resolved/expired ones; Characters combines NPC/player descriptions, numeric stats, relationships and events; World material retains wiki editing, publication and the map. Existing article URLs remain valid.
+- MIT-licensed Python port of the Unity deterministic narrative core: inclusive time windows, flags, numeric conditions, resources, actor attributes, world values and directional relationships. Migration `0007_campaign_runtime` stores private campaign state and history without changing existing wiki prose.
+- Server-side consequence/time preview runs the same engine as commit without changing state, version or audit. Confirmation uses optimistic version checks; the UI shows before/after values and newly available events. Existing stat names are selected explicitly, with a separate option for new names.
+- GM-only runtime and preview; player publications/exports omit live private state. Tests cover preview/commit parity, atomicity, stale writes, access boundaries and real browser workflows. All 109 backend tests passed on PostgreSQL; public runtime, wiki and sharing browser checks passed.
+- Documented Unity source mapping, supported subset, PL/EN campaign workflow and upgrade steps. No automatic overdue-event resolution, undo, random selection, custom C# execution or Unity scenario import is introduced.
+
 - Workshop opens on a PL/EN dashboard with explicit New campaign/New adventure, private saved-material lists, authentication intent, blank scenario creation and a separate demo. Header navigation and in-memory resume preserve open edits; saved scenarios keep direct reloadable URLs.
 
 - Preserve the original illustrated campaign infographic alongside the newer RPG series; keep the simplified Photocraft export as an additional download.

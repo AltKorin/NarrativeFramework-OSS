@@ -33,6 +33,8 @@ try:
             assert field.evaluate("el=>el===document.activeElement")
             field.fill("Shadows " + lang)
             page.get_by_role("button", name=t("Utwórz kampanię", "Create campaign"), exact=True).click()
+            page.get_by_role("button", name=t("Materiały świata", "World material"), exact=True).click()
+            page.locator(".materials-guide > summary").click()
             for kind, title, label in (("npc", "Mira", t("Dodaj postać", "Add a character")), ("location", "The inn", t("Dodaj miejsce", "Add a place"))):
                 page.locator(".wiki-start").get_by_role("button", name=label, exact=True).click()
                 titlefield = page.get_by_label(t("Tytuł artykułu", "Article title"), exact=True)
@@ -44,6 +46,7 @@ try:
                 page.get_by_role("button", name=t("Zapisz artykuł", "Save article"), exact=True).click()
                 page.locator(".wiki-article-title").get_by_text(title, exact=True).wait_for()
             page.reload(wait_until="networkidle")
+            page.locator(".materials-guide > summary").click()
             guide = page.locator(".wiki-start")
             guide.get_by_role("heading", name=t("Połącz dwa wpisy", "Connect two entries")).wait_for()
             source = page.get_by_label(t("Od wpisu", "From entry"), exact=True)

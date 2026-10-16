@@ -79,3 +79,24 @@ Page/relationship audiences and published JSON snapshots are distinct from draft
 Author MCP explicitly requires a GM role for every wiki call; browser player membership does not grant author access. Existing play MCP/snapshots remain separate. Campaign reader MCP is a later stage. Migration 0005 is additive and makes no existing record public. Rollback of code to the owner-only release hides shared data; do not reverse migration 0005 over live data to roll back application behavior.
 
 Migration 0006 retains database defaults for new non-null wiki fields, so the owner-only code can still insert private pages/relations during a code rollback. Keep additive tables/data in place; reversing migrations discards sharing data.
+
+## Campaign runtime: shared deterministic engine for preview and commit
+
+`narrative_engine.py` ports the documented deterministic Unity subset into a pure
+copy-on-command state transition. `campaign_runtime.py` owns authorization,
+campaign-local actor references, expected campaign versions and transactional
+persistence. Migration 0007 adds `Campaign.runtime`; existing wiki text stays
+unchanged. Actor identities are wiki page UUIDs for NPCs, PCs or organizations.
+
+Both `POST runtime/` and `POST runtime/preview/` acquire the campaign lock and
+require owner/co-GM access. Preview returns the computed state without persisting
+state, version or audit; commit stores state and audit atomically. Confirmation
+must still match the version reviewed in the preview. PostgreSQL serializes
+concurrent mutations; a stale command returns 409. Resolved events cannot apply
+again. The browser compares authoritative before/after states for value and
+availability changes instead of implementing a second rules engine.
+
+The runtime is absent from player publication/export/preview projections and is
+not exposed through player MCP. Individual-play approval records remain separate;
+no automatic campaign mutation or Unity scenario import is implied. Full GM
+exports include runtime state. See [source mapping, bounds and API](narrative-runtime.md).

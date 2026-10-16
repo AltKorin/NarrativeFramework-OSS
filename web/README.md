@@ -4,6 +4,16 @@
 
 A self-hosted RPG adventure workshop, alongside the original Unity assets. Django/DRF + PostgreSQL, React/TypeScript + React Flow, and a separate authenticated MCP service. MIT; [brand permissions](../BRANDING.md) are documented separately.
 
+## Campaign workspace
+
+Open `/campaigns/` for **Run session**, **Timeline**, **Characters** and **World material**.
+Character sheets combine descriptions and numeric stats. The server previews a
+resolution's value changes and newly available events before the GM confirms it.
+This uses the repository's MIT-licensed Unity core port, not prose parsing.
+See the [workflow, source mapping and API](docs/narrative-runtime.md).
+On existing installations apply migration `0007_campaign_runtime`; Compose does
+this during startup. Existing articles remain intact and live state is GM-only.
+
 ## Start with Docker Compose
 
 Requires Docker Engine and the Compose plugin. From `web/`:
@@ -114,6 +124,8 @@ Adversarial regression tests, reproduced failures and isolation instructions: [E
 Website configuration and deployment handoff: [English](docs/en/website.md) · [Polski](docs/pl/website.md).
 
 ## Campaign wiki
+
+The GM screen also runs a deterministic port of the Unity narrative core: campaign days, character stats, conditional events, decisions and persistent consequences. Apply migration 0007 before using it. [Runtime behavior, Unity source mapping and limits](docs/narrative-runtime.md).
 
 Open `/campaigns/` or choose **Campaign wiki** in the workshop. Campaigns support owner/co-GM/player memberships, single-use invitations, deliberate publication to all or selected players, Markdown articles, search, relationships/backlinks and a filtered graph. Reuse articles across adventures through version-checked snapshots; GM notes remain separate. Migrations 0004 and 0005 are additive; existing material stays private. [Guide and contracts](docs/en/campaign-wiki.md).
 

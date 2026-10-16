@@ -105,6 +105,7 @@ class Campaign(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     summary = models.TextField(blank=True)
+    runtime = models.JSONField(default=dict, blank=True)
     version = models.PositiveIntegerField(default=1)
     creation_fingerprint = models.CharField(max_length=64, editable=False)
     updated_at = models.DateTimeField(auto_now=True)

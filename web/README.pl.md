@@ -16,6 +16,16 @@ Samodzielny warsztat przygód RPG obok oryginalnych assetów Unity. Django/DRF, 
 
 Serwer nie zawiera własnego czatu AI ani modelu. Rozgrywkę prowadzi agent w Twoim kliencie MCP. Nie wykonuje rzutów, nie weryfikuje mechaniki RPG ani zgodności narracji z granicami. Nie zmienia automatycznie głównej kampanii.
 
+## Prowadzenie kampanii
+
+Pod `/campaigns/` są widoki **Prowadzenie**, **Oś czasu**, **Postacie** i **Materiały świata**.
+Karty NPC i graczy łączą opis ze statystykami. Przed zatwierdzeniem decyzji serwer
+pokazuje zmiany wartości oraz dostępności wydarzeń, korzystając z portu rdzenia
+Unity na licencji MIT. [Instrukcja prowadzenia](docs/pl/campaign-runtime.md) oraz
+[mapowanie źródeł i API](docs/narrative-runtime.md) opisują obsługiwany zakres.
+Istniejące instalacje wymagają migracji `0007_campaign_runtime`; Compose wykonuje
+ją przy starcie. Artykuły pozostają zachowane, a stan silnika jest prywatny dla MG.
+
 ## Uruchomienie przez Docker Compose
 
 Z katalogu `web/`, z zainstalowanym Docker Engine i pluginem Compose:
@@ -126,6 +136,8 @@ Zobacz [CONTRIBUTING](../CONTRIBUTING.md), [decyzje architektoniczne](docs/archi
 [Konfiguracja strony i przygotowanie wdrożenia](docs/pl/website.md) · [English](docs/en/website.md).
 
 ## Wiki kampanii
+
+Panel MG korzysta również z portu mechanizmów Unity: dni kampanii, statystyk postaci, warunków wydarzeń, decyzji i trwałych konsekwencji. Przed użyciem zastosuj migrację 0007. [Działanie silnika, źródła Unity i zakres portu](docs/narrative-runtime.md).
 
 Otwórz `/campaigns/` lub wybierz **Wiki kampanii** w warsztacie. Kampania obsługuje role właściciela, współ-MG i gracza, jednorazowe zaproszenia, publikacje dla wszystkich lub wybranych graczy oraz filtrowane artykuły, wyszukiwanie, relacje i mapę. Materiały można kopiować do różnych przygód z kontrolą wersji, zachowując osobne sekrety MG. Migracje 0004 i 0005 dodają wiki oraz współdzielenie; stare materiały pozostają prywatne. [Instrukcja i kontrakty](docs/pl/campaign-wiki.md).
 

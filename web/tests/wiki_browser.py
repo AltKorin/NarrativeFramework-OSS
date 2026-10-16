@@ -7,7 +7,7 @@ import secrets
 import subprocess
 import uuid
 from urllib.parse import urlparse, parse_qs
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 from browser_target import browser_args
 
 origin = os.environ.get("SITE_TEST_BASE", "http://localhost:8080").rstrip("/")
@@ -89,6 +89,7 @@ try:
         page.get_by_role("link", name="Campaign wiki", exact=True).click()
         page.get_by_label("New campaign name", exact=True).fill("The northern coast")
         page.get_by_role("button", name="Create campaign", exact=True).click()
+        page.get_by_role("button", name="World material", exact=True).click()
         page.get_by_role("button", name="New article", exact=True).wait_for()
         page.locator(".wiki-layout:not([inert])").wait_for()
         campaign_id = parse_qs(urlparse(page.url).query)["campaign"][0]
@@ -130,13 +131,7 @@ try:
         page.locator(".wiki-index").get_by_role(
             "button", name="Porttown", exact=True
         ).wait_for()
-        page.wait_for_timeout(350)
-        assert (
-            page.locator(".wiki-index")
-            .get_by_role("button", name="Mira", exact=True)
-            .count()
-            == 0
-        )
+        expect(page.locator(".wiki-index").get_by_role("button", name="Mira", exact=True)).to_have_count(0)
         page.get_by_label("Search titles and content", exact=True).fill("")
         page.locator(".wiki-layout:not([inert])").wait_for()
         page.get_by_role("button", name="Edit", exact=True).click()

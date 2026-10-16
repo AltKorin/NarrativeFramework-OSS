@@ -132,3 +132,33 @@ The complete group browser workflow passed invitation/login return, all three ro
 - Local Docker Hub token resolution timed out on the first build; the cached/classic builder completed. Production TypeScript/static build and publication-content checks passed. No backend models, APIs or migrations changed.
 - Open edits are preserved in the mounted workshop's memory when switching to Dashboard, not automatically saved as a durable draft. Server material with unsaved changes warns before leaving the page. Explicit save records a scenario URL for reload; the demo remains a separate browser-local copy.
 - Follow-up logout fault check: private editor state, cached lists and resume controls are cleared immediately after session deletion, before loading the public demo. Simulated demo failure cannot leave the former account's adventure visible; a Back to dashboard link recovers after the transient failure. This path passed in PL/EN.
+
+## Campaign narrative runtime deployment — 2026-10-16
+
+- Ported the deterministic Unity narrative core to the campaign backend: inclusive event time windows, required/forbidden flags, numeric conditions, actor stats, resources, variables, relationships and selected outcome types. The GM screen explains event blockers, previews consequences and records choices and campaign-day history. [Source mapping and supported scope](narrative-runtime.md).
+- The release passed all 107 Django tests on the deployment PostgreSQL database engine, including the concurrency checks skipped by local SQLite. Migration `0007_campaign_runtime` applied successfully; Django reported no missing model migrations. API, MCP and web containers were rebuilt and restarted.
+- Before deployment, a private PostgreSQL custom-format dump was created and its archive directory validated with `pg_restore --list`. Previous application sources and image tags were retained at `/var/backups/narrativeframework/runtime-20261016T150352Z`. Instance `.env`, site configuration and analytics configuration were preserved byte-for-byte. This verifies archive readability, not a full database restore drill.
+- The public HTTPS browser check used disposable owner/player accounts and passed: resource 12 → 7 after a selected consequence, NPC health, actor-stat conditions, day-based availability, disabled repeated resolution, persistence after reload, history, a 390px mobile layout without horizontal overflow, GM-only runtime access and player export filtering. Test accounts were removed. The public health endpoint returned `{"status":"ok"}`.
+- The port is a deterministic subset, not a wholesale Unity scenario importer. Random selection, custom C# effects and automatic story-arc/event execution remain outside its supported scope. Advancing time changes availability; the GM explicitly applies a resolution.
+
+## Campaign workspace — 2026-10-16
+
+- Release `campaign-ux-20261016T183703Z`: four campaign views, contextual character sheets, versioned engine preview and explicit decision/time confirmation. A final frontend adjustment removes repeated decision text to keep the action visible with a two-line campaign title on mobile.
+- Production PostgreSQL: all **109 Django tests passed**, including preview/commit parity, preview non-mutation, deadline changes and GM-only preview access. Local SQLite: 98 passed, 11 PostgreSQL-specific tests skipped.
+- Production frontend build and migration drift check passed. No new migration beyond `0007_campaign_runtime` was needed.
+- Local Chromium acceptance passed: character stats, event preparation, preview cancellation, next-day deadlines, gold 12 → 7, downstream event unlocked, persistent history, article deep links, 390 × 844 layout and no browser errors.
+- Public HTTPS sharing regression passed: invitations/login return, co-GM/player roles, publication, individual audiences, hidden graph/search/export, GM preview, draft isolation, demotion/revocation, PL/EN and mobile.
+- Backup: `/var/backups/narrativeframework/campaign-ux-20261016T183703Z` (source, private configuration, image tags and PostgreSQL archive checked with `pg_restore --list`). Private configuration hashes were preserved; archive listing is not a restore rehearsal.
+- Final public HTTPS runtime acceptance passed after the mobile adjustment, including a two-line campaign title, preview/cancel/commit, downstream availability, article deep links, player runtime isolation and player export filtering. Screenshots: `/tmp/narrative-runtime-public-ec_mgt3z/` on the verification workstation.
+- Public wiki regression passed: editing, safe Markdown, search, links/backlinks/map, PL/EN drafts, stale-write protection, export, adventure snapshots, foreign-owner isolation and mobile layout. Its search assertion now waits for the result instead of assuming a fixed 350 ms network response.
+
+## GitHub publication follow-up — 2026-10-16
+
+- Updated root/web PL/EN documentation, Unity source mapping, campaign workflow,
+  migration and preview semantics; synchronized downloadable website copies.
+- Updated onboarding/dashboard browser navigation for World material and the
+  expandable first-map guide. Both complete suites passed in PL/EN against the
+  deployed application, including mobile and saved-material flows.
+- Runtime browser verification now defaults to local Compose; deployment host and
+  browser executable are explicit settings. Added it to the disposable CI suite.
+- Production frontend build, publication-content scan and whitespace checks passed.

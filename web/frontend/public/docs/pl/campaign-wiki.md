@@ -4,6 +4,15 @@
 
 Wiki należy do kampanii. Jedno konto może prowadzić własne kampanie, współprowadzić inne i grać w kolejnych. Artykuły, indeks, mapa i odnośniki zwrotne korzystają z tych samych danych PostgreSQL. Materiały wykorzystasz w wielu przygodach jako jawne kopie.
 
+## Widoki kampanii
+
+MG otwiera kampanię w **Prowadzeniu**. **Oś czasu** pokazuje terminy i blokady,
+**Postacie** łączą opisy NPC i graczy z aktualnymi statystykami, a **Materiały świata**
+zawierają indeks wiki, edycję, mapę, ustawienia i zaproszenia. Możesz tam rozwinąć
+instrukcję **Jak połączyć materiały świata**. Gracz otwiera udostępnione mu materiały.
+[Instrukcja prowadzenia](campaign-runtime.md) opisuje podgląd decyzji,
+przygotowanie wydarzeń i zakres portu rdzenia Unity.
+
 ## Rozpoczęcie i zaproszenia
 
 1. Otwórz pulpit `/workshop/` i wybierz **Nowa kampania**. Zaloguj się lub zarejestruj; po podaniu nazwy trafisz do pierwszych kroków wiki. Istniejącą kampanię otworzysz z listy na pulpicie albo przez **Wiki kampanii** / `/campaigns/`.
@@ -75,3 +84,5 @@ PLAYWRIGHT_BROWSERS_PATH=/tmp/narrative-browsers web/.venv/bin/python web/tests/
 Testuj na instancji testowej. Skrypty tworzą i usuwają fikcyjne konta. Testy PostgreSQL obejmują równoczesną akceptację linku, publikację wobec edycji i cofnięcie dostępu wobec zapisu. Przeglądarka sprawdza cały przepływ grupy, filtrowane eksporty, podgląd, degradację, cofnięcie dostępu, PL/EN i telefon.
 
 Migracja 0006 zachowuje wartości domyślne nowych pól także w bazie, aby stary kod mógł nadal tworzyć prywatne strony i relacje przy wycofaniu wersji aplikacji. Wycofanie kodu nie wymaga cofania migracji i usuwania danych współdzielenia.
+
+Eksport MG zawiera również prywatny stan `runtime`; eksport gracza i podglądu gracza go pomija. Endpointy silnika i migracja `0007_campaign_runtime`: [kontrakt](../narrative-runtime.md).

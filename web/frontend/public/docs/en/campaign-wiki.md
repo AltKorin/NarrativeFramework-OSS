@@ -4,9 +4,18 @@
 
 A campaign owns its wiki. An account may own one campaign, co-GM another and play in a third. Articles, index, graph and backlinks use the same PostgreSQL records. Versioned copies reuse material across adventures.
 
+## Campaign views
+
+Campaigns open in **Run session** for GMs. **Timeline** shows dates and blockers,
+**Characters** combines NPC/player descriptions with their current stats, and
+**World material** contains the wiki index, editing, map, settings and invitations.
+The optional **How to connect world material** guide is expandable there.
+Player accounts open their shared materials. See the [runtime guide](../narrative-runtime.md)
+for decision preview, event preparation and the supported Unity core port.
+
 ## Joining and roles
 
-Sign in, open `/campaigns/`, create a campaign and use **Members and invitations**. The owner creates a single-use link with a player/co-GM role and seven-day expiry, then sends it privately. The first signed-in account explicitly accepting it joins. Opening the link changes nothing; there is no email delivery or public account directory. Invitation tokens use the URL fragment rather than server-visible page query parameters. Login/registration returns the recipient to acceptance.
+Sign in, open `/campaigns/`, create a campaign, open **World material** and use **Members and invitations**. The owner creates a single-use link with a player/co-GM role and seven-day expiry, then sends it privately. The first signed-in account explicitly accepting it joins. Opening the link changes nothing; there is no email delivery or public account directory. Invitation tokens use the URL fragment rather than server-visible page query parameters. Login/registration returns the recipient to acceptance.
 
 | Role | Capabilities |
 | --- | --- |
@@ -18,7 +27,7 @@ Co-GMs see **all GM secrets**. The owner can revoke unused invitations, remove m
 
 ## Drafts, audiences and publication
 
-Articles support Characters, Locations, Organizations, Items, World lore, Journal, Scenes and Clues. Safe Markdown includes formatting/tables; HTML is not executed and inline images/uploads are not implemented. GM notes remain separate.
+Articles support NPCs, Player characters, Chronicle (notes), Locations, Organizations, Items, World lore, Journal, Scenes and Clues. Safe Markdown includes formatting/tables; HTML is not executed and inline images/uploads are not implemented. GM notes remain separate.
 
 New pages are GM-only and unpublished. **Save article** changes the draft, not the player view. In **Player publication**, choose all campaign players (including future players) or selected current player memberships, then **Publish for players**. This stores only saved title/category/body/version in a publication snapshot, never `gm_notes`. The panel shows draft and published versions. Later draft changes stay private until republished. **Withdraw publication** hides the page. Audience changes republish the currently saved content: review it first. Unsaved edits must be saved before publishing.
 
@@ -89,3 +98,5 @@ Migration 0006 retains database defaults for new non-null wiki fields, so the ow
 
 
 Workshop entry: `/workshop/` now opens the dashboard. Choose **New campaign**, sign in and name your world; saved campaigns and adventures are listed here. **New adventure** creates a separate scenario with one empty opening scene. **Open adventure demo** opens the sample instead. Existing `/campaigns/` and scenario links remain valid.
+
+The GM export also includes private `runtime` state; player and preview exports omit it. Runtime endpoints and migration `0007_campaign_runtime`: [contract](../narrative-runtime.md).
