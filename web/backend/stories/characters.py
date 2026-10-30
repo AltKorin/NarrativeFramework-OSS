@@ -524,7 +524,7 @@ def axis_event(pack, draft, state, steps, data):
         raise DomainError(f"Choose options of {axis['label']}")
     result = []
     for pick in picks:
-        if not isinstance(pick, dict) or pick.get("option") not in options:
+        if not isinstance(pick, dict) or not isinstance(pick.get("option"), str) or pick["option"] not in options:
             raise DomainError(f"Choose options of {axis['label']}")
         if axis["repeatable"]:
             levels = pick.get("levels")
@@ -549,7 +549,7 @@ def choice_event(pack, state, steps, data):
         raise DomainError("This choice is not open for this character")
     if opened[key]["kind"] == "stats_bonus":
         values = data.get("values")
-        if (not isinstance(values, dict) or len(values) > len(pack["stats"])
+        if (not isinstance(values, dict) or not set(values) <= {x["id"] for x in pack["stats"]}
                 or any(type(v) is not int or not 1 <= v <= 10 for v in values.values())):
             raise DomainError("Give whole-number bonuses per statistic")
         return {"type": "choice_set", "key": key, "values": values}

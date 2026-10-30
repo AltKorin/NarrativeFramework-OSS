@@ -45,5 +45,10 @@ Przykład (mini-poziomy):
                  {"id": "KOMORKI", "by": "MAGIA", "values": [2, 3, 4, 5, 6]}]
 ```
 
+## Wzory — ograniczenia (wszystkie pakiety)
+
+Funkcje: `ceil`, `floor` (1 argument), `round` (1–2), `min`, `max` (2–10). Liczby w wzorach ≤ 10⁹; wynik
+działania powyżej 10¹⁵ albo nieskończony jest błędem pakietu (komunikat zamiast awarii).
+
 ## Otwarte pytania do dograć
 - Postęp indeksowany od `level.min` zamiast od 1? v1: zawsze od 1 (systemy z poziomem 0 dodają wartość na początku).

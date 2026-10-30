@@ -38,6 +38,10 @@ Szkielet — kolejność i typy kroków ustalone; parametry do potwierdzenia na 
 `stats_points` przyjmuje też `costs: {"<wartość>": koszt}` — koszt pokrywający każdą wartość `min`–`max`
 kroku (nieliniowy zakup); wtedy suma kosztów musi równać się `pool`.
 
+W pakiecie z `level`, `axes`, `variables` albo `progressions` **każda metoda musi mieć krok `axes`**, a kroki
+`role`, `template`, `stats_role_roll`, `skills_points`, `skills_package`, `tables`, `gear_package` i `shop` nie
+mogą (jeszcze) stać obok `axes` — ścieżka osi ich nie egzekwuje (zakupy za złoto dojdą w planie pakietu 5E).
+
 ## Otwarte pytania do dograć
 - Czy metoda może mieszać kroki (np. pakiet umiejętności + kilka punktów do rozdania)? Propozycja:
   tak — `skills_package` i `skills_points` w jednej metodzie sumują się.

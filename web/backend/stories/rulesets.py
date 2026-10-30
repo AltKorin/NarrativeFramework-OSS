@@ -24,8 +24,12 @@ STEPS = {"role", "template", "stats_points", "stats_role_roll", "skills_points",
 RESERVED = {"LEVEL", "RANK", "STAT"}  # plus the LV_ prefix: per-option levels of repeatable axes
 GRANT_KEYS = {"level", "when", "values", "stats", "skills", "items", "features", "choice"}
 CHOICE_KINDS = ("options", "list", "skills", "stats_bonus")
+LEVELLED_ONLY = {"role", "template", "stats_role_roll", "skills_points", "skills_package", "tables",
+                 "gear_package", "shop"}  # not enforced by the axes path yet
 MAX_DEPTH = 4  # each nesting adds 5 JSON levels; transport caps documents at 32
 FUNCTIONS = {"ceil": math.ceil, "floor": math.floor, "round": round, "min": min, "max": max}
+ARITY = {"ceil": (1, 1), "floor": (1, 1), "round": (1, 2), "min": (2, 10), "max": (2, 10)}
+LIMIT = 10**15  # formula results beyond this are pack mistakes, not characters
 OPERATORS = {ast.Add: lambda a, b: a + b, ast.Sub: lambda a, b: a - b,
              ast.Mult: lambda a, b: a * b, ast.Div: lambda a, b: a / b if b else 0}
 COMPARISONS = {ast.Gt: lambda a, b: a > b, ast.GtE: lambda a, b: a >= b, ast.Lt: lambda a, b: a < b,
@@ -125,6 +129,8 @@ def parse(source, label):
 
     def check(node):
         if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+            if not math.isfinite(node.value) or abs(node.value) > 10**9:
+                fail(f"number out of range in formula for {label}")
             return
         if isinstance(node, ast.Name):
             names.add(node.id)
@@ -144,8 +150,11 @@ def parse(source, label):
         if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
             check(node.operand)
             return
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in FUNCTIONS
+                and not node.keywords and not ARITY[node.func.id][0] <= len(node.args) <= ARITY[node.func.id][1]):
+            fail(f"wrong number of arguments to {node.func.id} in formula for {label}")
         if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-                and node.func.id in FUNCTIONS and not node.keywords and 1 <= len(node.args) <= 10):
+                and node.func.id in FUNCTIONS and not node.keywords):
             for arg in node.args:
                 check(arg)
             return
@@ -161,7 +170,10 @@ def evaluate(tree, values):
     if isinstance(tree, ast.Name):
         return values[tree.id]
     if isinstance(tree, ast.BinOp):
-        return OPERATORS[type(tree.op)](evaluate(tree.left, values), evaluate(tree.right, values))
+        result = OPERATORS[type(tree.op)](evaluate(tree.left, values), evaluate(tree.right, values))
+        if not math.isfinite(result) or abs(result) > LIMIT:
+            fail("formula result out of range")
+        return result
     if isinstance(tree, ast.Compare):
         parts = [evaluate(part, values) for part in [tree.left, *tree.comparators]]
         return int(all(COMPARISONS[type(op)](a, b) for op, a, b in zip(tree.ops, parts, parts[1:])))
@@ -355,6 +367,12 @@ def load(document):
             if step["type"] in ("gear_package", "shop") and step.setdefault("loss_mode", "fixed") not in ("fixed", "roll"):
                 fail(f"method {key} loss_mode must be fixed or roll")
             method_step(pack, key, step, stats)
+        kinds = {step["type"] for step in steps}
+        levelled_pack = any(pack.get(k) for k in ("level", "axes", "variables", "progressions"))
+        if levelled_pack and "axes" not in kinds:
+            fail(f"method {key} needs an axes step in a pack with levels or axes")
+        if "axes" in kinds and kinds & LEVELLED_ONLY:
+            fail(f"method {key}: {', '.join(sorted(kinds & LEVELLED_ONLY))} cannot be combined with axes yet")
     pack["_trees"] = trees
     pack["_formulas"] = tree_of
     return pack
@@ -405,10 +423,13 @@ class Grants:
     def __init__(self, pack, stats, skills, catalog, symbols):
         self.pack, self.stats, self.skills, self.catalog, self.symbols = pack, stats, skills, catalog, symbols
         self.trees, self.choices, self.options = {}, {}, 0
+        self.context, self.links = None, {}
 
     def check(self):
         self.lists = entries(self.pack, "lists", 80)
         for key, listing in self.lists.items():
+            self.context = key
+            self.links[key] = set()
             items = listing.get("entries")
             if not isinstance(items, list) or not items:
                 fail(f"list {key} needs entries")
@@ -424,6 +445,11 @@ class Grants:
                     fail(f"invalid tags of {entry['id']}")
                 if entry.setdefault("repeatable", False) not in (True, False):
                     fail(f"{entry['id']} repeatable must be true or false")
+        self.context = None
+        try:
+            order(self.links, set())
+        except DomainError as error:
+            fail("lists choose from each other in a cycle: " + str(error).split(": ")[-1])
         for key, axis in entries(self.pack, "axes", 80).items():
             seen = set()
             for item in axis["options"]:
@@ -530,6 +556,8 @@ class Grants:
         elif kind == "list":
             if spec.get("list") not in self.lists:
                 fail(f"choice {key} uses unknown list")
+            if self.context is not None:
+                self.links[self.context].add(spec["list"])
             tags = spec.setdefault("tags_any", [])
             if not isinstance(tags, list) or any(not isinstance(t, str) for t in tags):
                 fail(f"invalid tags_any in choice {key}")
@@ -614,6 +642,9 @@ class Resolution:
         self.trees = pack["_formulas"]
         self.lists = {x["id"]: {e["id"]: e for e in x["entries"]} for x in pack.get("lists", [])}
         self.symbols = {"LEVEL": level} if pack.get("level") else {}
+        for axis in pack.get("axes", []):
+            if axis["repeatable"]:
+                self.symbols.update({"LV_" + o["id"]: 0 for o in axis["options"]})
         self.axes = axes
         self.open, self.picked, self.problems, self.used, self.bonus_caps, self.rank_checks = {}, {}, [], {}, [], []
         self.grants = {"stats": {}, "ranks": {}, "items": [], "features": [], "values": []}

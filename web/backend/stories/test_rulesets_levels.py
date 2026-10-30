@@ -128,6 +128,12 @@ class FormulaComparisonTests(SimpleTestCase):
             with self.subTest(source=source), self.assertRaises(DomainError):
                 rulesets.parse(source, "x")
 
+    def test_runaway_results_are_rejected_not_crashing(self):
+        for source in ["SIL * 1000000000 * 1000000000", "SIL * " + " * ".join(["1e9"] * 30)]:
+            tree, _ = rulesets.parse(source, "x")
+            with self.subTest(source=source[:40]), self.assertRaises(DomainError):
+                rulesets.evaluate(tree, {"SIL": 5})
+
     def test_dice_keep(self):
         self.assertEqual(rulesets.dice_keep("4d6kh3", "x"), (4, 6, 3))
         self.assertEqual(rulesets.dice_keep("3d6", "x"), (3, 6, 3))
@@ -180,6 +186,17 @@ class LevelsLoadTests(SimpleTestCase):
             (lambda d: d.update(skill_value="RANK + NIEMA"), "unknown symbol NIEMA"),
             (lambda d: d["derived"][0].update(formula="ZYCIE_KL + LV_nikt"), "unknown symbol LV_nikt"),
             (lambda d: d.update(sheet_labels=["Zdolności"]), "sheet_labels"),
+            (lambda d: d["methods"].append({"id": "bez", "label": "Bez", "steps": [
+                {"type": "stats_array", "values": [15, 14, 8]}, {"type": "name"}]}), "axes step"),
+            (lambda d: d["methods"][0]["steps"].insert(1, {"type": "shop", "budgets": [{"amount": 0, "label": "x"}]}),
+             "cannot be combined"),
+            (lambda d: d["methods"][0]["steps"].insert(1, {"type": "tables", "tables": []}), "cannot be combined"),
+            (lambda d: d["lists"][1]["entries"][1]["grants"].append(
+                {"choice": {"id": "petla", "label": "P", "kind": "list", "list": "dary"}}), "cycle"),
+            (lambda d: d["derived"][0].update(formula="min(LEVEL)"), "arguments"),
+            (lambda d: d["derived"][0].update(formula="floor(LEVEL, 2)"), "arguments"),
+            (lambda d: d["derived"][0].update(formula="LEVEL * 1e999"), "number"),
+            (lambda d: d["derived"][0].update(formula="LEVEL * 10000000000"), "number"),
             (lambda d: d.update(sheet_labels={"features": 7}), "sheet_labels"),
             (lambda d: d.update(sheet_labels={"other": "x"}), "sheet_labels"),
         ]
@@ -323,6 +340,14 @@ class ResolveTests(SimpleTestCase):
                     document=document)
         self.assertFalse(any("Skradanie" in p for p in r["problems"]))
         self.assertEqual(r["grants"]["ranks"]["skradanie"], 2)
+
+    def test_per_option_levels_exist_when_the_method_skips_a_repeatable_axis(self):
+        document = mini_levels()
+        document["derived"].append({"id": "WOJ", "label": "Wojownik", "formula": "LV_woj + 1"})
+        pack = rulesets.load(document)
+        r = rulesets.resolve(pack, 5, {"pochodzenie": [{"option": "rybak"}]}, {}, BASE)
+        self.assertEqual(r["symbols"]["LV_woj"], 0)
+        self.assertEqual(rulesets.sheet(pack, BASE, {}, [], None, r)["derived"]["WOJ"], 1)
 
     def test_axes_before_stats_do_not_crash(self):
         r = resolve(stats=None, choices=CHOICES_WOJ3_MAG2)

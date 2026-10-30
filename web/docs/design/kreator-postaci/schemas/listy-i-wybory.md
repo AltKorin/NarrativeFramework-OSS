@@ -27,6 +27,9 @@ np. listy klas) i `repeatable` (może być wybrany w kilku wyborach, np. dar wyb
 | `among`, `rank`, `requires_rank` | id umiejętności, ranga, wymagana ranga | `kind: skills` (np. ekspertyza: `rank 2`, `requires_rank 1`) |
 | `among`, `patterns`, `cap` | id statystyk albo `"all"`, wzorce premii, limit | `kind: stats_bonus`, np. `[[2,1],[1,1,1]]` |
 
+Listy nie mogą wybierać z siebie w cyklu (wpis listy A z wyborem z listy B, której wpis wybiera z A) —
+pakiet jest odrzucany.
+
 ## Jak liczone
 
 - **Klucz instancji** wyboru: `<id>` dla wyboru z opcji osi; dla wyboru wewnątrz wybranej opcji/wpisu

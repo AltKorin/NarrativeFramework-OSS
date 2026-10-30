@@ -108,6 +108,8 @@ class LevelCharacterFlowTests(TestCase):
         for command in [dict(action="set_axis", axis="klasa", picks="woj"),
                         dict(action="set_axis", axis="klasa", picks=[{"option": "woj", "levels": True}]),
                         dict(action="set_axis", axis="klasa", picks=[{"option": "smok", "levels": 1}]),
+                        dict(action="set_axis", axis="klasa", picks=[{"option": ["woj"], "levels": 1}]),
+                        dict(action="set_axis", axis="klasa", picks=[{"option": {"id": "woj"}, "levels": 1}]),
                         dict(action="set_axis", axis="rasa", picks=[{"option": "woj", "levels": 1}]),
                         dict(action="set_axis", axis="pochodzenie", picks=[{"option": "rybak"}, {"option": "uczony"}]),
                         dict(action="choose", key=None, picks=[]),
@@ -119,7 +121,9 @@ class LevelCharacterFlowTests(TestCase):
         d = self.fighter(self.player)
         for command in [dict(action="choose", key="rybak_cechy", values={"SIL": "2"}),
                         dict(action="choose", key="rybak_cechy", values={"SIL": True}),
-                        dict(action="choose", key="rybak_cechy", values=[2, 1])]:
+                        dict(action="choose", key="rybak_cechy", values=[2, 1]),
+                        dict(action="choose", key="rybak_cechy", values={"x" * 5000: 1}),
+                        dict(action="choose", key="rybak_cechy", values={"NIC": 1})]:
             with self.subTest(command=command):
                 self.act(self.player, d, status=400, **command)
 
