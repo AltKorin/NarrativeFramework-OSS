@@ -3,7 +3,8 @@
 from functools import wraps
 
 from django.http import HttpResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 
 from . import wiki, wiki_sharing
@@ -261,3 +262,74 @@ def character_draft(request, campaign_id, draft_id):
     if request.method == "DELETE":
         return Response(characters.delete_draft(request.user, campaign_id, draft_id, request.data))
     return Response(characters.read_draft(request.user, campaign_id, draft_id))
+
+
+def image_errors(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except DomainError as error:
+            return Response({"error": str(error)}, status=error.status)
+    return wrapped
+
+
+@api_view(["GET", "POST"])
+@parser_classes([MultiPartParser])
+@image_errors
+def images(request, campaign_id):
+    from . import images as service
+
+    if request.method == "GET":
+        return Response(service.list_images(request.user, campaign_id))
+    upload = request.FILES.get("file")
+    result, created = service.upload(request.user, campaign_id, {
+        "id": request.data.get("id"), "caption": request.data.get("caption", ""),
+        "gallery": request.data.get("gallery", "gm"),
+        "raw": upload.read(service.MAX_INPUT + 1) if upload else None})
+    return Response(result, status=201 if created else 200)
+
+
+@api_view(["PATCH", "DELETE"])
+@image_errors
+def image(request, campaign_id, image_id):
+    from . import images as service
+
+    if request.method == "DELETE":
+        return Response(service.delete_image(request.user, campaign_id, image_id))
+    return Response(service.update_image(request.user, campaign_id, image_id, request.data))
+
+
+def image_file(request, campaign_id, image_id):
+    """Plain Django view: authenticated session only; private, uncacheable, non-indexable."""
+    from django.http import Http404
+    from . import images as service
+
+    if not request.user.is_authenticated:
+        raise Http404
+    try:
+        data = service.read_image(request.user, campaign_id, image_id)
+    except DomainError:
+        raise Http404 from None
+    response = HttpResponse(data, content_type="image/webp")
+    response["Cache-Control"] = "private, no-store"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Content-Disposition"] = "inline"
+    return response
+
+
+@api_view(["PUT"])
+@errors
+def cover(request, campaign_id):
+    from . import images as service
+
+    return Response(service.set_cover(request.user, campaign_id, request.data))
+
+
+@api_view(["PUT"])
+@errors
+def page_image(request, campaign_id, page_id):
+    from . import images as service
+
+    return Response(service.set_page_image(request.user, campaign_id, page_id, request.data))

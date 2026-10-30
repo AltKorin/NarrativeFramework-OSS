@@ -54,3 +54,6 @@
 .builder-stat-grid div { border: 1px solid var(--campaign-border, #d2dacb); text-align: center; padding: 2px 0; }
 .builder-stat-grid dt { font-size: 0.75em; font-weight: 600; }
 .builder-stat-grid dd { margin: 0; }
+.builder-thumb { width: 100%; max-height: 140px; object-fit: cover; border-radius: 3px; }
+.builder-catalog .builder-thumb { width: 64px; height: 64px; flex: 0 0 64px; }
+.builder-check .builder-thumb { width: 40px; height: 40px; }

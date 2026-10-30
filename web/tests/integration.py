@@ -78,6 +78,12 @@ async def run():
                 "create_character_draft",
                 "run_character_command",
                 "delete_character_draft",
+                "list_campaign_images",
+                "upload_campaign_image",
+                "update_campaign_image",
+                "delete_campaign_image",
+                "set_campaign_cover",
+                "set_page_image",
             }
             result = await session.call_tool(
                 "read_scenario", {"scenario_id": scenario_id}

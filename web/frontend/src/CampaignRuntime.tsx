@@ -213,7 +213,7 @@ export default function CampaignRuntime({
   return (
     <section
       className="campaign-runtime"
-      hidden={view === "materials" || view === "characters"}
+      hidden={view === "materials" || view === "characters" || view === "gallery"}
       aria-label={t("Prowadzenie kampanii", "Run campaign")}
     >
       {error && (

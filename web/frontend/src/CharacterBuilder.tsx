@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { newUUID } from "./uuid";
 import "./character-builder.css";
 
@@ -31,6 +31,13 @@ type Draft = Summary & {
     price: number; warnings: string[] };
   events: { type: string; [key: string]: any }[];
 };
+
+// Ruleset entries may carry a campaign image ID; the provider turns it into a private URL.
+const ImageUrl = createContext<(id?: string) => string | null>(() => null);
+function Thumb({ id }: { id?: string }) {
+  const url = useContext(ImageUrl)(id);
+  return url ? <img className="builder-thumb" src={url} alt="" loading="lazy" /> : null;
+}
 
 // Server rule messages are English; Polish UI maps them by pattern (pack labels pass through).
 const PROBLEMS: [RegExp, string][] = [
@@ -111,8 +118,10 @@ export default function CharacterBuilder({ campaignId, gm, pl, request, onPage }
     setDrafts(await request(base + "characters/"));
   }
 
+  const imageUrl = (id?: string) => (id ? `/api/campaigns/${campaignId}/images/${id}/file/` : null);
   if (ruleset === undefined) return <section className="character-builder"><p>{t("Wczytywanie…", "Loading…")}</p></section>;
   return (
+    <ImageUrl.Provider value={imageUrl}>
     <section className="character-builder" aria-labelledby="builder-title">
       {error && <p role="alert" className="builder-error">{error}</p>}
       {draft ? (
@@ -151,6 +160,7 @@ export default function CharacterBuilder({ campaignId, gm, pl, request, onPage }
         </>
       )}
     </section>
+    </ImageUrl.Provider>
   );
 }
 
@@ -228,6 +238,7 @@ function NewDraft({ methods, pl, busy, create }: { methods: Item[]; pl: boolean;
       <div className="builder-methods">
         {methods.map((m) => (
           <button key={m.id} disabled={busy} onClick={() => create(m.id)}>
+            <Thumb id={m.image} />
             <strong>{m.label}</strong>
             {m.description && <span>{m.description}</span>}
           </button>
@@ -341,6 +352,7 @@ function Step({ step, draft, pl, act }: { step: Item; draft: Draft; pl: boolean;
         <div className="builder-choices">
           {pack.roles.map((r) => (
             <button key={r.id} aria-pressed={r.id === draft.state.role} onClick={() => act({ action: "choose_role", role: r.id })}>
+              <Thumb id={r.image} />
               <strong>{r.label}</strong>
               {r.ability && <span>{r.ability.label} {r.ability.rank}</span>}
               {r.description && <span>{r.description}</span>}
@@ -472,6 +484,7 @@ function GearPackage({ draft, pl, act }: { draft: Draft; pl: boolean; act: (c: R
             const item = pack.catalog.find((x) => x.id === id)!;
             return (
               <label key={id} className="builder-check">
+                <Thumb id={item.image} />
                 <input type="checkbox" checked={chosen.includes(id)}
                   onChange={(e) => setChosen(e.target.checked ? [...chosen, id] : chosen.filter((x) => x !== id))} />
                 {item.label} <small>{costLabel(item, pack)}</small>
@@ -518,6 +531,7 @@ function Shop({ step, draft, pl, act }: { step: Item; draft: Draft; pl: boolean;
           <ul className="builder-catalog">
             {catalog.filter((x) => (x.category || "") === c).map((x) => (
               <li key={x.id}>
+                <Thumb id={x.image} />
                 <div><strong>{x.label}</strong> · {x.price} {currency}{x.slots ? ` · ${x.slots} ${t("sloty", "slots")}` : ""}{x.uses_slot_of?.length ? ` · ${t("zajmuje", "uses")} ${x.slot_cost || 1} ${t("slot", "slot")}` : ""}
                   {x.costs && Object.keys(x.costs).length > 0 && <small> · {costLabel(x, pack)}</small>}
                   {x.description && <small className="builder-desc">{x.description}</small>}

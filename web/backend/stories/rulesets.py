@@ -52,6 +52,7 @@ def dice(value, label):
 
 
 def entries(document, key, label_limit=120):
+    # Optional `image` on any entry: a campaign image ID, checked against the campaign on upload.
     items = document.get(key, [])
     if not isinstance(items, list) or len(items) > LIMITS[key]:
         fail(f"invalid {key} list")
@@ -63,6 +64,7 @@ def entries(document, key, label_limit=120):
         if key_id in seen:
             fail(f"duplicate {key} id {key_id}")
         text(item.get("label"), label_limit, f"{key} label")
+        text(item.get("image"), 40, f"{key} image", required=False)
         seen[key_id] = item
     return seen
 

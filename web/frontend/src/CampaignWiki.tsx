@@ -16,6 +16,7 @@ import { entryTemplate, type Presentation } from "./campaignPresentation";
 import CampaignStart from "./CampaignStart";
 import CampaignRuntime from "./CampaignRuntime";
 import CharacterBuilder from "./CharacterBuilder";
+import Gallery, { imageUrl } from "./Gallery";
 import type { CampaignView } from "./campaignRuntimeTypes";
 import {
   CampaignSharing,
@@ -29,6 +30,7 @@ type Meta = {
   title: string;
   kind: string;
   version: number;
+  image?: string | null;
 };
 type Page = Meta & Publication & { body: string; gm_notes?: string };
 type Relation = Publication & {
@@ -38,6 +40,7 @@ type Relation = Publication & {
   label: string;
 };
 type Campaign = {
+  cover?: string | null;
   appearance: Presentation;
   page_template: Presentation;
   id: string;
@@ -182,7 +185,8 @@ export default function CampaignWiki() {
   const canEdit = !!campaign && campaign.role !== "player";
   // Full-width focus views: GM session tools and the character builder (both roles).
   const focusView =
-    !!campaign && (canEdit ? view !== "materials" : view === "characters");
+    !!campaign &&
+    (canEdit ? view !== "materials" : view === "characters" || view === "gallery");
   const actualGM =
     !!campaign && (campaign.actual_role || campaign.role) !== "player";
   const dirty =
@@ -574,6 +578,9 @@ export default function CampaignWiki() {
           </p>
           <h1>{campaign?.title || t("Kampanie", "Campaigns")}</h1>
         </div>
+        {campaign?.cover && (
+          <img className="campaign-cover" src={imageUrl(campaign.id, campaign.cover)} alt="" />
+        )}
         {user && campaign && (
           <nav
             className="campaign-tabs"
@@ -585,9 +592,10 @@ export default function CampaignWiki() {
                   "timeline",
                   "actors",
                   "characters",
+                  "gallery",
                   "materials",
                 ] as CampaignView[])
-              : (["materials", "characters"] as CampaignView[])
+              : (["materials", "characters", "gallery"] as CampaignView[])
             ).map((tab) => (
               <button
                 key={tab}
@@ -609,6 +617,7 @@ export default function CampaignWiki() {
                     timeline: t("Oś czasu", "Timeline"),
                     actors: t("Postacie", "Characters"),
                     characters: t("Tworzenie postaci", "Character creation"),
+                    gallery: t("Galeria", "Gallery"),
                     materials: t("Materiały świata", "World material"),
                   }[tab]
                 }
@@ -1116,6 +1125,21 @@ export default function CampaignWiki() {
                     onAdd={addEntry}
                   />
                 )}
+                {view === "gallery" && (
+                  <Gallery
+                    key={campaign.id}
+                    campaignId={campaign.id}
+                    gm={canEdit}
+                    pl={pl}
+                    request={api}
+                    csrf={() => csrf.current}
+                    pages={campaign.pages}
+                    cover={campaign.cover}
+                    onChanged={async () => {
+                      await refresh(campaign.id);
+                    }}
+                  />
+                )}
                 {view === "characters" && (
                   <CharacterBuilder
                     key={campaign.id}
@@ -1434,6 +1458,9 @@ export default function CampaignWiki() {
                           </div>
                         ) : (
                           <article className="wiki-article">
+                            {page?.image && (
+                              <img className="wiki-article-image" src={imageUrl(campaign.id, page.image)} alt="" />
+                            )}
                             <h2 className="wiki-article-title">
                               {draft.title || t("Bez tytułu", "Untitled")}
                             </h2>

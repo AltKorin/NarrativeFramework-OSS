@@ -13,7 +13,13 @@
  @www host www.narrativeframework.com
  redir @www https://narrativeframework.com{uri} 301
  encode zstd gzip
- request_body {
+ # Image uploads (multipart) get a larger body; everything else keeps 512KB.
+ @imageUpload path_regexp imageUpload ^/api/campaigns/[0-9a-f-]+/images/$
+ @notImageUpload not path_regexp notImageUpload ^/api/campaigns/[0-9a-f-]+/images/$
+ request_body @imageUpload {
+  max_size 9MB
+ }
+ request_body @notImageUpload {
   max_size 512KB
  }
  handle /api/* {

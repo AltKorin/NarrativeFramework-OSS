@@ -222,6 +222,7 @@ def publish(user, campaign_id, resource_id, data, relation=False):
                 "kind": obj.kind,
                 "body": obj.body,
                 "version": obj.version,
+                "image": str(obj.image_id) if obj.image_id else None,
             }
         )
     )

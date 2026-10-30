@@ -60,6 +60,8 @@ def set_ruleset(user, campaign_id, data):
     if not gm:
         raise DomainError("Campaign not found", 404)
     rulesets.load(data.get("document"))  # rejects the whole pack on any error
+    from .images import check_ruleset_images
+    check_ruleset_images(c, data["document"])
     item = CampaignRuleset.objects.filter(campaign=c).first()
     expected(data, item.revision if item else 0, "Ruleset")
     if item:

@@ -105,6 +105,7 @@ class Campaign(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     summary = models.TextField(blank=True)
+    cover = models.ForeignKey("CampaignImage", on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
     appearance = models.CharField(max_length=20, default="fantasy", db_default="fantasy")
     page_template = models.CharField(max_length=20, default="fantasy", db_default="fantasy")
     runtime = models.JSONField(default=dict, blank=True)
@@ -123,6 +124,7 @@ class WikiPage(models.Model):
         Campaign, on_delete=models.CASCADE, related_name="pages"
     )
     title = models.CharField(max_length=200)
+    image = models.ForeignKey("CampaignImage", on_delete=models.SET_NULL, null=True, blank=True, related_name="pages")
     kind = models.CharField(max_length=20, default="lore")
     body = models.TextField(blank=True)
     gm_notes = models.TextField(blank=True)
@@ -213,3 +215,18 @@ class CharacterDraft(models.Model):
     version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class CampaignImage(models.Model):
+    """Re-encoded WebP image private to one campaign; never served from a public path."""
+
+    id = models.UUIDField(primary_key=True, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="images")
+    caption = models.CharField(max_length=200, blank=True)
+    gallery = models.CharField(max_length=10, default="gm")  # gm | players
+    data = models.BinaryField()
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    size = models.PositiveIntegerField()
+    fingerprint = models.CharField(max_length=64, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)

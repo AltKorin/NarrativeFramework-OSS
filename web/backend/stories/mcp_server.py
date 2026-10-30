@@ -366,6 +366,69 @@ async def delete_character_draft(campaign_id: str, draft_id: str, expected_versi
     return await wiki_call(characters_call("delete_draft"), campaign_id, draft_id, {"version": expected_version})
 
 
+def images_call(name):
+    def call(user, campaign_id, *args):
+        from . import images
+
+        wiki.campaign_for(user, campaign_id)  # author tools stay GM-only, even for listing
+        return getattr(images, name)(user, campaign_id, *args)
+
+    return call
+
+
+def upload_image_call(user, campaign_id, data):
+    import base64, binascii
+    from . import images
+
+    try:
+        data["raw"] = base64.b64decode(data.pop("data_base64"), validate=True)
+    except (binascii.Error, ValueError, TypeError):
+        raise DomainError("data_base64 is not valid base64") from None
+    return images.upload(user, campaign_id, data)[0]
+
+
+@mcp.tool()
+async def list_campaign_images(campaign_id: str) -> list[dict]:
+    """List campaign images with caption, gallery visibility (gm or players), size and where each is used (cover, pages, ruleset)."""
+    return await wiki_call(images_call("list_images"), campaign_id)
+
+
+@mcp.tool()
+async def upload_campaign_image(campaign_id: str, image_id: str, data_base64: str, caption: str = "", gallery: str = "gm") -> dict:
+    """Upload a PNG/JPEG/WebP/GIF as base64 (the whole MCP request is limited to 300 KB, so send a downscaled image). The server re-encodes to WebP ≤1600 px without metadata. Generate a new UUID; gallery 'players' shows it in the player gallery. Only upload images you have the right to use; images stay private to the campaign."""
+    return await wiki_call(images_call_upload, campaign_id, {"id": image_id, "data_base64": data_base64, "caption": caption, "gallery": gallery})
+
+
+def images_call_upload(user, campaign_id, data):
+    wiki.campaign_for(user, campaign_id)
+    return upload_image_call(user, campaign_id, data)
+
+
+@mcp.tool()
+async def update_campaign_image(campaign_id: str, image_id: str, caption: str | None = None, gallery: str | None = None) -> dict:
+    """Change an image's caption or gallery visibility (gm or players); omitted fields stay unchanged."""
+    data = {k: v for k, v in (("caption", caption), ("gallery", gallery)) if v is not None}
+    return await wiki_call(images_call("update_image"), campaign_id, image_id, data)
+
+
+@mcp.tool()
+async def delete_campaign_image(campaign_id: str, image_id: str) -> dict:
+    """Delete an image; the cover and page illustrations using it are detached. Rejected while the ruleset uses it."""
+    return await wiki_call(images_call("delete_image"), campaign_id, image_id)
+
+
+@mcp.tool()
+async def set_campaign_cover(campaign_id: str, image_id: str | None = None) -> dict:
+    """Set the campaign cover image (visible to all members), or clear it with no image_id."""
+    return await wiki_call(images_call("set_cover"), campaign_id, {"image": image_id})
+
+
+@mcp.tool()
+async def set_page_image(campaign_id: str, page_id: str, expected_version: int, image_id: str | None = None) -> dict:
+    """Attach (or clear) a page illustration. It is a draft change: players see it after the page is published again."""
+    return await wiki_call(images_call("set_page_image"), campaign_id, page_id, {"version": expected_version, "image": image_id})
+
+
 # A separate tool catalog and scoped credentials keep player clients out of author tools.
 play_scope = ContextVar("play_scope")
 play_mcp = FastMCP(

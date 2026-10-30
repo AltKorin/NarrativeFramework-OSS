@@ -43,6 +43,16 @@ def data(result):
     return json.loads(next(x.text for x in result.content if x.type == "text"))
 
 
+def reset_mcp_rate(token):
+    """Test-only: the full GM workflow exceeds one token's 60 calls/minute; production limits stay."""
+    import hashlib
+    from redis import Redis
+    connection = Redis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379/0"))
+    keys = list(connection.scan_iter(match=f"mcp:rate:{hashlib.sha256(token.encode()).hexdigest()}:*"))
+    if keys:
+        connection.delete(*keys)
+
+
 async def author_workflow(client):
     """Everything a GM builds, from an empty account state to deletion, through author MCP only."""
     call = lambda name, args: client.call_tool(name, args)
@@ -120,8 +130,27 @@ async def author_workflow(client):
     assert [d["status"] for d in data(await call("list_character_drafts", {"campaign_id": cid}))] == ["approved"]
     assert (await call("delete_character_draft", {"campaign_id": cid, "draft_id": did,
                                                   "expected_version": draft["version"]})).isError
+    await sync_to_async(reset_mcp_rate)(owner_token)
+    import base64, io
+    from PIL import Image
+    raw = io.BytesIO()
+    Image.new("RGB", (8, 6), (10, 200, 90)).save(raw, "PNG")
+    iid = str(uuid.uuid4())
+    uploaded = data(await call("upload_campaign_image", {"campaign_id": cid, "image_id": iid, "caption": "Neon",
+                                                          "data_base64": base64.b64encode(raw.getvalue()).decode()}))
+    assert (uploaded["id"], uploaded["gallery"], uploaded["width"]) == (iid, "gm", 8)
+    assert (await call("upload_campaign_image", {"campaign_id": cid, "image_id": str(uuid.uuid4()), "data_base64": "@@@"})).isError
+    assert data(await call("update_campaign_image", {"campaign_id": cid, "image_id": iid, "gallery": "players"}))["gallery"] == "players"
+    assert data(await call("set_campaign_cover", {"campaign_id": cid, "image_id": iid}))["cover"] == iid
+    page_now = data(await call("read_wiki_page", {"campaign_id": cid, "page_id": place}))
+    assert data(await call("set_page_image", {"campaign_id": cid, "page_id": place, "expected_version": page_now["version"],
+                                              "image_id": iid}))["image"] == iid
+    listed = data(await call("list_campaign_images", {"campaign_id": cid}))
+    assert listed[0]["usage"]["cover"] and listed[0]["usage"]["pages"] == [place]
+    assert data(await call("delete_campaign_image", {"campaign_id": cid, "image_id": iid}))["detached"] == {"cover": True, "pages": 1}
     data(await call("delete_wiki_relation", {"campaign_id": cid, "relation_id": rid}))
-    assert data(await call("delete_wiki_page", {"campaign_id": cid, "page_id": place, "expected_version": 1}))["deleted"]
+    place_version = data(await call("read_wiki_page", {"campaign_id": cid, "page_id": place}))["version"]
+    assert data(await call("delete_wiki_page", {"campaign_id": cid, "page_id": place, "expected_version": place_version}))["deleted"]
     detail = data(await call("read_campaign", {"campaign_id": cid}))
     renamed = data(await call("update_campaign", {"campaign_id": cid, "expected_version": detail["version"],
                                                   "title": "Renamed", "appearance": "cyberpunk"}))
@@ -208,6 +237,8 @@ async def run():
                 ("set_campaign_ruleset", {"campaign_id": str(c.id), "expected_revision": 0, "document": {}}),
                 ("read_campaign_ruleset", {"campaign_id": str(c.id)}),
                 ("list_character_drafts", {"campaign_id": str(c.id)}),
+                ("list_campaign_images", {"campaign_id": str(c.id)}),
+                ("upload_campaign_image", {"campaign_id": str(c.id), "image_id": str(uuid.uuid4()), "data_base64": "AA=="}),
                 ("create_character_draft", {"campaign_id": str(c.id), "draft_id": str(uuid.uuid4()), "method": "x"}),
             ]:
                 assert (await client.call_tool(name, args)).isError, name

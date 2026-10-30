@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Campaign images: GM gallery (upload, caption, share with players, delete with usage summary), campaign cover, page illustrations published with the page, and role/item/method images in character creation via `image` in rule packs. Uploads are decoded and re-encoded to WebP ≤1600 px without metadata (Pillow 13, pixel and size limits), stored in PostgreSQL and served only through an authenticated, private, non-indexable endpoint; players see an image only through the player gallery, the cover, a page published to them or the ruleset. Caddy allows 9 MB only on the upload path. Author MCP image tools. Additive migration `0010_campaign_images`.
+
 - Mobile campaign tabs scroll in one row, so the session's first decision stays above the fold now that there are five views (fixes the runtime browser regression from the character creation release).
 
 - Author MCP `update_campaign` accepts optional `appearance` and `page_template` (omitted values stay unchanged).

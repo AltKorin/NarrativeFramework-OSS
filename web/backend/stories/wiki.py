@@ -75,6 +75,7 @@ def campaign_json(c):
         "title": c.title,
         "summary": c.summary,
         "appearance": c.appearance,
+        "cover": str(c.cover_id) if c.cover_id else None,
         "page_template": c.page_template,
         "version": 0 if getattr(c, "wiki_role", "owner") == "player" else c.version,
         "role": getattr(c, "wiki_role", "owner"),
@@ -88,6 +89,7 @@ def page_json(p, full=True):
         "title": p.title,
         "kind": p.kind,
         "version": p.version,
+        "image": str(p.image_id) if p.image_id else None,
     }
     if full:
         result.update(

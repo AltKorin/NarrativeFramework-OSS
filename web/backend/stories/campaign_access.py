@@ -74,6 +74,7 @@ def public_page(p, full=True):
         "id": str(p.id),
         "campaign_id": str(p.campaign_id),
         **{k: published[k] for k in ("title", "kind", "version")},
+        "image": published.get("image"),
     }
     if full:
         result["body"] = published["body"]
