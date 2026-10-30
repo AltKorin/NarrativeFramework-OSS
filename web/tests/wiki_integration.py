@@ -123,8 +123,11 @@ async def author_workflow(client):
     data(await call("delete_wiki_relation", {"campaign_id": cid, "relation_id": rid}))
     assert data(await call("delete_wiki_page", {"campaign_id": cid, "page_id": place, "expected_version": 1}))["deleted"]
     detail = data(await call("read_campaign", {"campaign_id": cid}))
-    assert data(await call("update_campaign", {"campaign_id": cid, "expected_version": detail["version"],
-                                               "title": "Renamed"}))["title"] == "Renamed"
+    renamed = data(await call("update_campaign", {"campaign_id": cid, "expected_version": detail["version"],
+                                                  "title": "Renamed", "appearance": "cyberpunk"}))
+    assert (renamed["title"], renamed["appearance"], renamed["page_template"]) == ("Renamed", "cyberpunk", "fantasy")
+    assert (await call("update_campaign", {"campaign_id": cid, "expected_version": detail["version"] + 1,
+                                           "title": "Renamed", "appearance": "steampunk"})).isError
     assert (await call("delete_campaign", {"campaign_id": cid, "expected_version": detail["version"]})).isError
     assert data(await call("delete_campaign", {"campaign_id": cid, "expected_version": detail["version"] + 1}))["deleted"]
     template = {"schema": "narrative-campaign-template/1", "title": "Imported", "pages": [

@@ -213,10 +213,12 @@ async def read_campaign(campaign_id: str) -> dict:
 
 
 @mcp.tool()
-async def update_campaign(campaign_id: str, expected_version: int, title: str, summary: str = "") -> dict:
-    """Rename or re-describe an owned campaign. Owner-only; supply the current campaign version."""
-    return await wiki_call(wiki.update_campaign, campaign_id,
-                           {"version": expected_version, "title": title, "summary": summary})
+async def update_campaign(campaign_id: str, expected_version: int, title: str, summary: str = "",
+                          appearance: str | None = None, page_template: str | None = None) -> dict:
+    """Rename or re-describe an owned campaign, optionally switching appearance/page_template (fantasy or cyberpunk; omitted = unchanged). Owner-only; supply the current campaign version."""
+    data = {"version": expected_version, "title": title, "summary": summary}
+    data.update({k: v for k, v in (("appearance", appearance), ("page_template", page_template)) if v is not None})
+    return await wiki_call(wiki.update_campaign, campaign_id, data)
 
 
 @mcp.tool()

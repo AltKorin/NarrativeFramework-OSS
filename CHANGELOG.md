@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Author MCP `update_campaign` accepts optional `appearance` and `page_template` (omitted values stay unchanged).
+
 - Campaign appearance and page templates: the owner picks a visual theme (Fantasy light/green, Cyberpunk dark/red) and dossier/chronicle templates for new entries, shared with players; the character builder follows the theme. Fantasy stays the default; additive migration `0009_campaign_presentation` with database defaults for safe rollout.
 
 - Character catalog: `exclusive` groups (at most one item per group, e.g. one kind of speed booster) and `round: up|down` for halved pool-cost rolls such as `1d6/2`. Polish UI message for the new rule.
