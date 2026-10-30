@@ -30,6 +30,13 @@ Szkielet — kolejność i typy kroków ustalone; parametry do potwierdzenia na 
 | `gear_package` | `loss_mode` (`fixed` \| `roll`) | Wybory z `gear_package` roli; koszty w pulach liczone wg trybu |
 | `shop` | `budgets: [{amount, currency, label, categories}]`, `loss_mode`, `keep_change` | Zakupy z [[katalog]] w ramach budżetów (np. sprzęt i osobno ubrania); walidacja slotów, wymagań i `floor` pul; niewydana reszta zostaje jako gotówka, jeśli `keep_change` |
 | `name` | — | Imię, ksywka, krótki opis wyglądu (wymagane zawsze, dodawane automatycznie, jeśli brak) |
+| `axes` | `axes: [id osi]` | Wybór opcji osi (oś `repeatable`: z podziałem poziomu) — [[osie]] |
+| `choices` | — | Wszystkie otwarte wybory z drzewa osi — [[listy-i-wybory]] |
+| `stats_array` | `values: [liczby]` (tyle, ile statystyk) | Gracz rozdaje zestaw wartości |
+| `stats_roll_assign` | `dice`, np. `4d6kh3` | Serwer rzuca raz na każdą statystykę (zachowaj najwyższe), gracz rozdaje wyniki |
+
+`stats_points` przyjmuje też `costs: {"<wartość>": koszt}` — koszt pokrywający każdą wartość `min`–`max`
+kroku (nieliniowy zakup); wtedy suma kosztów musi równać się `pool`.
 
 ## Otwarte pytania do dograć
 - Czy metoda może mieszać kroki (np. pakiet umiejętności + kilka punktów do rozdania)? Propozycja:

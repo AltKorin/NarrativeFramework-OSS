@@ -23,6 +23,10 @@ Architektura: [[02-architektura-danych]]. Koperta zawierająca wszystkie domeny 
 | `catalog` | lista | [[katalog]] | `pools`, `stats`, `skills`, `derived`, `catalog` |
 | `tables` | lista | [[tabele-losowe]] | `tables` |
 | `roles` | lista | [[role]] | `stats`, `skills`, `tables`, `catalog` |
+| `level`, `variables`, `progressions` | opcjonalne | [[poziom-i-postep]] | `stats`, `axes` |
+| `axes` | lista ≤ 10 | [[osie]] | `stats`, `skills`, `catalog`, `lists`, `variables` |
+| `lists` | lista ≤ 50 | [[listy-i-wybory]] | jak `axes` |
+| `skill_value` | wzór (`RANK`, `STAT` + symbole) | Wartość umiejętności na karcie; bez niego = poziom | [[umiejetnosci]] |
 | `methods` | lista ≥ 1 | [[metody]] | wszystkie powyższe |
 
 **Limity v1:** dokument ≤ 450 KB, ≤ 30 statystyk, ≤ 200 umiejętności, ≤ 30 pochodnych,

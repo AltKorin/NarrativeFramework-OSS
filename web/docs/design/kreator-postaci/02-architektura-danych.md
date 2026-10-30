@@ -20,6 +20,9 @@ Koncepcja: [[01-koncepcja]].
 | Katalog | Sprzęt, broń, pancerze, ubrania i wszczepy: cena, koszt w pulach, sloty, wymagania, bonusy | [[katalog]] |
 | Tabele losowe | Tabele „rzuć kośćmi → wynik”, opcjonalnie wskazujące kolejną tabelę | [[tabele-losowe]] |
 | Role | Archetypy postaci: zdolność specjalna, pakiety umiejętności, tabele statystyk, szablony | [[role]] |
+| Poziom i postęp | Poziom postaci, zmienne sumowane z nadań, tabele wartości per poziom | [[poziom-i-postep]] |
+| Osie postaci | Listy opcji (np. ścieżka, pochodzenie) z nadaniami zależnymi od poziomu | [[osie]] |
+| Listy i wybory | Wpisy do wyboru (np. zaklęcia, dary) i wybory „N z listy” w drzewie osi | [[listy-i-wybory]] |
 | Metody tworzenia | Sekwencja kroków (wybór roli, statystyki, umiejętności, historia, budżet) | [[metody]] |
 | Szkic postaci | Zapis zdarzeń jednego gracza tworzącego postać w kampanii + status zatwierdzenia | [[szkic-postaci]] |
 
@@ -27,7 +30,9 @@ Koncepcja: [[01-koncepcja]].
 
 ```
 Szkic postaci ──► Pakiet zasad (id + wersja) ──► Metody tworzenia
-Metody tworzenia ──► Role, Statystyki, Umiejętności, Tabele losowe, Katalog
+Metody tworzenia ──► Role, Osie, Statystyki, Umiejętności, Tabele losowe, Katalog
+Osie, Listy ───────► Statystyki, Umiejętności, Katalog, Zmienne, Listy (wybory), symbole wczesne
+Postęp ────────────► Poziom (LEVEL, LV_*), Zmienne
 Role ──────────────► Statystyki, Umiejętności, Tabele losowe, Katalog
 Katalog ───────────► Pule, Statystyki, Umiejętności, Wartości pochodne, Katalog (wymagania, sloty)
 Umiejętności ──────► Statystyki

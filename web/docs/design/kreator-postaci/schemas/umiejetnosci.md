@@ -19,6 +19,10 @@ Architektura: [[02-architektura-danych]]. Referuje [[statystyki]].
 | `variants` | `true` \| `false` | Umiejętność z dookreśleniem wpisywanym przez gracza (np. język, specjalizacja) | — |
 | `max` | liczba całkowita | Najwyższy poziom przy tworzeniu | — |
 
+W pakiecie z `skill_value` (np. `"floor((STAT - 10) / 2) + RANK * BIEG"`) poziom umiejętności to **ranga**
+(0 brak, 1 biegłość, 2 ekspertyza…) nadawana przez [[osie]] i [[listy-i-wybory]], a karta pokazuje wartość
+ze wzoru (`STAT` = wartość powiązanej statystyki).
+
 Przykład:
 ```json
 {"id": "szermierka", "label": "Szermierka", "stat": "ZRE", "category": "Walka",

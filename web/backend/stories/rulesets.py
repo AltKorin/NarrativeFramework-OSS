@@ -16,9 +16,15 @@ from .transport import bounded_json
 
 SCHEMA = "narrative-ruleset/1"
 LIMITS = {"stats": 30, "skills": 200, "derived": 30, "pools": 10, "catalog": 1000,
-          "tables": 100, "roles": 30, "methods": 10}
+          "tables": 100, "roles": 30, "methods": 10, "axes": 10, "lists": 50, "variables": 30,
+          "progressions": 100, "options": 3000}
 STEPS = {"role", "template", "stats_points", "stats_role_roll", "skills_points",
-         "skills_package", "tables", "gear_package", "shop", "name"}
+         "skills_package", "tables", "gear_package", "shop", "name",
+         "axes", "choices", "stats_array", "stats_roll_assign"}
+RESERVED = {"LEVEL", "RANK", "STAT"}  # plus the LV_ prefix: per-option levels of repeatable axes
+GRANT_KEYS = {"level", "when", "values", "stats", "skills", "items", "features", "choice"}
+CHOICE_KINDS = ("options", "list", "skills", "stats_bonus")
+MAX_DEPTH = 4  # each nesting adds 5 JSON levels; transport caps documents at 32
 FUNCTIONS = {"ceil": math.ceil, "floor": math.floor, "round": round, "min": min, "max": max}
 OPERATORS = {ast.Add: lambda a, b: a + b, ast.Sub: lambda a, b: a - b,
              ast.Mult: lambda a, b: a * b, ast.Div: lambda a, b: a / b if b else 0}
@@ -61,6 +67,31 @@ def dice_keep(value, label):
     if not match or not 1 <= keep <= count:
         fail(f"invalid dice in {label}")
     return count, int(match[2]), keep
+
+
+def symbol(key, label):
+    if not isinstance(key, str) or not SYMBOL.fullmatch(key):
+        fail(f"{label} id {key} must be a formula symbol")
+    if key in RESERVED or key.startswith("LV_"):
+        fail(f"{label} id {key} is reserved")
+    return key
+
+
+def plain(document, key):
+    """Entries keyed by a formula symbol, label optional (variables, progressions)."""
+    items = document.setdefault(key, [])
+    if not isinstance(items, list) or len(items) > LIMITS[key]:
+        fail(f"invalid {key} list")
+    seen = {}
+    for item in items:
+        if not isinstance(item, dict):
+            fail(f"invalid {key} entry")
+        key_id = symbol(item.get("id"), key)
+        if key_id in seen:
+            fail(f"duplicate {key} id {key_id}")
+        text(item.get("label"), 80, f"{key} label", required=False)
+        seen[key_id] = item
+    return seen
 
 
 def entries(document, key, label_limit=120):
@@ -185,8 +216,7 @@ def load(document):
 
     stats = entries(pack, "stats", 80)
     for key, stat in stats.items():
-        if not SYMBOL.fullmatch(key):
-            fail(f"stat id {key} must be a formula symbol")
+        symbol(key, "stat")
         if integer(stat.get("min"), f"{key} min") > integer(stat.get("max"), f"{key} max"):
             fail(f"stat {key} min exceeds max")
     skills = entries(pack, "skills", 80)
@@ -196,11 +226,13 @@ def load(document):
         integer(skill.setdefault("cost", 1), f"{key} cost", 1, 10)
         integer(skill.setdefault("basic_min", 0), f"{key} basic_min", 0, 20)
         integer(skill.setdefault("max", 10), f"{key} max", 0, 20)
+    symbols = levels(pack, stats)
     pools = entries(pack, "pools", 80)
     derived = entries(pack, "derived", 80)
     formulas, trees = {}, {}
+    taken = set(stats) | set(symbols["variables"]) | set(symbols["progressions"])
     for key, pool in pools.items():
-        if not SYMBOL.fullmatch(key) or key in stats:
+        if not SYMBOL.fullmatch(key) or key in taken or key in RESERVED or key.startswith("LV_"):
             fail(f"invalid pool id {key}")
         integer(pool.setdefault("floor", 0), f"{key} floor")
         if pool.get("warning") is not None:
@@ -208,10 +240,11 @@ def load(document):
         trees[key + "_MAX"], formulas[key + "_MAX"] = parse(pool.get("max"), key)
         formulas[key] = {key + "_MAX"}
     for key, item in derived.items():
-        if not SYMBOL.fullmatch(key) or key in stats or key in formulas:
+        if (not SYMBOL.fullmatch(key) or key in taken or key in formulas
+                or key in RESERVED or key.startswith("LV_")):
             fail(f"invalid derived id {key}")
         trees[key], formulas[key] = parse(item.get("formula"), key)
-    pack["_order"] = order(formulas, set(stats))
+    pack["_order"] = order(formulas, symbols["all"])
 
     catalog = entries(pack, "catalog")
     targets = set(stats) | set(skills) | set(derived)
@@ -242,6 +275,12 @@ def load(document):
     for key, item in catalog.items():
         if any(not catalog[x]["slots"] for x in item["uses_slot_of"]):
             fail(f"item {key} uses slots of an item without slots")
+    tree_of = Grants(pack, stats, skills, catalog, symbols).check()
+    if pack.get("skill_value") is not None:
+        tree, names = parse(pack["skill_value"], "skill_value")
+        for name in names - symbols["all"] - {"RANK", "STAT"}:
+            fail(f"unknown symbol {name} in skill_value")
+        tree_of[pack["skill_value"]] = tree
 
     tables = entries(pack, "tables")
     for key, table in tables.items():
@@ -309,8 +348,233 @@ def load(document):
                 integer(budget.get("amount"), f"{key} budget", 0, 10**9)
             if step["type"] in ("gear_package", "shop") and step.setdefault("loss_mode", "fixed") not in ("fixed", "roll"):
                 fail(f"method {key} loss_mode must be fixed or roll")
+            method_step(pack, key, step, stats)
     pack["_trees"] = trees
+    pack["_formulas"] = tree_of
     return pack
+
+
+def levels(pack, stats):
+    """Validate level, variables, axis outlines and progressions; return the symbol sets formulas may use."""
+    level = pack.get("level")
+    if level is not None:
+        if not isinstance(level, dict):
+            fail("invalid level")
+        text(level.get("label"), 40, "level label")
+        low = integer(level.get("min"), "level min", 0, 100)
+        integer(level.get("max"), "level max", low, 100)
+    variables = plain(pack, "variables")
+    axes = entries(pack, "axes", 80)
+    per_option = set()
+    for key, axis in axes.items():
+        if axis.setdefault("repeatable", False) not in (True, False):
+            fail(f"axis {key} repeatable must be true or false")
+        if axis["repeatable"] and level is None:
+            fail(f"repeatable axis needs level ({key})")
+        if not isinstance(axis.get("options"), list) or not axis["options"]:
+            fail(f"axis {key} needs options")
+        for item in axis["options"]:
+            if axis["repeatable"]:
+                if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not SYMBOL.fullmatch(item["id"]):
+                    fail(f"option id {item.get('id') if isinstance(item, dict) else item} of axis {key} must be a formula symbol")
+                per_option.add("LV_" + item["id"])
+    early = ({"LEVEL"} if level is not None else set()) | per_option
+    progressions = plain(pack, "progressions")
+    for key, item in progressions.items():
+        if item.get("by") not in early | set(variables):
+            fail(f"progression {key} by unknown symbol {item.get('by')}")
+        values = item.get("values")
+        if not isinstance(values, list) or not 1 <= len(values) <= 100:
+            fail(f"progression {key} needs 1-100 values")
+        for value in values:
+            integer(value, f"progression {key} value")
+    early |= {k for k, p in progressions.items() if p["by"] not in variables}
+    return {"early": early, "variables": variables, "progressions": progressions,
+            "all": set(stats) | early | set(variables) | set(progressions)}
+
+
+class Grants:
+    """Validates options, grants and choices of axes and lists; returns parsed formulas by source."""
+
+    def __init__(self, pack, stats, skills, catalog, symbols):
+        self.pack, self.stats, self.skills, self.catalog, self.symbols = pack, stats, skills, catalog, symbols
+        self.trees, self.choices, self.options = {}, {}, 0
+
+    def check(self):
+        self.lists = entries(self.pack, "lists", 80)
+        for key, listing in self.lists.items():
+            items = listing.get("entries")
+            if not isinstance(items, list) or not items:
+                fail(f"list {key} needs entries")
+            seen = set()
+            for entry in items:
+                self.option(entry, 1, f"list {key}")
+                if entry["id"] in seen:
+                    fail(f"duplicate entry {entry['id']} in list {key}")
+                seen.add(entry["id"])
+                integer(entry.setdefault("rank", 0), f"{entry['id']} rank", 0, 20)
+                tags = entry.setdefault("tags", [])
+                if not isinstance(tags, list) or len(tags) > 20 or any(not isinstance(t, str) or not t or len(t) > 40 for t in tags):
+                    fail(f"invalid tags of {entry['id']}")
+                if entry.setdefault("repeatable", False) not in (True, False):
+                    fail(f"{entry['id']} repeatable must be true or false")
+        for key, axis in entries(self.pack, "axes", 80).items():
+            seen = set()
+            for item in axis["options"]:
+                self.option(item, 0, f"axis {key}")
+                if item["id"] in seen:
+                    fail(f"duplicate option {item['id']} in axis {key}")
+                seen.add(item["id"])
+                if item.get("requires_multi") is not None:
+                    self.formula(item["requires_multi"], set(self.stats), f"requires_multi of {item['id']}")
+        return self.trees
+
+    def formula(self, source, allowed, label):
+        tree, names = parse(source, label)
+        for name in sorted(names - allowed):
+            fail(f"unknown symbol {name} in {label}")
+        self.trees[source] = tree
+        return tree
+
+    def option(self, item, depth, where):
+        if depth > MAX_DEPTH:
+            fail(f"choices nested too deep in {where}")
+        self.options += 1
+        if self.options > LIMITS["options"]:
+            fail("too many options and entries")
+        if not isinstance(item, dict):
+            fail(f"invalid option in {where}")
+        text(item.get("id"), 60, f"option id in {where}")
+        text(item.get("label"), 120, f"option label in {where}")
+        text(item.get("summary"), 500, f"summary of {item['id']}", required=False)
+        text(item.get("ref"), 200, f"ref of {item['id']}", required=False)
+        text(item.get("image"), 40, f"image of {item['id']}", required=False)
+        grants = item.setdefault("grants", [])
+        if not isinstance(grants, list):
+            fail(f"invalid grants of {item['id']}")
+        for grant in grants:
+            self.grant(grant, depth, item["id"])
+
+    def grant(self, grant, depth, owner):
+        if not isinstance(grant, dict) or set(grant) - GRANT_KEYS:
+            fail(f"unknown grant key in {owner}")
+        integer(grant.setdefault("level", 1), f"grant level in {owner}", 1, 100)
+        if grant.setdefault("when", "any") not in ("any", "first", "later"):
+            fail(f"grant when must be any, first or later in {owner}")
+        early = set(self.stats) | self.symbols["early"]
+        values = grant.setdefault("values", {})
+        if not isinstance(values, dict):
+            fail(f"invalid values in {owner}")
+        for variable, source in values.items():
+            if variable not in self.symbols["variables"]:
+                fail(f"unknown variable {variable} in {owner}")
+            self.formula(source, early, f"{variable} in {owner}")
+        bonuses = grant.setdefault("stats", {})
+        if not isinstance(bonuses, dict) or any(k not in self.stats for k in bonuses):
+            fail(f"grant uses unknown stat in {owner}")
+        for key, value in bonuses.items():
+            integer(value, f"{key} bonus in {owner}", -10, 10)
+        ranks = grant.setdefault("skills", {})
+        if not isinstance(ranks, dict) or any(k not in self.skills for k in ranks):
+            fail(f"grant uses unknown skill in {owner}")
+        for key, value in ranks.items():
+            integer(value, f"{key} rank in {owner}", 0, self.skills[key]["max"])
+        items = grant.setdefault("items", [])
+        if not isinstance(items, list) or any(x not in self.catalog for x in items):
+            fail(f"grant uses unknown item in {owner}")
+        features = grant.setdefault("features", [])
+        if not isinstance(features, list):
+            fail(f"invalid features in {owner}")
+        for feature in features:
+            if not isinstance(feature, dict):
+                fail(f"invalid feature in {owner}")
+            text(feature.get("id"), 60, f"feature id in {owner}")
+            text(feature.get("label"), 120, f"feature label in {owner}")
+            text(feature.get("summary"), 500, f"feature summary in {owner}", required=False)
+            text(feature.get("ref"), 200, f"feature ref in {owner}", required=False)
+        if grant.get("choice") is not None:
+            self.choice(grant["choice"], depth)
+
+    def choice(self, spec, depth):
+        if not isinstance(spec, dict):
+            fail("invalid choice")
+        key = text(spec.get("id"), 60, "choice id")
+        if key in self.choices:
+            fail(f"duplicate choice id {key}")
+        self.choices[key] = spec
+        text(spec.get("label"), 120, f"choice {key} label")
+        kind = spec.get("kind")
+        if kind not in CHOICE_KINDS:
+            fail(f"choice {key} kind must be options, list, skills or stats_bonus")
+        early, where = self.symbols["early"], f"choice {key} count"
+        tree, names = parse(spec.setdefault("count", "1"), where)
+        if names - early:
+            fail(f"{where} may only use early symbols (level, per-option levels, progressions by them)")
+        self.trees[spec["count"]] = tree
+        if kind == "options":
+            options = spec.get("options")
+            if not isinstance(options, list) or not options:
+                fail(f"choice {key} needs options")
+            seen = set()
+            for item in options:
+                self.option(item, depth + 1, f"choice {key}")
+                if item["id"] in seen:
+                    fail(f"duplicate option {item['id']} in choice {key}")
+                seen.add(item["id"])
+        elif kind == "list":
+            if spec.get("list") not in self.lists:
+                fail(f"choice {key} uses unknown list")
+            tags = spec.setdefault("tags_any", [])
+            if not isinstance(tags, list) or any(not isinstance(t, str) for t in tags):
+                fail(f"invalid tags_any in choice {key}")
+            for bound in ("rank_min", "rank_max"):
+                if spec.get(bound) is not None:
+                    tree, names = parse(spec[bound], f"choice {key} {bound}")
+                    if names - early:
+                        fail(f"choice {key} {bound} may only use early symbols")
+                    self.trees[spec[bound]] = tree
+        elif kind == "skills":
+            among = spec.setdefault("among", list(self.skills))
+            if not isinstance(among, list) or not among or any(x not in self.skills for x in among):
+                fail(f"choice {key} uses unknown skill")
+            integer(spec.get("rank"), f"choice {key} rank", 1, 20)
+            integer(spec.setdefault("requires_rank", 0), f"choice {key} requires_rank", 0, 20)
+        else:
+            if spec.get("among") == "all":
+                spec["among"] = list(self.stats)
+            among = spec.get("among")
+            if not isinstance(among, list) or not among or any(x not in self.stats for x in among):
+                fail(f"choice {key} uses unknown stat")
+            patterns = spec.get("patterns")
+            if (not isinstance(patterns, list) or not 1 <= len(patterns) <= 5
+                    or any(not isinstance(p, list) or not 1 <= len(p) <= len(among)
+                           or any(type(v) is not int or not 1 <= v <= 10 for v in p) for p in patterns)):
+                fail(f"choice {key} has an invalid pattern")
+            integer(spec.get("cap"), f"choice {key} cap")
+
+
+def method_step(pack, key, step, stats):
+    axes = {a["id"] for a in pack.get("axes", [])}
+    if step["type"] == "axes":
+        chosen = step.get("axes")
+        if not isinstance(chosen, list) or not chosen or any(a not in axes for a in chosen):
+            fail(f"method {key} uses unknown axis")
+    elif step["type"] == "stats_array":
+        values = step.get("values")
+        if not isinstance(values, list) or len(values) != len(stats):
+            fail(f"method {key} stats_array must give a value for every stat")
+        for value in values:
+            if type(value) is not int or any(not s["min"] <= value <= s["max"] for s in stats.values()):
+                fail(f"method {key} stats_array value {value} out of range")
+    elif step["type"] == "stats_roll_assign":
+        dice_keep(step.get("dice"), f"method {key}")
+    elif step["type"] == "stats_points" and step.get("costs") is not None:
+        costs, low, high = step["costs"], step.get("min"), step.get("max")
+        if not isinstance(costs, dict) or type(low) is not int or type(high) is not int or low > high:
+            fail(f"method {key} costs need min and max")
+        for value in range(low, high + 1):
+            if type(costs.get(str(value))) is not int or costs[str(value)] < 0:
+                fail(f"method {key} needs a cost for every value {low}-{high}")
 
 
 def stat_values(pack, values, label):
