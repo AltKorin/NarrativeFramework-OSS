@@ -65,4 +65,4 @@ export type Request = (
   body?: unknown,
 ) => Promise<any>;
 
-export type CampaignView = "run" | "timeline" | "actors" | "materials";
+export type CampaignView = "run" | "timeline" | "actors" | "characters" | "materials";

@@ -1,0 +1,56 @@
+/* Character builder: reuses the wiki palette (#31594a, #233b32, #fffef9, #c4cebf, #d2dacb). */
+.character-builder { padding: 24px 32px; max-width: 1280px; }
+.character-builder h2 { margin: 0 0 16px; }
+.builder-error { padding: 10px 14px; border-left: 4px solid #b3261e; background: #fbeaea; }
+.builder-ruleset, .builder-new, .builder-review { margin: 20px 0; padding: 16px 20px; border: 1px solid #c4cebf; background: #fffef9; border-radius: 4px; }
+.builder-ruleset label, .builder-review label, .builder-name label { display: grid; gap: 6px; margin: 10px 0; }
+.builder-preview { margin-top: 12px; padding-top: 12px; border-top: 1px solid #d2dacb; }
+.builder-drafts { list-style: none; padding: 0; display: grid; gap: 8px; }
+.builder-drafts button { width: 100%; display: flex; gap: 12px; align-items: center; justify-content: flex-start; text-align: left; }
+.builder-status { font-size: 0.85em; padding: 2px 8px; border-radius: 10px; background: #edf1e7; color: #233b32; }
+.status-submitted { background: #fff3cd; }
+.status-returned { background: #fbeaea; }
+.status-approved { background: #dce2d5; }
+.builder-methods, .builder-choices { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.builder-methods button, .builder-choices button { display: grid; gap: 4px; text-align: left; padding: 12px 14px; }
+.builder-choices button[aria-pressed="true"] { border-color: #31594a; box-shadow: inset 0 0 0 2px #31594a; }
+.builder-methods span, .builder-choices span { font-size: 0.9em; color: #566b5c; }
+.builder-editor-head { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.builder-editor-head h2 { margin: 0; }
+.builder-note { padding: 10px 14px; background: #edf1e7; border-left: 4px solid #31594a; }
+.builder-grid { display: grid; grid-template-columns: 200px minmax(0, 1fr) 280px; gap: 24px; margin-top: 16px; }
+.builder-steps { padding: 0; list-style: none; display: grid; gap: 4px; align-content: start; }
+.builder-steps button { width: 100%; text-align: left; }
+.builder-steps button[aria-current="step"] { background: #31594a; color: #fffef9; }
+.builder-step fieldset { border: 1px solid #c4cebf; padding: 16px 20px; background: #fffef9; min-width: 0; }
+.builder-step legend { font-weight: 600; padding: 0 6px; }
+.builder-nav, .builder-actions { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+.builder-number-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin: 12px 0; }
+.builder-number-grid label { display: grid; gap: 4px; }
+.builder-number-grid input { width: 5em; }
+.builder-counter { font-weight: 600; color: #8a5a00; }
+.builder-ok { font-weight: 600; color: #31594a; }
+.builder-warning { color: #8a5a00; }
+.builder-problems { color: #b3261e; padding-left: 18px; }
+.builder-stats { border-collapse: collapse; margin: 8px 0; }
+.builder-stats th, .builder-stats td { border: 1px solid #d2dacb; padding: 2px 6px; text-align: center; font-size: 0.9em; }
+.builder-group { margin: 12px 0; padding-bottom: 12px; border-bottom: 1px solid #d2dacb; }
+.builder-check { display: flex; gap: 8px; align-items: baseline; margin: 6px 0; }
+.builder-catalog { list-style: none; padding: 0; display: grid; gap: 6px; }
+.builder-catalog li { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 8px 10px; border: 1px solid #dce1d5; }
+.builder-desc { display: block; color: #566b5c; }
+.builder-qty { display: flex; gap: 6px; align-items: center; }
+.builder-qty button { min-width: 2.2em; }
+.builder-sheet { border: 1px solid #c4cebf; padding: 12px 16px; background: #fffef9; align-self: start; position: sticky; top: 16px; }
+.builder-sheet h3, .builder-sheet h4 { margin: 4px 0 8px; }
+.builder-sheet ul { padding-left: 18px; }
+@media (max-width: 960px) {
+  .character-builder { padding: 16px; }
+  .builder-grid { grid-template-columns: 1fr; }
+  .builder-steps { grid-auto-flow: column; overflow-x: auto; }
+  .builder-sheet { position: static; }
+}
+.builder-stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 8px 0; }
+.builder-stat-grid div { border: 1px solid #d2dacb; text-align: center; padding: 2px 0; }
+.builder-stat-grid dt { font-size: 0.75em; font-weight: 600; }
+.builder-stat-grid dd { margin: 0; }

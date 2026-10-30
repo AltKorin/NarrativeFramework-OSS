@@ -304,6 +304,66 @@ async def copy_wiki_page_to_scenario(
                            {"source_version": source_version, "scenario_id": scenario_id, "version": scenario_version})
 
 
+def characters_call(name):
+    def call(user, campaign_id, *args):
+        from . import characters
+
+        # The character service also serves players; author tools stay GM-only.
+        wiki.campaign_for(user, campaign_id)
+        return getattr(characters, name)(user, campaign_id, *args)
+
+    return call
+
+
+@mcp.tool()
+async def set_campaign_ruleset(campaign_id: str, expected_revision: int, document: dict) -> dict:
+    """Upload or replace the campaign's narrative-ruleset/1 pack (stats, skills, formulas, pools, catalog, tables, roles, methods). Use expected_revision 0 for the first upload. The whole pack is rejected on any error. Commercial rules stay campaign-private."""
+    return await wiki_call(characters_call("set_ruleset"), campaign_id, {"version": expected_revision, "document": document})
+
+
+@mcp.tool()
+async def read_campaign_ruleset(campaign_id: str) -> dict:
+    """Read the campaign's ruleset pack and revision."""
+    return await wiki_call(characters_call("read_ruleset"), campaign_id)
+
+
+@mcp.tool()
+async def delete_campaign_ruleset(campaign_id: str, expected_revision: int) -> dict:
+    """Remove the campaign's ruleset. Drafts in progress keep their own copy and can be finished."""
+    return await wiki_call(characters_call("delete_ruleset"), campaign_id, {"version": expected_revision})
+
+
+@mcp.tool()
+async def list_character_drafts(campaign_id: str) -> list[dict]:
+    """List all character drafts of a campaign with status (draft, submitted, returned, approved)."""
+    return await wiki_call(characters_call("list_drafts"), campaign_id)
+
+
+@mcp.tool()
+async def read_character_draft(campaign_id: str, draft_id: str) -> dict:
+    """Read a draft: computed sheet, remaining problems, chosen items, dice log and event history."""
+    return await wiki_call(characters_call("read_draft"), campaign_id, draft_id)
+
+
+@mcp.tool()
+async def create_character_draft(campaign_id: str, draft_id: str, method: str) -> dict:
+    """Start a GM character (NPC/pregen) with a ruleset method. Generate a new UUID. GM characters are approved on submit."""
+    result = await wiki_call(characters_call("create_draft"), campaign_id, {"id": draft_id, "method": method})
+    return result[0]
+
+
+@mcp.tool()
+async def run_character_command(campaign_id: str, draft_id: str, expected_version: int, command: dict) -> dict:
+    """Apply one action to a draft. Builder actions (own GM drafts): choose_role {role}, choose_template {index}, set_stats {values}, roll_stats, set_skills {values}, set_gear {items}, set_items {items}, roll_table {table}, choose_table {table, entry}, set_name {name, look}, submit. Review actions (any draft): approve, return {note}, grant_reroll {target: "stats" or table id}. Dice are rolled by the server."""
+    return await wiki_call(characters_call("command"), campaign_id, draft_id, {**command, "version": expected_version})
+
+
+@mcp.tool()
+async def delete_character_draft(campaign_id: str, draft_id: str, expected_version: int) -> dict:
+    """Delete a draft that is not approved yet."""
+    return await wiki_call(characters_call("delete_draft"), campaign_id, draft_id, {"version": expected_version})
+
+
 # A separate tool catalog and scoped credentials keep player clients out of author tools.
 play_scope = ContextVar("play_scope")
 play_mcp = FastMCP(

@@ -103,6 +103,23 @@ async def author_workflow(client):
         "campaign_id": cid, "page_id": place, "source_version": 1, "scenario_id": sid,
         "scenario_version": scenario["version"]}))
     assert any(n["id"] == "wiki-" + place for n in copied["document"]["nodes"])
+    from stories.test_rulesets import mini
+    assert (await call("set_campaign_ruleset", {"campaign_id": cid, "expected_revision": 0,
+                                               "document": {**mini(), "schema": "x"}})).isError
+    ruleset = data(await call("set_campaign_ruleset", {"campaign_id": cid, "expected_revision": 0, "document": mini()}))
+    assert ruleset["revision"] == 1
+    assert data(await call("read_campaign_ruleset", {"campaign_id": cid}))["document"]["id"] == "mini"
+    did = str(uuid.uuid4())
+    draft = data(await call("create_character_draft", {"campaign_id": cid, "draft_id": did, "method": "pelna"}))
+    for command in ({"action": "choose_role", "role": "wojownik"}, {"action": "set_stats", "values": {"SIL": 5, "WOL": 5}},
+                    {"action": "roll_table", "table": "dom"}, {"action": "set_name", "name": "Strażnik"}, {"action": "submit"}):
+        draft = data(await call("run_character_command", {"campaign_id": cid, "draft_id": did,
+                                                          "expected_version": draft["version"], "command": command}))
+    assert draft["status"] == "approved" and draft["page"]
+    assert data(await call("read_wiki_page", {"campaign_id": cid, "page_id": draft["page"]}))["kind"] == "pc"
+    assert [d["status"] for d in data(await call("list_character_drafts", {"campaign_id": cid}))] == ["approved"]
+    assert (await call("delete_character_draft", {"campaign_id": cid, "draft_id": did,
+                                                  "expected_version": draft["version"]})).isError
     data(await call("delete_wiki_relation", {"campaign_id": cid, "relation_id": rid}))
     assert data(await call("delete_wiki_page", {"campaign_id": cid, "page_id": place, "expected_version": 1}))["deleted"]
     detail = data(await call("read_campaign", {"campaign_id": cid}))
@@ -185,6 +202,10 @@ async def run():
                 ("run_campaign_command", {"campaign_id": str(c.id), "expected_version": 0,
                                           "command": {"action": "advance"}}),
                 ("delete_campaign", {"campaign_id": str(c.id), "expected_version": 0}),
+                ("set_campaign_ruleset", {"campaign_id": str(c.id), "expected_revision": 0, "document": {}}),
+                ("read_campaign_ruleset", {"campaign_id": str(c.id)}),
+                ("list_character_drafts", {"campaign_id": str(c.id)}),
+                ("create_character_draft", {"campaign_id": str(c.id), "draft_id": str(uuid.uuid4()), "method": "x"}),
             ]:
                 assert (await client.call_tool(name, args)).isError, name
     async with streamablehttp_client(

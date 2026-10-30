@@ -70,6 +70,14 @@ async def run():
                 "run_campaign_command",
                 "create_scenario",
                 "copy_wiki_page_to_scenario",
+                "set_campaign_ruleset",
+                "read_campaign_ruleset",
+                "delete_campaign_ruleset",
+                "list_character_drafts",
+                "read_character_draft",
+                "create_character_draft",
+                "run_character_command",
+                "delete_character_draft",
             }
             result = await session.call_tool(
                 "read_scenario", {"scenario_id": scenario_id}

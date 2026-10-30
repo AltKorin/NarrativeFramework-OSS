@@ -14,6 +14,7 @@ import { newUUID } from "./uuid";
 import "./wiki.css";
 import CampaignStart from "./CampaignStart";
 import CampaignRuntime from "./CampaignRuntime";
+import CharacterBuilder from "./CharacterBuilder";
 import type { CampaignView } from "./campaignRuntimeTypes";
 import {
   CampaignSharing,
@@ -187,6 +188,8 @@ export default function CampaignWiki() {
   } | null>(null);
   const [inviteError, setInviteError] = useState("");
   const canEdit = !!campaign && campaign.role !== "player";
+  // Full-width focus views: GM session tools and the character builder (both roles).
+  const focusView = !!campaign && (canEdit ? view !== "materials" : view === "characters");
   const actualGM =
     !!campaign && (campaign.actual_role || campaign.role) !== "player";
   const dirty =
@@ -576,8 +579,8 @@ export default function CampaignWiki() {
             aria-label={t("Widoki kampanii", "Campaign views")}
           >
             {(canEdit
-              ? (["run", "timeline", "actors", "materials"] as CampaignView[])
-              : (["materials"] as CampaignView[])
+              ? (["run", "timeline", "actors", "characters", "materials"] as CampaignView[])
+              : (["materials", "characters"] as CampaignView[])
             ).map((tab) => (
               <button
                 key={tab}
@@ -598,6 +601,7 @@ export default function CampaignWiki() {
                     run: t("Prowadzenie", "Run session"),
                     timeline: t("Oś czasu", "Timeline"),
                     actors: t("Postacie", "Characters"),
+                    characters: t("Tworzenie postaci", "Character creation"),
                     materials: t("Materiały świata", "World material"),
                   }[tab]
                 }
@@ -713,12 +717,12 @@ export default function CampaignWiki() {
         </section>
       ) : (
         <main
-          className={`wiki-layout ${campaign && canEdit && view !== "materials" ? "session-layout" : ""}`}
+          className={`wiki-layout ${focusView ? "session-layout" : ""}`}
           inert={busy}
         >
           <aside
             className="wiki-sidebar"
-            hidden={!!campaign && canEdit && view !== "materials"}
+            hidden={focusView}
           >
             <label>
               {t("Kampania", "Campaign")}
@@ -1035,7 +1039,7 @@ export default function CampaignWiki() {
               <>
                 <div
                   className="wiki-campaign-title"
-                  hidden={canEdit && view !== "materials"}
+                  hidden={focusView}
                 >
                   <div className="wiki-switch">
                     <button
@@ -1073,7 +1077,20 @@ export default function CampaignWiki() {
                     onAdd={addEntry}
                   />
                 )}
-                <div hidden={canEdit && view !== "materials"}>
+                {view === "characters" && (
+                  <CharacterBuilder
+                    key={campaign.id}
+                    campaignId={campaign.id}
+                    gm={canEdit}
+                    pl={pl}
+                    request={api}
+                    onPage={(id) => {
+                      setView("materials");
+                      goPage(id);
+                    }}
+                  />
+                )}
+                <div hidden={focusView}>
                   {canEdit && (
                     <details className="materials-guide" hidden={editing}>
                       <summary>

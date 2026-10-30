@@ -226,3 +226,38 @@ def relation_publication(request, campaign_id, relation_id):
 @errors
 def audit(request, campaign_id):
     return Response(wiki_sharing.audit(request.user, campaign_id))
+
+
+@api_view(["GET", "PUT", "DELETE"])
+@errors
+def ruleset(request, campaign_id):
+    from . import characters
+
+    if request.method == "PUT":
+        return Response(characters.set_ruleset(request.user, campaign_id, request.data))
+    if request.method == "DELETE":
+        return Response(characters.delete_ruleset(request.user, campaign_id, request.data))
+    return Response(characters.read_ruleset(request.user, campaign_id))
+
+
+@api_view(["GET", "POST"])
+@errors
+def character_drafts(request, campaign_id):
+    from . import characters
+
+    if request.method == "GET":
+        return Response(characters.list_drafts(request.user, campaign_id))
+    result, created = characters.create_draft(request.user, campaign_id, request.data)
+    return Response(result, status=201 if created else 200)
+
+
+@api_view(["GET", "POST", "DELETE"])
+@errors
+def character_draft(request, campaign_id, draft_id):
+    from . import characters
+
+    if request.method == "POST":
+        return Response(characters.command(request.user, campaign_id, draft_id, request.data))
+    if request.method == "DELETE":
+        return Response(characters.delete_draft(request.user, campaign_id, draft_id, request.data))
+    return Response(characters.read_draft(request.user, campaign_id, draft_id))

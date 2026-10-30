@@ -184,3 +184,30 @@ class CampaignAuditEvent(models.Model):
     resource_id = models.CharField(max_length=64, blank=True)
     version = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class CampaignRuleset(models.Model):
+    """Validated narrative-ruleset/1 pack; one per campaign. Rules stay campaign-private."""
+
+    campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name="ruleset")
+    document = models.JSONField()
+    revision = models.PositiveIntegerField(default=1)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class CharacterDraft(models.Model):
+    """Player-built character; `events` is the append-only source of truth for the sheet."""
+
+    id = models.UUIDField(primary_key=True, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="character_drafts")
+    member = models.ForeignKey(CampaignMember, on_delete=models.CASCADE, null=True, related_name="character_drafts")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    ruleset = models.JSONField()  # snapshot: the pack this draft was started on
+    method = models.CharField(max_length=60)
+    status = models.CharField(max_length=10, default="draft")
+    events = models.JSONField(default=list)
+    review_note = models.TextField(blank=True)
+    page = models.ForeignKey(WikiPage, on_delete=models.SET_NULL, null=True, related_name="+")
+    version = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
