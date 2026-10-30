@@ -13,6 +13,17 @@ instrukcję **Jak połączyć materiały świata**. Gracz otwiera udostępnione 
 [Instrukcja prowadzenia](campaign-runtime.md) opisuje podgląd decyzji,
 przygotowanie wydarzeń i zakres portu rdzenia Unity.
 
+## Droga gracza: gdzie czego szukać
+
+| Gdzie | Co znajduje gracz | Dlaczego tak |
+| --- | --- | --- |
+| **Materiały świata** | Strony opublikowane przez MG całej grupie albo jemu, w tym własna zatwierdzona karta postaci | Szkice i notatki MG zostają prywatne; gracz widzi tylko świadome publikacje |
+| **Tworzenie postaci** | „Twoja droga w kampanii” (poznaj świat → stwórz postać → decyzja prowadzącego → twoja karta) i prowadzony kreator | MG zatwierdza postać, żeby pasowała do zasad i historii; rzuty wykonuje serwer i je zapisuje |
+| **Galeria** | Obrazy udostępnione przez MG, powiększane po kliknięciu | Obrazy nie mają publicznych adresów i pojawiają się tylko tam, gdzie je udostępniono |
+| **Jak to działa?** | Przewodnik z podświetleniami po tych widokach; MG ma własny przewodnik | Każda karta wyjaśnia, czym jest element i dlaczego działa tak, a nie inaczej |
+
+Zatwierdzenie postaci gracza publikuje jej kartę tylko temu graczowi; NPC i pregeny tworzone przez MG zostają prywatne do czasu publikacji. Postacie zatwierdzone, zanim to zachowanie istniało, mają karty tylko dla MG, dopóki nie zostaną opublikowane ręcznie.
+
 ## Rozpoczęcie i zaproszenia
 
 1. Otwórz pulpit `/workshop/` i wybierz **Nowa kampania**. Zaloguj się lub zarejestruj; po podaniu nazwy trafisz do pierwszych kroków wiki. Istniejącą kampanię otworzysz z listy na pulpicie albo przez **Wiki kampanii** / `/campaigns/`.

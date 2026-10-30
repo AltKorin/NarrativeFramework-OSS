@@ -6,13 +6,16 @@ A self-hosted RPG adventure workshop, alongside the original Unity assets. Djang
 
 ## Campaign workspace
 
-Open `/campaigns/` for **Run session**, **Timeline**, **Characters** and **World material**.
+Open `/campaigns/` for **Run session**, **Timeline**, **Characters**, **Character creation**, **Gallery** and **World material**.
+**How does it work?** in the tab row starts a spotlight tour of the views for players and GMs (first visits on desktop also get a dismissible invitation).
+**Character creation**: the GM uploads a `narrative-ruleset/1` rules pack; players follow a guided path (step bar with status, "what you do / why" help, gaps on their own step, points meter) and send the character for approval. Approval creates a wiki sheet published to that player and a campaign-engine actor. Design: `docs/design/kreator-postaci/`.
+**Gallery**: private campaign images, cover and page illustrations; players see an image only through the player gallery, the cover, a page published to them or the rules pack, and can click to enlarge. Rules: `docs/design/obrazy-kampanii.md`.
 Character sheets combine descriptions and numeric stats. The server previews a
 resolution's value changes and newly available events before the GM confirms it.
 This uses the repository's MIT-licensed Unity core port, not prose parsing.
 See the [workflow, source mapping and API](docs/narrative-runtime.md).
-On existing installations apply migration `0007_campaign_runtime`; Compose does
-this during startup. Existing articles remain intact and live state is GM-only.
+On existing installations apply migrations `0007_campaign_runtime` to
+`0010_campaign_images` (all additive); Compose does this during startup. Existing articles remain intact and live state is GM-only.
 
 ## Start with Docker Compose
 

@@ -13,8 +13,11 @@ Samodzielny warsztat przygód RPG obok oryginalnych assetów Unity. Django/DRF, 
 - Przypisanie wybranych materiałów jednej postaci: downtime, nieobecność lub solo.
 - MCP gracza z tokenem konkretnej rozgrywki, pamięć Markdown, dziennik i raport.
 - Konsekwencje domyślnie oczekujące na decyzję człowieka pełniącego rolę MG.
+- Kreator postaci według pakietu zasad kampanii (`narrative-ruleset/1`): prowadzona ścieżka z paskiem kroków, wyjaśnieniem „co robisz / dlaczego”, brakami przy kroku i licznikiem punktów; rzuty kośćmi wykonuje serwer. MG zatwierdza postać albo odsyła z uwagą; zatwierdzona karta trafia do wiki, widoczna dla swojego gracza.
+- Galeria kampanii: prywatne obrazy, okładka, ilustracje stron i obrazki w kreatorze, z powiększaniem po kliknięciu.
+- Przewodnik „Jak to działa?” w rzędzie zakładek: podświetla kolejne elementy i wyjaśnia, dlaczego działają tak, a nie inaczej.
 
-Serwer nie zawiera własnego czatu AI ani modelu. Rozgrywkę prowadzi agent w Twoim kliencie MCP. Nie wykonuje rzutów, nie weryfikuje mechaniki RPG ani zgodności narracji z granicami. Nie zmienia automatycznie głównej kampanii.
+Serwer nie zawiera własnego czatu AI ani modelu. Rozgrywkę prowadzi agent w Twoim kliencie MCP. Poza kreatorem postaci (rzuty i walidacja pakietu zasad) serwer nie wykonuje rzutów, nie weryfikuje mechaniki RPG w trakcie gry ani zgodności narracji z granicami. Nie zmienia automatycznie głównej kampanii.
 
 ## Prowadzenie kampanii
 

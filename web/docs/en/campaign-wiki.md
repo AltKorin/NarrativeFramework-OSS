@@ -13,6 +13,17 @@ The optional **How to connect world material** guide is expandable there.
 Player accounts open their shared materials. See the [runtime guide](../narrative-runtime.md)
 for decision preview, event preparation and the supported Unity core port.
 
+## Player path: where to find what
+
+| Where | What players find | Why it works this way |
+| --- | --- | --- |
+| **World material** | Pages the GM published to everyone or to them, including their own approved character sheet | Drafts and GM notes stay private; players see only deliberate publications |
+| **Character creation** | "Your way through the campaign" (learn the world → create → GM decision → your sheet) and the guided builder | The GM approves characters so they fit the rules and the story; dice are rolled server-side and logged |
+| **Gallery** | Images the GM shared, click to enlarge | Images never have public links and appear only where they were shared |
+| **How does it work?** | A spotlight tour of these views; GMs get their own tour | Each card explains what an element is and why it behaves that way |
+
+Approving a player's character publishes its sheet to that player only; NPCs and pregens created by the GM stay GM-only until published. Characters approved before this behaviour existed keep GM-only sheets until published manually.
+
 ## Joining and roles
 
 Sign in, open `/campaigns/`, create a campaign, open **World material** and use **Members and invitations**. The owner creates a single-use link with a player/co-GM role and seven-day expiry, then sends it privately. The first signed-in account explicitly accepting it joins. Opening the link changes nothing; there is no email delivery or public account directory. Invitation tokens use the URL fragment rather than server-visible page query parameters. Login/registration returns the recipient to acceptance.
