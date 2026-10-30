@@ -132,3 +132,17 @@ Open `/campaigns/` or choose **Campaign wiki** in the workshop. Campaigns suppor
 
 - [First campaign / Pierwsza kampania — UX](docs/en/first-campaign-ux.md)
 - [Blog, SEO, Analytics](docs/en/publishing-and-analytics.md)
+
+### Campaign appearance and page templates
+
+In **Materials → Campaign settings**, the owner independently selects appearance
+(Cyberpunk: dark with red accents; Fantasy: light with green accents) and card/page
+templates (dossier or chronicle). Preferences are stored per campaign and shared
+with players. New and existing campaigns default to Fantasy; the owner chooses
+Cyberpunk in settings. Migration `0009` is additive (`db_default`).
+
+Templates populate new entries or empty content using “Insert card / page template”.
+Changing the category of an untouched new template updates its content. Custom
+text and saved articles are preserved. Appearance and presentation layout also
+apply to existing pages. Character rules packs and statistics are independent.
+Run the standard `manage.py migrate` during deployment before serving the update.

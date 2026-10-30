@@ -39,6 +39,59 @@ class WikiTests(TestCase):
         )
         self.root = f"/api/campaigns/{self.campaign.id}/"
 
+    def test_campaign_presentation_round_trip_preserves_pages(self):
+        response = self.client.put(self.root, {
+            "version": 1, "title": self.campaign.title,
+            "appearance": "fantasy", "page_template": "cyberpunk",
+        }, format="json")
+        self.assertEqual(response.status_code, 200, response.content)
+        detail = self.client.get(self.root).json()
+        self.assertEqual(detail["appearance"], "fantasy")
+        self.assertEqual(detail["page_template"], "cyberpunk")
+        before = self.page.body
+        self.page.refresh_from_db()
+        self.assertEqual(self.page.body, before)
+        # Older clients editing the title must not reset presentation.
+        response = self.client.put(self.root, {
+            "version": detail["version"], "title": "Renamed",
+        }, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["appearance"], "fantasy")
+        self.assertEqual(response.json()["page_template"], "cyberpunk")
+
+    def test_campaign_presentation_rejects_invalid_values_atomically(self):
+        for field in ("appearance", "page_template"):
+            for value in ("unknown", None, [], {}):
+                response = self.client.put(self.root, {
+                    "version": 1, "title": "Must not change", field: value,
+                }, format="json")
+                self.assertEqual(response.status_code, 400, response.content)
+                self.campaign.refresh_from_db()
+                self.assertEqual(self.campaign.title, "The coast")
+                self.assertEqual(self.campaign.version, 1)
+
+    def test_new_campaign_defaults_to_fantasy(self):
+        response = self.client.post("/api/campaigns/", {
+            "id": str(uuid.uuid4()), "title": "Night district",
+        }, format="json")
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(response.json()["appearance"], "fantasy")
+        self.assertEqual(response.json()["page_template"], "fantasy")
+
+    def test_presentation_is_shared_but_only_owner_can_change_it(self):
+        from .models import CampaignMember
+        CampaignMember.objects.create(campaign=self.campaign, user=self.other, role="player")
+        self.client.force_authenticate(self.other)
+        detail = self.client.get(self.root)
+        self.assertEqual(detail.status_code, 200)
+        self.assertEqual(detail.json()["appearance"], "fantasy")
+        response = self.client.put(self.root, {
+            "version": 1, "title": "The coast", "appearance": "cyberpunk",
+        }, format="json")
+        self.assertEqual(response.status_code, 404)
+        self.campaign.refresh_from_db()
+        self.assertEqual(self.campaign.appearance, "fantasy")
+
     def test_character_and_timeline_pages_round_trip(self):
         for kind in ("npc", "pc", "timeline"):
             with self.subTest(kind=kind):

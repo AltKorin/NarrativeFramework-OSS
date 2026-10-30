@@ -144,3 +144,18 @@ Otwórz `/campaigns/` lub wybierz **Wiki kampanii** w warsztacie. Kampania obsł
 
 - [First campaign / Pierwsza kampania — UX](docs/pl/first-campaign-ux.md)
 - [Blog, SEO, Analytics](docs/pl/publishing-and-analytics.md)
+
+### Wygląd kampanii i szablony stron
+
+W widoku **Materiały → Ustawienia kampanii** właściciel wybiera niezależnie wygląd
+(Cyberpunk: ciemny z czerwonym akcentem; Fantasy: jasny z zielenią) i szablony kart oraz
+stron (dossier lub kronika). Wybór jest zapisany dla całej kampanii i widoczny także
+dla graczy. Nowe i istniejące kampanie domyślnie używają Fantasy; Cyberpunk wybiera
+właściciel w ustawieniach. Migracja `0009` jest addytywna (`db_default`).
+
+Szablony wypełniają nowe wpisy oraz puste treści przez przycisk „Wstaw szablon karty /
+strony”. Zmiana kategorii nowego, niezmodyfikowanego szablonu dopasowuje jego treść.
+Własne opisy i istniejące artykuły pozostają zachowane. Wygląd i układ prezentacji
+zmieniają się również dla istniejących stron. Pakiety zasad i statystyki postaci są
+niezależne od tych ustawień. Przy wdrożeniu uruchom standardowe `manage.py migrate`
+przed udostępnieniem nowej wersji aplikacji.

@@ -12,6 +12,7 @@ import "@xyflow/react/dist/style.css";
 import { initialLanguage, translate, type Language } from "./i18n";
 import { newUUID } from "./uuid";
 import "./wiki.css";
+import { entryTemplate, type Presentation } from "./campaignPresentation";
 import CampaignStart from "./CampaignStart";
 import CampaignRuntime from "./CampaignRuntime";
 import CharacterBuilder from "./CharacterBuilder";
@@ -37,6 +38,8 @@ type Relation = Publication & {
   label: string;
 };
 type Campaign = {
+  appearance: Presentation;
+  page_template: Presentation;
   id: string;
   title: string;
   summary: string;
@@ -72,17 +75,6 @@ const categories: Record<string, [string, string]> = {
   scene: ["Sceny", "Scenes"],
   clue: ["Wskazówki", "Clues"],
 };
-function entryTemplate(kind: string, pl: boolean): string {
-  if (kind === "timeline")
-    return pl
-      ? "## Oś czasu kampanii\n\nWpisuj wydarzenia w kolejności chronologicznej. Używaj dat świata gry, numerów sesji lub czasu względnego (np. dzień 3, świt).\n\n| Kiedy | Co się wydarza | Kto / gdzie | Status | Konsekwencje |\n| --- | --- | --- | --- | --- |\n| Sesja 1, dzień 1, świt | | | Planowane | |\n\n## Warunki i terminy\n\n- Jeśli gracze nie zareagują do…: …\n- Po wydarzeniu… następuje…\n"
-      : "## Campaign timeline\n\nKeep events in chronological order. Use in-world dates, session numbers or relative time (e.g. day 3, dawn).\n\n| When | What happens | Who / where | Status | Consequences |\n| --- | --- | --- | --- | --- |\n| Session 1, day 1, dawn | | | Planned | |\n\n## Triggers and deadlines\n\n- Unless the players act by…: …\n- After event… comes…\n";
-  if (kind !== "npc" && kind !== "pc") return "";
-  const player = kind === "pc";
-  return pl
-    ? `## ${player ? "Karta postaci gracza" : "Karta NPC"}\n\n- ${player ? "Gracz" : "Rola w kampanii"}: \n- System RPG: \n- Pochodzenie / profesja: \n- Opis i wygląd: \n- Cel i motywacja: \n\n## Statystyki\n\nAktualne wartości prowadź w karcie w widoku „Postacie”. Tutaj opisz zasady i dodatkowe uwagi do systemu RPG.\n\n## Umiejętności i zdolności\n\n- \n\n## Ekwipunek\n\n- \n\n## Relacje i historia\n\n- \n`
-    : `## ${player ? "Player character sheet" : "NPC sheet"}\n\n- ${player ? "Player" : "Campaign role"}: \n- RPG system: \n- Background / profession: \n- Description and appearance: \n- Goal and motivation: \n\n## Statistics\n\nTrack current values in the sheet in the “Characters” view. Use this section for RPG system rules and additional notes.\n\n## Skills and abilities\n\n- \n\n## Equipment\n\n- \n\n## Relationships and history\n\n- \n`;
-}
 const emptyDraft = (): Draft => ({
   title: "",
   kind: "lore",
@@ -189,7 +181,8 @@ export default function CampaignWiki() {
   const [inviteError, setInviteError] = useState("");
   const canEdit = !!campaign && campaign.role !== "player";
   // Full-width focus views: GM session tools and the character builder (both roles).
-  const focusView = !!campaign && (canEdit ? view !== "materials" : view === "characters");
+  const focusView =
+    !!campaign && (canEdit ? view !== "materials" : view === "characters");
   const actualGM =
     !!campaign && (campaign.actual_role || campaign.role) !== "player";
   const dirty =
@@ -518,7 +511,11 @@ export default function CampaignWiki() {
     setView("materials");
     setNewId(newUUID());
     setPage(null);
-    setDraft({ ...emptyDraft(), kind, body: entryTemplate(kind, pl) });
+    setDraft({
+      ...emptyDraft(),
+      kind,
+      body: entryTemplate(kind, pl, campaign?.page_template),
+    });
     setEditing(true);
     setGraph(false);
     setCopiedTo("");
@@ -540,7 +537,11 @@ export default function CampaignWiki() {
       (r) => r.source === page?.id || r.target === page?.id,
     ) || [];
   return (
-    <div className="wiki-app">
+    <div
+      className="wiki-app"
+      data-appearance={campaign?.appearance || "fantasy"}
+      data-page-template={campaign?.page_template || "fantasy"}
+    >
       <header className="wiki-header">
         <a href="/" className="wiki-brand">
           Narrative Framework
@@ -579,7 +580,13 @@ export default function CampaignWiki() {
             aria-label={t("Widoki kampanii", "Campaign views")}
           >
             {(canEdit
-              ? (["run", "timeline", "actors", "characters", "materials"] as CampaignView[])
+              ? ([
+                  "run",
+                  "timeline",
+                  "actors",
+                  "characters",
+                  "materials",
+                ] as CampaignView[])
               : (["materials", "characters"] as CampaignView[])
             ).map((tab) => (
               <button
@@ -720,10 +727,7 @@ export default function CampaignWiki() {
           className={`wiki-layout ${focusView ? "session-layout" : ""}`}
           inert={busy}
         >
-          <aside
-            className="wiki-sidebar"
-            hidden={focusView}
-          >
+          <aside className="wiki-sidebar" hidden={focusView}>
             <label>
               {t("Kampania", "Campaign")}
               <select
@@ -814,7 +818,7 @@ export default function CampaignWiki() {
                       {t("Ustawienia kampanii", "Campaign settings")}
                     </summary>
                     <form
-                      key={campaign.id + campaign.title}
+                      key={`${campaign.id}:${campaign.version}`}
                       onSubmit={(e) => {
                         e.preventDefault();
                         const fields = new FormData(e.currentTarget);
@@ -823,6 +827,8 @@ export default function CampaignWiki() {
                             version: campaign.version,
                             title: fields.get("title"),
                             summary: fields.get("summary"),
+                            appearance: fields.get("appearance"),
+                            page_template: fields.get("page_template"),
                           });
                           await refresh(campaign.id);
                           setCampaigns(await api("campaigns/"));
@@ -853,7 +859,43 @@ export default function CampaignWiki() {
                           defaultValue={campaign.summary}
                         />
                       </label>
-                      <button>{t("Zapisz ustawienia", "Save settings")}</button>
+                      <label>
+                        {t("Wygląd kampanii", "Campaign appearance")}
+                        <select
+                          name="appearance"
+                          defaultValue={campaign.appearance}
+                        >
+                          <option value="cyberpunk">
+                            Cyberpunk — {t("ciemny / czerwony", "dark / red")}
+                          </option>
+                          <option value="fantasy">
+                            Fantasy — {t("jasny / zieleń", "light / green")}
+                          </option>
+                        </select>
+                      </label>
+                      <label>
+                        {t("Szablony kart i stron", "Card and page templates")}
+                        <select
+                          name="page_template"
+                          defaultValue={campaign.page_template}
+                        >
+                          <option value="cyberpunk">
+                            Cyberpunk — {t("dossier", "dossier")}
+                          </option>
+                          <option value="fantasy">
+                            Fantasy — {t("kronika", "chronicle")}
+                          </option>
+                        </select>
+                      </label>
+                      <p className="wiki-hint">
+                        {t(
+                          "Wygląd zmienia się dla całej kampanii. Szablony wypełniają nowe lub puste wpisy; zapisane treści i zasady postaci pozostają bez zmian.",
+                          "Appearance applies to the whole campaign. Templates fill new or empty entries; saved content and character rules stay unchanged.",
+                        )}
+                      </p>
+                      <button disabled={busy}>
+                        {t("Zapisz ustawienia", "Save settings")}
+                      </button>
                     </form>
                     <button
                       onClick={() => {
@@ -1037,10 +1079,7 @@ export default function CampaignWiki() {
               </div>
             ) : (
               <>
-                <div
-                  className="wiki-campaign-title"
-                  hidden={focusView}
-                >
+                <div className="wiki-campaign-title" hidden={focusView}>
                   <div className="wiki-switch">
                     <button
                       aria-pressed={!graph}
@@ -1148,6 +1187,9 @@ export default function CampaignWiki() {
                       aria-label={t("Graf kampanii", "Campaign graph")}
                     >
                       <ReactFlow
+                        colorMode={
+                          campaign.appearance === "cyberpunk" ? "dark" : "light"
+                        }
                         nodes={campaign.pages.map((p, i) => ({
                           id: p.id,
                           position: {
@@ -1165,8 +1207,11 @@ export default function CampaignWiki() {
                           selected: page?.id === p.id,
                           style: {
                             background:
-                              page?.id === p.id ? "#e1ece2" : "#fffef9",
-                            border: "1px solid #a5b5a2",
+                              page?.id === p.id
+                                ? "var(--campaign-raised, #e1ece2)"
+                                : "var(--campaign-surface, #fffef9)",
+                            color: "var(--campaign-text, #233b32)",
+                            border: "1px solid var(--campaign-border, #a5b5a2)",
                             borderRadius: 4,
                             width: 200,
                             padding: 15,
@@ -1271,8 +1316,12 @@ export default function CampaignWiki() {
                                 maxLength={200}
                                 id="wiki-entry-title"
                                 placeholder={t(
-                                  "np. Mira, właścicielka karczmy",
-                                  "e.g. Mira, the innkeeper",
+                                  campaign.page_template === "cyberpunk"
+                                    ? "np. Nyx, fixerka z dzielnicy"
+                                    : "np. Mira, właścicielka karczmy",
+                                  campaign.page_template === "cyberpunk"
+                                    ? "e.g. Nyx, the local fixer"
+                                    : "e.g. Mira, the innkeeper",
                                 )}
                                 value={draft.title}
                                 onChange={(e) =>
@@ -1286,7 +1335,25 @@ export default function CampaignWiki() {
                                 aria-label={t("Kategoria", "Category")}
                                 value={draft.kind}
                                 onChange={(e) =>
-                                  setDraft({ ...draft, kind: e.target.value })
+                                  setDraft({
+                                    ...draft,
+                                    kind: e.target.value,
+                                    body:
+                                      !draft.body.trim() ||
+                                      (!page &&
+                                        draft.body ===
+                                          entryTemplate(
+                                            draft.kind,
+                                            pl,
+                                            campaign.page_template,
+                                          ))
+                                        ? entryTemplate(
+                                            e.target.value,
+                                            pl,
+                                            campaign.page_template,
+                                          )
+                                        : draft.body,
+                                  })
                                 }
                               >
                                 {kinds.map((kind) => (
@@ -1296,20 +1363,28 @@ export default function CampaignWiki() {
                                 ))}
                               </select>
                             </label>
-                            {entryTemplate(draft.kind, pl) && (
+                            {entryTemplate(
+                              draft.kind,
+                              pl,
+                              campaign.page_template,
+                            ) && (
                               <button
                                 type="button"
                                 disabled={!!draft.body.trim()}
                                 onClick={() =>
                                   setDraft({
                                     ...draft,
-                                    body: entryTemplate(draft.kind, pl),
+                                    body: entryTemplate(
+                                      draft.kind,
+                                      pl,
+                                      campaign.page_template,
+                                    ),
                                   })
                                 }
                               >
                                 {t(
-                                  "Wstaw szablon karty / osi czasu (do pustej treści)",
-                                  "Insert sheet / timeline template (into empty content)",
+                                  "Wstaw szablon karty / strony (do pustej treści)",
+                                  "Insert card / page template (into empty content)",
                                 )}
                               </button>
                             )}

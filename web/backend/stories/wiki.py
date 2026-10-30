@@ -74,6 +74,8 @@ def campaign_json(c):
         "id": str(c.id),
         "title": c.title,
         "summary": c.summary,
+        "appearance": c.appearance,
+        "page_template": c.page_template,
         "version": 0 if getattr(c, "wiki_role", "owner") == "player" else c.version,
         "role": getattr(c, "wiki_role", "owner"),
     }
@@ -151,6 +153,12 @@ def projected_records(c, preview=None, full=False):
     return role, member, pages, relations
 
 
+def presentation_value(value):
+    if not isinstance(value, str) or value not in ("fantasy", "cyberpunk"):
+        raise DomainError("Unknown campaign appearance or page template")
+    return value
+
+
 @transaction.atomic
 def create_campaign(user, data):
     body_object(data)
@@ -159,6 +167,9 @@ def create_campaign(user, data):
         "title": text(data.get("title"), 200, True),
         "summary": text(data.get("summary", ""), 4000),
     }
+    for field in ("appearance", "page_template"):
+        if field in data:
+            values[field] = presentation_value(data[field])
     receipt = fingerprint(values)
     get_user_model().objects.select_for_update().get(pk=user.pk)
     existing = Campaign.objects.filter(pk=creation_id).first()
@@ -441,7 +452,9 @@ def update_campaign(user, campaign_id, data):
         raise DomainError("Campaign version conflict; reload before saving", 409)
     c.title = text(data.get("title"), 200, True)
     c.summary = text(data.get("summary", ""), 4000)
-    c.save(update_fields=["title", "summary"])
+    c.appearance = presentation_value(data.get("appearance", c.appearance))
+    c.page_template = presentation_value(data.get("page_template", c.page_template))
+    c.save(update_fields=["title", "summary", "appearance", "page_template"])
     touch(c, user, "campaign.updated", c.id)
     return campaign_json(c)
 
