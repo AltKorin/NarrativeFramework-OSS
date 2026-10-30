@@ -77,10 +77,10 @@ Skieruj DNS na serwer i zapewnij dostęp do portów 80/443. Caddy pobiera certyf
 
 | Endpoint | Token i przeznaczenie |
 | --- | --- |
-| `/mcp` | Osobisty token autora: odczyt i edycja własnych scenariuszy, także sekretów |
+| `/mcp` | Osobisty token autora (właściciel lub współprowadzący): przygody, kampanie, wiki i publikacje, silnik kampanii, pakiety zasad i zatwierdzanie postaci, obrazy — także sekrety MG. Członkowie i zaproszenia tylko w przeglądarce |
 | `/play/mcp` | Token jednej rozgrywki: opublikowane materiały, zapis tur, pamięć, zakończenie |
 
-Nie przekazuj graczowi tokena autora. Token rozgrywki generuje się z panelu aktywności; wygasa po 14 dniach i może być unieważniony. Instrukcje dla agenta są widoczne dla gracza — prywatne sekrety muszą pozostać w odpowiednich polach MG. Szczegóły i przykłady: [instrukcja](docs/pl/individual-play.md), [kontrakt](docs/pl/mcp-play.md).
+Pełna lista narzędzi autora: [README (EN)](README.md#mcp). Tworzenie przyjmuje UUID klienta (bezpieczne ponowienie), edycja oczekiwaną wersję; obraz przez MCP to base64 w limicie 300 KB całego żądania. Nie przekazuj graczowi tokena autora. Token rozgrywki generuje się z panelu aktywności; wygasa po 14 dniach i może być unieważniony. Instrukcje dla agenta są widoczne dla gracza — prywatne sekrety muszą pozostać w odpowiednich polach MG. Szczegóły i przykłady: [instrukcja](docs/pl/individual-play.md), [kontrakt](docs/pl/mcp-play.md).
 
 Oba MCP korzystają ze wspólnych limitów: domyślnie 60 żądań/min na token, dwa jednocześnie na token i osiem globalnie. Redis kontroluje przyjmowanie żądań między procesami; jego awaria blokuje MCP kodem 503. To ustawienia początkowe, nie wynik pomiaru liczby obsługiwanych graczy.
 

@@ -15,7 +15,10 @@ An open-source RPG adventure workshop: connect scenes, characters, places and cl
 - Campaign memberships/invitations, draft/publication separation, selected audiences, GM preview and filtered Markdown/search/relationships/map.
 - Explicit, version-checked wiki copies into multiple adventures.
 - GM-assigned downtime/solo adventures, scoped player MCP access, persistent memory/journal and human review of lasting consequences.
-- Separate author and player MCP catalogs; the server does not include its own AI model or chat client.
+- Data-driven character creation for any RPG system: the GM uploads a rules pack (stats, skills, formulas, pools such as humanity, a gear/cyberware catalog with prices, slots and requirements, random background tables, roles, creation methods); players build characters step by step with live point counters, server-side dice and a GM approval queue. Approved characters become wiki sheets and campaign-engine actors.
+- Private campaign images: a GM gallery shared with players on demand, a campaign cover, page illustrations published with their page and pictures in character creation; click to enlarge. Images are re-encoded without metadata and never get public links.
+- Per-campaign appearance (Fantasy or Cyberpunk theme) and page templates; one-file campaign template import.
+- Separate author and player MCP catalogs; the author MCP covers the whole GM workflow (campaigns, pages, relations, publication, campaign engine, rules packs, character review, images). The server does not include its own AI model or chat client.
 - English/Polish interface, account-free browser-local demo, private accounts and JSON/Markdown exports.
 - Docker Compose with Django/DRF, PostgreSQL, Redis, React/TypeScript, React Flow and Caddy.
 
@@ -52,6 +55,8 @@ Before public deployment, follow the [setup and HTTPS instructions](web/README.m
 | Campaign wiki | [Guide](web/docs/en/campaign-wiki.md) | [Instrukcja](web/docs/pl/campaign-wiki.md) |
 | Individual adventures | [Guide](web/docs/en/individual-play.md) | [Instrukcja](web/docs/pl/individual-play.md) |
 | Player MCP contract | [Contract](web/docs/en/mcp-play.md) | [Kontrakt](web/docs/pl/mcp-play.md) |
+| Character creation design (rules packs) | — | [Projekt](web/docs/design/kreator-postaci/01-koncepcja.md) |
+| Campaign images and privacy rules | — | [Zasady](web/docs/design/obrazy-kampanii.md) |
 | Reproduced failures | [Report](web/docs/en/adversarial-testing.md) | [Raport](web/docs/pl/adversarial-testing.md) |
 | Campaign sharing design | [Design](web/docs/en/campaign-sharing-plan.md) | [Plan](web/docs/pl/campaign-sharing-plan.md) |
 
@@ -59,7 +64,7 @@ See [verification](web/docs/verification.md), [release notes](CHANGELOG.md), [co
 
 ## Current boundaries
 
-Kanka import, player wiki editing and a separate campaign-reader MCP are not implemented. The existing player endpoint uses explicitly assigned adventure snapshots. The server does not enforce RPG mechanics, guarantee narrative quality, automatically merge consequences into campaign canon, provide email/password-reset automation or support realtime collaborative editing. Browser wiki sharing is available; the sharing design records subsequent stages.
+Kanka import, player wiki editing, player-uploaded images and a separate campaign-reader MCP are not implemented. Commercial rules packs and images stay private to their campaign and are not part of this repository. The existing player endpoint uses explicitly assigned adventure snapshots. Outside character creation (which validates a campaign's rules pack) the server does not enforce RPG mechanics during play; it does not guarantee narrative quality, automatically merge consequences into campaign canon, provide email/password-reset automation or support realtime collaborative editing. Browser wiki sharing is available; the sharing design records subsequent stages.
 
 ## Where it started
 

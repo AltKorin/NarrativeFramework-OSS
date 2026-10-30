@@ -14,6 +14,7 @@ The root MIT license covers this repository's original code/documentation. Exter
 | psycopg | LGPL-3.0-only |
 | Uvicorn, HTTPX | BSD-3-Clause |
 | Python MCP SDK, redis-py | MIT |
+| Pillow (image re-encoding) | MIT-CMU |
 
 This is a navigation aid, not a complete transitive license inventory. Authoritative texts ship with each upstream distribution. Docker Compose also pulls PostgreSQL, Redis, Python, Node and Caddy images: their programs, base systems and bundled components have separate upstream terms. In particular, redis-py's license is not a statement about the Redis server image's license.
 

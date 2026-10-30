@@ -15,7 +15,10 @@ Otwarty warsztat RPG: wizualne przygotowanie przygód, wiki świata kampanii i i
 - Wiki Markdown z członkostwem kampanii, oddzielnymi szkicami/publikacjami, podglądem MG jako gracz i filtrowanymi relacjami, wyszukiwaniem oraz mapą.
 - Kopiowanie wersjonowanych materiałów wiki do wielu przygód.
 - Przydzielanie indywidualnych przygód, pamięć i dziennik gracza oraz zatwierdzanie konsekwencji przez MG.
-- Osobne MCP autora i gracza; serwer nie zawiera własnego modelu ani czatu AI.
+- Kreator postaci dla dowolnego systemu RPG oparty na danych: MG wgrywa pakiet zasad (statystyki, umiejętności, wzory, pule np. Humanity, katalog sprzętu i wszczepów z cenami, slotami i wymaganiami, tabele historii, role, metody tworzenia); gracz tworzy postać krok po kroku z licznikami punktów i rzutami po stronie serwera, a MG zatwierdza ją albo odsyła. Zatwierdzona postać staje się kartą w wiki i aktorem silnika kampanii.
+- Prywatne obrazy kampanii: galeria MG udostępniana graczom na żądanie, okładka, ilustracje stron publikowane razem ze stroną i obrazki w kreatorze; kliknięcie powiększa. Obrazy są przekodowywane bez metadanych i nie mają publicznych adresów.
+- Wygląd kampanii (motyw Fantasy albo Cyberpunk) i szablony stron; import całej kampanii z jednego pliku.
+- Osobne MCP autora i gracza; MCP autora obejmuje cały warsztat MG (kampanie, strony, relacje, publikacje, silnik kampanii, pakiety zasad, zatwierdzanie postaci, obrazy). Serwer nie zawiera własnego modelu ani czatu AI.
 - PL/EN, lokalne demo bez konta, prywatne konta, eksport JSON/Markdown.
 - Docker Compose: Django/DRF, PostgreSQL, Redis, React/TypeScript, React Flow i Caddy.
 
@@ -47,12 +50,13 @@ Przed wystawieniem do Internetu przeczytaj [instrukcję instalacji i HTTPS](web/
 
 - [Prowadzenie kampanii, oś czasu i statystyki](web/docs/pl/campaign-runtime.md).
 - [Wiki kampanii](web/docs/pl/campaign-wiki.md).
+- [Kreator postaci — projekt i schematy pakietu zasad](web/docs/design/kreator-postaci/01-koncepcja.md), [zasady obrazów kampanii](web/docs/design/obrazy-kampanii.md).
 - [Przygody indywidualne](web/docs/pl/individual-play.md) i [kontrakt MCP gracza](web/docs/pl/mcp-play.md).
 - [Plan udostępniania kampanii grupie](web/docs/pl/campaign-sharing-plan.md) — etapy 1–2 są wdrożone; osobne MCP czytelnika pozostaje kolejnym etapem.
 - [Testy odporności](web/docs/pl/adversarial-testing.md), [wyniki weryfikacji](web/docs/verification.md), [historia wydania](CHANGELOG.md).
 - [Współtworzenie](CONTRIBUTING.md), [zgłaszanie podatności](SECURITY.md), [zależności i materiały](THIRD_PARTY_NOTICES.md).
 
-Nie ma jeszcze importu z Kanki, MCP czytelnika kampanii, edycji w czasie rzeczywistym ani automatycznego resetu hasła/e-maili. MCP gracza korzysta z jawnie przydzielonych migawek przygody. Serwer nie pilnuje mechaniki RPG, nie gwarantuje jakości narracji i nie scala automatycznie konsekwencji z kanonem kampanii.
+Nie ma jeszcze importu z Kanki, wgrywania obrazów przez graczy, MCP czytelnika kampanii, edycji w czasie rzeczywistym ani automatycznego resetu hasła/e-maili. MCP gracza korzysta z jawnie przydzielonych migawek przygody. Poza kreatorem postaci (który waliduje pakiet zasad kampanii) serwer nie pilnuje mechaniki RPG w trakcie gry, nie gwarantuje jakości narracji i nie scala automatycznie konsekwencji z kanonem kampanii.
 
 ## Początki i licencja
 
