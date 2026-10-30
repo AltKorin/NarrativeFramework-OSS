@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Character catalog: `exclusive` groups (at most one item per group, e.g. one kind of speed booster) and `round: up|down` for halved pool-cost rolls such as `1d6/2`. Polish UI message for the new rule.
+
 - Character creation for any RPG system: a campaign GM uploads a `narrative-ruleset/1` pack (stats, skills, formulas, pools such as humanity, a gear/cyberware catalog with prices, pool costs, slots and requirements, random tables, roles and creation methods). Players build characters step by step in the campaign's **Character creation** view; the GM approves or returns them with a note. Approval creates a `pc` wiki page and a campaign-engine actor. Formulas are parsed with a node whitelist (never evaluated as code); dice are rolled server-side and logged; rerolls need GM permission; drafts are event-sourced and keep a snapshot of their pack. Additive migration `0008_character_drafts`. Author MCP gains ruleset and draft tools (GM-only). Design: `web/docs/design/kreator-postaci/`. Commercial rule packs stay private to their campaign.
 
 - Author MCP covers the whole GM workflow: create/import/read/update/delete campaigns, create/delete/publish pages and relations, read and command the campaign engine (with non-saving preview), create adventures and copy wiki pages into them. Thin wrappers over the existing services: same role checks, optimistic versions and retry-safe client UUIDs as REST. Members and invitations remain browser-only. Real MCP integration covers the full workflow and player/stale/duplicate/foreign-actor rejections.

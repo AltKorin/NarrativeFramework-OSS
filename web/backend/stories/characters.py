@@ -23,8 +23,9 @@ GM_ACTIONS = {"approve", "return", "grant_reroll"}
 MAX_EVENTS = 500
 
 
-def roll(count, sides, divisor=1):
-    return sum(secrets.randbelow(sides) + 1 for _ in range(count)) // divisor
+def roll(count, sides, divisor=1, up=False):
+    total = sum(secrets.randbelow(sides) + 1 for _ in range(count))
+    return -(-total // divisor) if up else total // divisor
 
 
 def access(user, campaign_id):
@@ -453,7 +454,7 @@ def losses_event(pack, draft, state):
         for pool, cost in catalog.get(key, {}).get("costs", {}).items():
             copy = f"{key}#{seen[key]}:{pool}"
             rolls.append(previous.get(copy) or {"copy": copy, "pool": pool, "dice": cost["dice"],
-                                               "result": roll(*rulesets.dice(cost["dice"], key))})
+                                               "result": roll(*rulesets.dice(cost["dice"], key), up=cost.get("round") == "up")})
     losses = {}
     for r in rolls:
         losses[r["pool"]] = losses.get(r["pool"], 0) + r["result"]

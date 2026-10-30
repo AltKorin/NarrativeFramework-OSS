@@ -195,6 +195,8 @@ def load(document):
                 fail(f"item {key} costs unknown pool")
             dice(cost.get("dice"), key)
             integer(cost.get("fixed"), f"{key} fixed cost", 0, 1000)
+            if cost.setdefault("round", "down") not in ("down", "up"):
+                fail(f"item {key} round must be up or down")
         integer(item.setdefault("max", 1 if item["costs"] else 99), f"{key} max", 1, 99)
         for group in item.setdefault("requires", []):
             if not isinstance(group, list) or not group or any(x not in catalog for x in group):
@@ -202,6 +204,7 @@ def load(document):
         if any(x not in catalog for x in item.setdefault("uses_slot_of", [])):
             fail(f"item {key} uses slots of an unknown item")
         integer(item.setdefault("slot_cost", 1), f"{key} slot_cost", 1, 50)
+        text(item.setdefault("exclusive", ""), 40, f"{key} exclusive", required=False)
         if item.setdefault("paired", False) not in (True, False) or (item["paired"] and not item["uses_slot_of"]):
             fail(f"item {key} paired needs uses_slot_of")
         for modifier in item.setdefault("modifiers", []):
@@ -300,6 +303,13 @@ def item_problems(pack, items):
     if any(x not in catalog for x in items):
         return ["unknown item"]
     counts = {x: items.count(x) for x in items}
+    groups = {}
+    for key, count in counts.items():
+        if catalog[key]["exclusive"]:
+            groups.setdefault(catalog[key]["exclusive"], []).extend([catalog[key]["label"]] * count)
+    for labels in groups.values():
+        if len(labels) > 1:
+            problems.append(f"Only one of: {', '.join(dict.fromkeys(labels))}")
     for key, count in counts.items():
         if count > catalog[key]["max"]:
             problems.append(f"{catalog[key]['label']}: max {catalog[key]['max']}")

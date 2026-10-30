@@ -158,6 +158,13 @@ class CharacterFlowTests(TestCase):
             draft = self.act(self.player, draft, action="submit")
         self.assertEqual(draft["sheet"]["pools"]["DUSZA"]["current"], 28)
 
+    def test_halved_rolls_round_as_the_pack_says(self):
+        from . import characters
+        with patch("stories.characters.secrets.randbelow", return_value=2):  # 1d6 -> 3
+            self.assertEqual((characters.roll(1, 6, 2), characters.roll(1, 6, 2, up=True)), (1, 2))
+        with patch("stories.characters.secrets.randbelow", return_value=3):  # 1d6 -> 4, even: no rounding
+            self.assertEqual((characters.roll(1, 6, 2), characters.roll(1, 6, 2, up=True)), (2, 2))
+
     def test_gm_characters_are_approved_on_submit(self):
         self.put_ruleset()
         draft = self.start(self.gm)

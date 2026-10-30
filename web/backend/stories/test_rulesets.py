@@ -202,6 +202,25 @@ class SheetTests(SimpleTestCase):
         document["tables"][0]["dice"] = "1d6/2"
         rejects(self, document, "cannot be divided")
 
+    def test_exclusive_groups_allow_one_item(self):
+        pack = mini()
+        pack["catalog"] += [{"id": "turbo", "label": "Turbo", "exclusive": "speed"},
+                            {"id": "nitro", "label": "Nitro", "exclusive": "speed", "max": 2}]
+        pack = rulesets.load(pack)
+        stats = {"SIL": 5, "WOL": 6}
+        self.assertEqual(rulesets.sheet(pack, stats, items=["turbo", "plaszcz"])["problems"], [])
+        for items in (["turbo", "nitro"], ["nitro", "nitro"]):
+            with self.subTest(items=items):
+                self.assertTrue(any(p.startswith("Only one of:") for p in rulesets.sheet(pack, stats, items=items)["problems"]))
+        for bad in ({"exclusive": 7}, {"exclusive": "x" * 41}):
+            document = mini()
+            document["catalog"][2].update(bad)
+            with self.subTest(bad=bad), self.assertRaises(DomainError):
+                rulesets.load(document)
+        document = mini()
+        document["catalog"][0]["costs"]["DUSZA"]["round"] = "sideways"
+        rejects(self, document, "round must be")
+
     def test_removing_a_foundation_reports_dependent_items(self):
         self.assertEqual(rulesets.dependents(self.pack, ["ramie", "ostrze", "plaszcz"], "ramie"), ["ostrze"])
         self.assertEqual(rulesets.dependents(self.pack, ["ramie", "ostrze"], "ostrze"), [])

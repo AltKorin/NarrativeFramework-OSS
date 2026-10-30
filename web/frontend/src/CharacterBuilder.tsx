@@ -53,6 +53,7 @@ const PROBLEMS: [RegExp, string][] = [
   [/^(.+): install as a pair in two hosts$/, "$1: montuj parami w dwóch wszczepach bazowych"],
   [/^(.+): below (-?\d+)$/, "$1: poniżej $2"],
   [/^unknown item$/, "Nieznany przedmiot"],
+  [/^Only one of: (.+)$/, "Najwyżej jeden z: $1"],
 ];
 const say = (pl: boolean, text: string) => {
   if (!pl) return text;

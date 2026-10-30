@@ -17,12 +17,13 @@ wszczepów — silnik nie rozróżnia kategorii poza tym, co wynika z pól.
 | `category` | tekst ≤ 40 | Grupa w sklepie, np. „Broń”, „Wszczepy: neuralne” | — |
 | `price` | liczba całkowita ≥ 0 | Cena w walucie budżetu | — |
 | `description` | tekst ≤ 500 | Własnymi słowami: co daje, ewentualnie dane gry (obrażenia, SP) | — |
-| `costs` | `{poolId: {dice, fixed}}` | Koszt w pulach: `dice` przy rzucie (`2d6`, `1d6/2` = połowa w dół), `fixed` przy stałej wartości | [[pule]] |
+| `costs` | `{poolId: {dice, fixed, round}}` | Koszt w pulach: `dice` przy rzucie (`2d6`, `1d6/2` = połowa), `round` (`down` domyślnie \| `up`) dla dzielenia, `fixed` przy stałej wartości | [[pule]] |
 | `slots` | liczba ≥ 0 | Ile slotów opcji udostępnia (wszczep bazowy) | — |
 | `requires` | lista grup id | Wymaga zainstalowanego **jednego z** wpisów w każdej grupie, np. `[["cyberramie-l", "cyberramie-p"]]` | [[katalog]] |
 | `uses_slot_of` | lista id | Zajmuje 1 slot w jednym z tych wpisów (silnik przydziela automatycznie, jeśli jest wolny) | [[katalog]] |
 | `slot_cost` | liczba ≥ 1 | Ile slotów zajmuje (domyślnie 1; duże opcje zajmują 2–3) | — |
 | `paired` | `true` \| `false` | Kupowany parami: liczba sztuk parzysta, para w dwóch różnych egzemplarzach bazy (np. dwoje oczu) | — |
+| `exclusive` | tekst ≤ 40 \| brak | Grupa wykluczająca: postać może mieć najwyżej jedną sztukę z całej grupy (np. jeden rodzaj przyspieszenia) | — |
 | `max` | liczba ≥ 1 | Ile sztuk może mieć postać (domyślnie 1 dla wpisów z `costs`, bez limitu dla reszty) | — |
 | `modifiers` | lista `{target, value}` | Stałe bonusy pokazywane na karcie (statystyka, umiejętność albo pochodna) | [[statystyki]], [[umiejetnosci]], [[wartosci-pochodne]] |
 
