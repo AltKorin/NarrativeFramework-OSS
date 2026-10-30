@@ -215,6 +215,10 @@ def load(document):
     text(pack.get("source"), 1000, "source", required=False)
     for key in ("skills", "pools", "derived", "catalog", "tables", "roles"):
         pack.setdefault(key, [])  # optional domains; the sheet reads them directly
+    labels = pack.get("sheet_labels", {})
+    if (not isinstance(labels, dict) or set(labels) - {"skills", "items", "history", "features"}
+            or any(not isinstance(v, str) or not v.strip() or len(v) > 60 for v in labels.values())):
+        fail("sheet_labels may only rename skills, items, history and features (text up to 60)")
 
     stats = entries(pack, "stats", 80)
     for key, stat in stats.items():

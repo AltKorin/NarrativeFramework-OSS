@@ -18,7 +18,9 @@ from .models import CampaignRuleset, CharacterDraft, WikiPage
 
 ACTIVE = ("draft", "submitted", "returned")
 PLAYER_ACTIONS = {"choose_role", "choose_template", "set_stats", "roll_stats", "set_skills",
-                  "set_gear", "set_items", "roll_table", "choose_table", "set_name", "submit"}
+                  "set_gear", "set_items", "roll_table", "choose_table", "set_name", "submit",
+                  "set_axis", "choose", "assign_stats", "roll_stat_set"}
+MAX_PICKS = 200
 GM_ACTIONS = {"approve", "return", "grant_reroll"}
 MAX_EVENTS = 500
 
@@ -26,6 +28,12 @@ MAX_EVENTS = 500
 def roll(count, sides, divisor=1, up=False):
     total = sum(secrets.randbelow(sides) + 1 for _ in range(count))
     return -(-total // divisor) if up else total // divisor
+
+
+def roll_keep(count, sides, keep):
+    dice = [secrets.randbelow(sides) + 1 for _ in range(count)]
+    kept = sorted(dice, reverse=True)[:keep]
+    return dice, kept, sum(kept)
 
 
 def access(user, campaign_id):
@@ -91,15 +99,24 @@ def delete_ruleset(user, campaign_id, data):
 def fold(events):
     state = {"role": None, "template": None, "stats": None, "stats_roll": None, "skills": {},
              "gear": [], "items": [], "tables": {}, "name": None, "look": "", "losses": {},
-             "rerolls": set()}
+             "rerolls": set(), "level": None, "axes": {}, "choices": {}, "stat_set": None}
     for e in events:
         kind = e["type"]
         if kind == "role_chosen":
             state.update(role=e["role"], template=None, stats_roll=None, gear=[])
         elif kind == "template_chosen":
             state["template"] = e["index"]
-        elif kind == "stats_set":
+        elif kind in ("stats_set", "stats_assigned"):
             state["stats"] = e["values"]
+        elif kind == "stat_set_rolled":
+            state.update(stat_set=e["values"], stats=None)
+            state["rerolls"].discard("stats")
+        elif kind == "level_set":
+            state["level"] = e["level"]
+        elif kind == "axis_set":
+            state["axes"][e["axis"]] = e["picks"]
+        elif kind == "choice_set":
+            state["choices"][e["key"]] = {k: e[k] for k in ("picks", "values") if k in e}
         elif kind == "stats_rolled":
             state["stats_roll"] = e["row"]
             state["rerolls"].discard("stats")
@@ -132,6 +149,8 @@ def method_of(pack, draft):
 def compute(pack, draft, state):
     """Sheet plus every rule problem; submission requires an empty problem list."""
     steps = {s["type"]: s for s in method_of(pack, draft)["steps"]}
+    if "axes" in steps:
+        return compute_axes(pack, state, steps)
     roles, skills_def = lookup(pack, "roles"), lookup(pack, "skills")
     role = roles.get(state["role"])
     template = role["templates"][state["template"]] if role and state["template"] is not None else None
@@ -150,8 +169,8 @@ def compute(pack, draft, state):
         stats = state["stats"]
     if stats is None:
         problems.append("Set statistics")
-    elif "stats_points" in steps and sum(stats.values()) != steps["stats_points"]["pool"]:
-        problems.append(f"Spend exactly {steps['stats_points']['pool']} statistic points")
+    else:
+        problems += stat_problems(steps, stats, state)
 
     base = dict(template["skills"]) if template else {}
     if "skills_package" in steps and role:
@@ -211,6 +230,45 @@ def compute(pack, draft, state):
     return {"sheet": sheet, "problems": problems, "items": items, "skills": levels, "stats": stats}
 
 
+def stat_problems(steps, stats, state):
+    if "stats_points" in steps:
+        step = steps["stats_points"]
+        costs = step.get("costs")
+        spent = sum(costs[str(v)] for v in stats.values()) if costs else sum(stats.values())
+        if spent != step["pool"]:
+            return [f"Spend exactly {step['pool']} statistic points"]
+    if "stats_array" in steps and sorted(stats.values()) != sorted(steps["stats_array"]["values"]):
+        return ["Assign the listed statistic values"]
+    if "stats_roll_assign" in steps and sorted(stats.values()) != sorted(state["stat_set"] or []):
+        return ["Assign the rolled statistic values"]
+    return []
+
+
+def axes_of(state, steps):
+    return {key: state["axes"].get(key, []) for key in steps["axes"]["axes"]}
+
+
+def compute_axes(pack, state, steps):
+    """Levelled characters: axis options and choices resolved by the ruleset engine."""
+    stats = state["stats"]
+    resolution = rulesets.resolve(pack, state["level"], axes_of(state, steps), state["choices"], stats)
+    problems = []
+    if stats is None:
+        problems.append("Roll statistics" if "stats_roll_assign" in steps and state["stat_set"] is None else "Set statistics")
+    else:
+        problems += stat_problems(steps, stats, state)
+    problems += resolution["problems"]
+    if not state["name"]:
+        problems.append("Name the character")
+    ranks, items = resolution["grants"]["ranks"], resolution["grants"]["items"] + state["items"]
+    sheet = None
+    if stats is not None:
+        sheet = rulesets.sheet(pack, stats, ranks, items, None, resolution)
+        problems += sheet["problems"]
+    return {"sheet": sheet, "problems": problems, "items": items, "skills": ranks, "stats": stats,
+            "open": resolution["open"]}
+
+
 def view(draft, gm):
     pack = rulesets.load(draft.ruleset)
     state = fold(draft.events)
@@ -268,8 +326,15 @@ def create_draft(user, campaign_id, data):
     member = None if gm else c.wiki_member
     if not gm and c.character_drafts.filter(member=member, status__in=ACTIVE).count() >= 3:
         raise DomainError("You already have 3 characters in progress", 409)
+    events = []
+    span = ruleset.document.get("level")
+    if span:
+        level = data.get("level", span["min"]) if gm else span["min"]
+        if type(level) is not int or not span["min"] <= level <= span["max"]:
+            raise DomainError(f"Level must be {span['min']}-{span['max']}")
+        events.append({"type": "level_set", "level": level})
     draft = CharacterDraft.objects.create(id=draft_id, campaign=c, member=member, created_by=user,
-                                          ruleset=ruleset.document, method=data["method"])
+                                          ruleset=ruleset.document, method=data["method"], events=events)
     return view(draft, gm), True
 
 
@@ -398,6 +463,28 @@ def handle(pack, draft, state, action, data, user):
             first = [{"table": key, "entry": entry, "text": tables[key]["entries"][entry]["text"]}]
             return [{"type": "table_chosen", "table": key, "results": first + chain(tables, tables[key]["entries"][entry])}]
         return [{"type": "table_rolled", "table": key, "results": roll_chain(tables, key)}]
+    if action == "set_axis":
+        return [axis_event(pack, draft, state, steps, data)]
+    if action == "choose":
+        return [choice_event(pack, state, steps, data)]
+    if action == "assign_stats":
+        if "stats_array" in steps:
+            allowed = steps["stats_array"]["values"]
+        elif "stats_roll_assign" in steps and state["stat_set"] is not None:
+            allowed = state["stat_set"]
+        else:
+            raise DomainError("This method has no statistics to assign")
+        values = rulesets.stat_values(pack, data.get("values"), "statistics")
+        if sorted(values.values()) != sorted(allowed):
+            raise DomainError("Assign exactly the listed values")
+        return [{"type": "stats_assigned", "values": values}]
+    if action == "roll_stat_set":
+        dice = step("stats_roll_assign")["dice"]
+        if state["stat_set"] is not None and "stats" not in state["rerolls"]:
+            raise DomainError("Statistics already rolled; ask the GM for a reroll", 409)
+        rolls = [dict(zip(("dice", "kept", "result"), roll_keep(*rulesets.dice_keep(dice, "stats"))))
+                 for _ in pack["stats"]]
+        return [{"type": "stat_set_rolled", "dice": dice, "rolls": rolls, "values": [r["result"] for r in rolls]}]
     if action == "set_name":
         name = engine.text(data.get("name"), 120)
         look = data.get("look", "")
@@ -425,6 +512,51 @@ def handle(pack, draft, state, action, data, user):
         if target != "stats" and target not in tables:
             raise DomainError("Choose statistics or a table")
         return [{"type": "reroll_granted", "target": target}]
+
+
+def axis_event(pack, draft, state, steps, data):
+    if "axes" not in steps or data.get("axis") not in steps["axes"]["axes"]:
+        raise DomainError("Choose an axis of this method")
+    axis = lookup(pack, "axes")[data["axis"]]
+    options = {o["id"] for o in axis["options"]}
+    picks = data.get("picks")
+    if not isinstance(picks, list) or not picks or len(picks) > len(options):
+        raise DomainError(f"Choose options of {axis['label']}")
+    result = []
+    for pick in picks:
+        if not isinstance(pick, dict) or pick.get("option") not in options:
+            raise DomainError(f"Choose options of {axis['label']}")
+        if axis["repeatable"]:
+            levels = pick.get("levels")
+            if type(levels) is not int or not 1 <= levels <= pack["level"]["max"]:
+                raise DomainError("Levels must be a whole number within the level range")
+            result.append({"option": pick["option"], "levels": levels})
+        else:
+            result.append({"option": pick["option"]})
+    if not axis["repeatable"] and len(result) != 1:
+        raise DomainError(f"Choose one {axis['label']}")
+    if len({r["option"] for r in result}) != len(result):
+        raise DomainError("Each option can be chosen once")
+    return {"type": "axis_set", "axis": axis["id"], "picks": result}
+
+
+def choice_event(pack, state, steps, data):
+    key = data.get("key")
+    if "axes" not in steps or not isinstance(key, str):
+        raise DomainError("Choose an open choice")
+    opened = rulesets.resolve(pack, state["level"], axes_of(state, steps), state["choices"], state["stats"])["open"]
+    if key not in opened:
+        raise DomainError("This choice is not open for this character")
+    if opened[key]["kind"] == "stats_bonus":
+        values = data.get("values")
+        if (not isinstance(values, dict) or len(values) > len(pack["stats"])
+                or any(type(v) is not int or not 1 <= v <= 10 for v in values.values())):
+            raise DomainError("Give whole-number bonuses per statistic")
+        return {"type": "choice_set", "key": key, "values": values}
+    picks = data.get("picks")
+    if not isinstance(picks, list) or len(picks) > MAX_PICKS or any(not isinstance(x, str) or len(x) > 60 for x in picks):
+        raise DomainError("Choose from the listed options")
+    return {"type": "choice_set", "key": key, "picks": picks}
 
 
 def chain(tables, entry, depth=0):
@@ -476,6 +608,8 @@ def approve(c, user, pack, draft):
     page, _ = wiki.create_page(user, c.id, {"id": str(page_id), "kind": "pc", "title": state["name"],
                                             "body": markdown(pack, state, result), "gm_notes": roll_log(draft)})
     values = {**sheet["stats"], **sheet["derived"]}
+    if sheet.get("level") is not None:
+        values.update(LEVEL=sheet["level"], **sheet["variables"])
     for key, pool in sheet["pools"].items():
         values[key], values[key + "_MAX"] = pool["current"], pool["max"]
     c.refresh_from_db()
@@ -500,7 +634,13 @@ def markdown(pack, state, result):
                                       **{d["id"]: d["label"] for d in pack["derived"]}}
     role = lookup(pack, "roles").get(state["role"])
     catalog, skills = lookup(pack, "catalog"), lookup(pack, "skills")
+    pl = pack["language"] == "pl"
+    titles = {"skills": "Umiejętności" if pl else "Skills", "items": "Sprzęt i wszczepy" if pl else "Gear and cyberware",
+              "history": "Historia" if pl else "Background", "features": "Zdolności" if pl else "Features",
+              **pack.get("sheet_labels", {})}
     lines = []  # the page title already carries the character's name
+    if sheet.get("level") is not None:
+        lines.append(" · ".join([f"**{pack['level']['label']} {sheet['level']}**"] + axis_lines(pack, state)))
     if role:
         ability = role.get("ability")
         lines.append(f"**{role['label']}**" + (f" · {ability['label']} {ability['rank']}" if ability else ""))
@@ -510,16 +650,35 @@ def markdown(pack, state, result):
               "| " + " | ".join(str(v) for v in sheet["stats"].values()) + " |", ""]
     lines += [f"- **{labels[k]}:** {v}" for k, v in sheet["derived"].items()]
     lines += [f"- **{p['label']}:** {p['current']} / {p['max']}" for p in sheet["pools"].values()]
-    if result["skills"]:
-        lines += ["", "### Umiejętności" if pack["language"] == "pl" else "### Skills"]
+    if sheet.get("skill_values"):
+        lines += ["", f"### {titles['skills']}"]
+        lines += [f"- {skills[k]['label']} {v:+d}" for k, v in sorted(sheet["skill_values"].items(), key=lambda x: skills[x[0]]["label"])]
+    elif result["skills"]:
+        lines += ["", f"### {titles['skills']}"]
         lines += [f"- {skills[k]['label']} {v}" for k, v in sorted(result["skills"].items(), key=lambda x: skills[x[0]]["label"]) if v]
+    if sheet.get("features"):
+        lines += ["", f"### {titles['features']}"]
+        lines += [f"- **{f['label']}** ({f['source']})" + (f": {f['summary']}" if f.get("summary") else "") for f in sheet["features"]]
+    for key, labels in (sheet.get("choices") or {}).items():
+        lines += ["", f"### {result['open'][key]['label']}"] + [f"- {label}" for label in labels]
     if result["items"]:
-        lines += ["", "### Sprzęt i wszczepy" if pack["language"] == "pl" else "### Gear and cyberware"]
+        lines += ["", f"### {titles['items']}"]
         lines += [f"- {catalog[x]['label']}" for x in result["items"]]
     history = [r["text"] for results in state["tables"].values() for r in results]
     if history:
-        lines += ["", "### Historia" if pack["language"] == "pl" else "### Background"] + [f"- {t}" for t in history]
+        lines += ["", f"### {titles['history']}"] + [f"- {t}" for t in history]
     return "\n".join(lines)[:12000]
+
+
+def axis_lines(pack, state):
+    lines = []
+    for axis in pack.get("axes", []):
+        options = {o["id"]: o["label"] for o in axis["options"]}
+        picks = state["axes"].get(axis["id"], [])
+        if picks:
+            names = [options[p["option"]] + (f" {p['levels']}" if "levels" in p else "") for p in picks]
+            lines.append(f"{axis['label']}: {' / '.join(names)}")
+    return lines
 
 
 def roll_log(draft):
@@ -527,6 +686,8 @@ def roll_log(draft):
     for e in draft.events:
         if e["type"] == "stats_rolled":
             lines.append(f"STATS {e['dice']} = {e['result']}")
+        elif e["type"] == "stat_set_rolled":
+            lines += [f"STATS {e['dice']} {r['dice']} = {r['result']}" for r in e["rolls"]]
         elif e["type"] == "table_rolled":
             lines += [f"{r['table']} {r['dice']} = {r['result']}" for r in e["results"] if "dice" in r]
         elif e["type"] == "submitted":

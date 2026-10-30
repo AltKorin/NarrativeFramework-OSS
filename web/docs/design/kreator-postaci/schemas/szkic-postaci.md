@@ -32,6 +32,19 @@ Stan karty = złożenie zdarzeń. Rzut zapisuje serwer (kości z `secrets.randbe
 przesyła wyników rzutów. Ponowny rzut tej samej tabeli w tym samym kroku jest odrzucany —
 wycofanie kroku kasuje wybory, ale rzuty zostają w historii widocznej dla MG.
 
+### Pakiety z poziomem i osiami ([[poziom-i-postep]], [[osie]], [[listy-i-wybory]])
+
+| Zdarzenie | Akcja | Uwagi |
+|---|---|---|
+| `level_set {level}` | tworzenie szkicu | Pierwsze zdarzenie; gracz dostaje `level.min`, MG może podać `level` (NPC, pregen). Kampanijny poziom startowy — kolejny plan. Awans dopisze kolejne zdarzenia (ADR 012). |
+| `axis_set {axis, picks}` | `set_axis` | `picks`: `[{option, levels}]` dla osi `repeatable`, `[{option}]` dla zwykłej |
+| `choice_set {key, picks \| values}` | `choose` | `key` musi być otwarty w aktualnym drzewie; `values` dla `stats_bonus` |
+| `stats_assigned {values}` | `assign_stats` | Rozdanie `stats_array` albo ostatniego rzutu |
+| `stat_set_rolled {dice, rolls, values}` | `roll_stat_set` | Jeden rzut (np. `4d6kh3`) na statystykę; kasuje rozdanie; ponownie tylko po `reroll_granted stats` |
+
+Stan szkicu zwracany przez API ma dodatkowo `level`, `axes`, `choices`, `stat_set`, a wynik — `open`
+(otwarte wybory z liczbą i dostępnymi pozycjami) dla interfejsu kreatora.
+
 ## Otwarte pytania do dograć
 - Czy wycofanie kroku z rzutami pozwala rzucić ponownie? Propozycja: tylko gdy MG zezwoli
   (zdarzenie `reroll_granted`) — inaczej gracz losowałby do skutku.

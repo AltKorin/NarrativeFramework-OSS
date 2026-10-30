@@ -56,6 +56,8 @@ Zatwierdzenie szkicu wywołuje istniejące serwisy (bez nowych ścieżek zapisu)
    (statystyki, pochodne, umiejętności, historia); notatki MG = log rzutów.
 2. `campaign_runtime.command(set_value, scope="actors")` — statystyki, pule i pochodne jako atrybuty aktora.
    Sprzęt i wszczepy trafiają na kartę (Markdown) z ceną, kosztem w pulach i slotami.
+   Pakiety z poziomem: karta ma linię poziomu i osi („Krąg 5 · Ścieżka: Wojownik 3 / Mag 2”), wartości
+   umiejętności ze `skill_value`, sekcję zdolności i sekcję każdego wyboru; aktor dostaje też `LEVEL` i zmienne.
 
 ## Przechowywanie
 

@@ -179,6 +179,9 @@ class LevelsLoadTests(SimpleTestCase):
             (lambda d: d["methods"][0]["steps"][0].update(axes=["rasa"]), "unknown axis"),
             (lambda d: d.update(skill_value="RANK + NIEMA"), "unknown symbol NIEMA"),
             (lambda d: d["derived"][0].update(formula="ZYCIE_KL + LV_nikt"), "unknown symbol LV_nikt"),
+            (lambda d: d.update(sheet_labels=["Zdolności"]), "sheet_labels"),
+            (lambda d: d.update(sheet_labels={"features": 7}), "sheet_labels"),
+            (lambda d: d.update(sheet_labels={"other": "x"}), "sheet_labels"),
         ]
         for change, message in cases:
             with self.subTest(message=message):
