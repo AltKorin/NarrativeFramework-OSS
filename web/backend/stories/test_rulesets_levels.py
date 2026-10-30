@@ -209,3 +209,118 @@ class LevelsLoadTests(SimpleTestCase):
         for o in axis(document, "klasa")["options"]:
             o.pop("requires_multi")
         rejects(self, document, "unknown symbol")  # LV_woj / LEVEL no longer exist
+
+
+WOJ3_MAG2 = {"klasa": [{"option": "woj", "levels": 3}, {"option": "mag", "levels": 2}], "pochodzenie": [{"option": "rybak"}]}
+MAG5 = {"klasa": [{"option": "mag", "levels": 5}], "pochodzenie": [{"option": "rybak"}]}
+WOJ4 = {"klasa": [{"option": "woj", "levels": 4}], "pochodzenie": [{"option": "uczony"}]}
+BASE = {"SIL": 15, "ZRE": 8, "WIE": 14}
+CHOICES_WOJ3_MAG2 = {"rybak_cechy": {"values": {"SIL": 2, "ZRE": 1}}, "woj_umiej": {"picks": ["walka"]},
+                     "woj_styl": {"picks": ["tarcza"]}, "mag_sztuczki": {"picks": ["iskra", "swiatlo"]},
+                     "mag_zaklecia": {"picks": ["tarcza_m", "pocisk", "sen"]}}
+
+
+def resolve(level=5, axes=WOJ3_MAG2, choices=None, stats=BASE, document=None):
+    pack = rulesets.load(document or mini_levels())
+    return rulesets.resolve(pack, level, axes, choices or {}, stats)
+
+
+class ResolveTests(SimpleTestCase):
+    def test_multiclass_opens_choices_by_class_level(self):
+        r = resolve()
+        self.assertEqual(r["symbols"]["LV_woj"], 3)
+        self.assertEqual(r["symbols"]["LV_mag"], 2)
+        self.assertEqual(r["symbols"]["BIEG"], 3)
+        self.assertIn("woj_styl", r["open"])
+        self.assertNotIn("woj_dar_4", r["open"])
+        self.assertEqual(r["open"]["mag_sztuczki"]["count"], 2)
+        self.assertEqual(r["open"]["mag_zaklecia"]["count"], 3)
+        self.assertEqual(sorted(r["open"]["mag_zaklecia"]["available"]), ["pocisk", "sen", "tarcza_m"])
+        self.assertEqual(r["grants"]["ranks"]["odp_sil"], 1)  # the fighter path came first
+        self.assertEqual(r["grants"]["ranks"]["skradanie"], 1)
+        self.assertEqual(r["grants"]["items"], ["siec"])
+
+    def test_complete_build_has_no_problems(self):
+        r = resolve(choices=CHOICES_WOJ3_MAG2)
+        self.assertEqual(r["problems"], [])
+        self.assertEqual(r["grants"]["stats"], {"SIL": 2, "ZRE": 1})
+        self.assertEqual([f["label"] for f in r["grants"]["features"]], ["Mur tarcz"])
+        self.assertEqual(r["picked"]["mag_zaklecia"], ["Tarcza maga", "Pocisk", "Sen"])
+        self.assertEqual(r["grants"]["ranks"]["walka"], 1)
+
+    def test_missing_choices_are_problems(self):
+        problems = resolve()["problems"]
+        self.assertTrue(any("Styl walki" in p for p in problems))
+        self.assertTrue(any("Zaklęcia" in p for p in problems))
+
+    def test_requires_multi_only_with_two_picks(self):
+        low = {"SIL": 15, "ZRE": 14, "WIE": 8}
+        self.assertTrue(any("requires" in p for p in resolve(stats=low)["problems"]))
+        self.assertFalse(any("requires" in p for p in resolve(stats=low, axes=MAG5)["problems"]))
+
+    def test_repeatable_axis_level_split_is_checked(self):
+        for picks in ([{"option": "woj", "levels": 4}],
+                      [{"option": "woj", "levels": 0}, {"option": "mag", "levels": 5}],
+                      [{"option": "woj", "levels": 3}, {"option": "woj", "levels": 2}],
+                      []):
+            with self.subTest(picks=picks):
+                self.assertTrue(resolve(axes={"klasa": picks, "pochodzenie": [{"option": "rybak"}]})["problems"])
+        two_at_one = {"klasa": [{"option": "woj", "levels": 1}, {"option": "mag", "levels": 1}], "pochodzenie": [{"option": "rybak"}]}
+        self.assertTrue(any("levels" in p for p in resolve(level=1, axes=two_at_one)["problems"]))
+
+    def test_nested_choice_inside_repeatable_entry(self):
+        r = resolve(level=4, axes=WOJ4, choices={"woj_dar_4": {"picks": ["wzmocnienie"]},
+                                                 "woj_dar_4/wzmocnienie/wzm": {"values": {"SIL": 2}}})
+        self.assertIn("woj_dar_4/wzmocnienie/wzm", r["open"])
+        self.assertEqual(r["grants"]["stats"]["SIL"], 2)
+
+    def test_stats_bonus_patterns_and_cap(self):
+        def problems(values, stats=BASE):
+            return [p for p in resolve(choices={"rybak_cechy": {"values": values}}, stats=stats)["problems"]
+                    if "Premie" in p]
+        self.assertEqual(problems({"SIL": 2, "ZRE": 1}), [])
+        self.assertEqual(problems({"SIL": 1, "ZRE": 1, "WIE": 1}), [])
+        self.assertTrue(problems({"SIL": 3}))
+        self.assertTrue(problems({"SIL": 2, "ZRE": 2}))
+        self.assertTrue(problems({"SIL": 2, "NIC": 1}))
+        self.assertTrue(problems({"SIL": 2, "ZRE": 1}, stats={"SIL": 19, "ZRE": 8, "WIE": 14}))  # 21 > cap 20
+
+    def test_same_entry_twice_only_if_repeatable(self):
+        document = mini_levels()
+        grant(document, "woj", 4)["level"] = 1
+        grant(document, "woj", 3)["choice"]["options"][0]["grants"].append(
+            {"choice": {"id": "tarcza_dar", "label": "Dar tarczy", "kind": "list", "list": "dary"}})
+        axes = {"klasa": [{"option": "woj", "levels": 3}], "pochodzenie": [{"option": "rybak"}]}
+        twice = {"woj_styl": {"picks": ["tarcza"]}, "woj_dar_4": {"picks": ["twardy"]},
+                 "woj_styl/tarcza/tarcza_dar": {"picks": ["twardy"]}}
+        self.assertTrue(any("Twardy" in p for p in resolve(3, axes, twice, document=document)["problems"]))
+        twice = {**twice, "woj_dar_4": {"picks": ["wzmocnienie"]}, "woj_styl/tarcza/tarcza_dar": {"picks": ["wzmocnienie"]}}
+        self.assertFalse(any("Wzmocnienie" in p for p in resolve(3, axes, twice, document=document)["problems"]))
+
+    def test_stale_picks_are_ignored(self):
+        r = resolve(axes={"klasa": [{"option": "woj", "levels": 5}], "pochodzenie": [{"option": "rybak"}]},
+                    choices=CHOICES_WOJ3_MAG2)
+        self.assertNotIn("mag_zaklecia", r["picked"])
+        self.assertNotIn("mag_zaklecia", r["open"])
+
+    def test_when_first_and_later(self):
+        mag_first = {"klasa": [{"option": "mag", "levels": 2}, {"option": "woj", "levels": 3}], "pochodzenie": [{"option": "rybak"}]}
+        r = resolve(axes=mag_first, stats={"SIL": 15, "ZRE": 8, "WIE": 14})
+        self.assertNotIn("odp_sil", r["grants"]["ranks"])
+        sources = {var for var, _ in r["grants"]["values"]}
+        self.assertEqual(sources, {"ZYCIE_KL", "MAGIA"})
+        self.assertEqual(len([v for v, _ in r["grants"]["values"] if v == "ZYCIE_KL"]), 2)
+
+    def test_skill_choice_requires_rank(self):
+        document = mini_levels()
+        grant(document, "woj", 2)["choice"].update(rank=2, requires_rank=1)
+        r = resolve(axes=WOJ4, choices={"woj_umiej": {"picks": ["walka"]}}, document=document)
+        self.assertTrue(any("Walka" in p for p in r["problems"]))
+        r = resolve(axes={**WOJ4, "pochodzenie": [{"option": "rybak"}]}, choices={"woj_umiej": {"picks": ["skradanie"]}},
+                    document=document)
+        self.assertFalse(any("Skradanie" in p for p in r["problems"]))
+        self.assertEqual(r["grants"]["ranks"]["skradanie"], 2)
+
+    def test_axes_before_stats_do_not_crash(self):
+        r = resolve(stats=None, choices=CHOICES_WOJ3_MAG2)
+        self.assertFalse(any("requires" in p or "above" in p for p in r["problems"]))

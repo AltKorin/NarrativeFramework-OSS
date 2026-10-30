@@ -586,6 +586,190 @@ def stat_values(pack, values, label):
     return values
 
 
+# ── Character axes and choices ──────────────────────────────────────────────
+
+def progression(item, values):
+    by = values.get(item["by"], 0)
+    return item["values"][min(by, len(item["values"])) - 1] if by >= 1 else 0
+
+
+def resolve(pack, level, axes, choices, stats):
+    """Walk the chosen axis options and their choices: early symbols, open choices, grants, problems.
+
+    `axes` maps axis id -> [{"option", "levels"}]; only the listed axes are checked. `choices` maps a
+    choice instance key -> {"picks": [...]} or {"values": {...}}; keys outside the current tree are ignored.
+    """
+    return Resolution(pack, level, axes, choices, stats).run()
+
+
+class Resolution:
+    def __init__(self, pack, level, axes, choices, stats):
+        self.pack, self.choices, self.base = pack, choices, stats
+        self.trees = pack["_formulas"]
+        self.lists = {x["id"]: {e["id"]: e for e in x["entries"]} for x in pack.get("lists", [])}
+        self.symbols = {"LEVEL": level} if pack.get("level") else {}
+        self.axes = axes
+        self.open, self.picked, self.problems, self.used, self.bonus_caps, self.rank_checks = {}, {}, [], {}, [], []
+        self.grants = {"stats": {}, "ranks": {}, "items": [], "features": [], "values": []}
+        self.rank_sources = {}
+
+    def run(self):
+        defs = {a["id"]: a for a in self.pack.get("axes", [])}
+        chosen = {}
+        for key, picks in self.axes.items():
+            if key in defs:
+                chosen[key] = self.axis(defs[key], picks)
+        for item in self.pack.get("progressions", []):
+            if item["by"] in self.symbols:
+                self.symbols[item["id"]] = progression(item, self.symbols)
+        for key, picks in chosen.items():
+            repeatable = defs[key]["repeatable"]
+            for index, (item, levels) in enumerate(picks):
+                gate = levels if repeatable else self.symbols.get("LEVEL", 1)
+                self.apply(item, gate, index == 0, item["label"], "")
+        self.finish(defs, chosen)
+        return {"symbols": self.symbols, "open": self.open, "grants": self.grants,
+                "picked": self.picked, "problems": self.problems}
+
+    def axis(self, axis, picks):
+        options = {o["id"]: o for o in axis["options"]}
+        if axis["repeatable"]:
+            for item in axis["options"]:
+                self.symbols["LV_" + item["id"]] = 0
+        if not isinstance(picks, list) or not picks:
+            self.problems.append(f"Choose {axis['label']}")
+            return []
+        result, seen = [], set()
+        for pick in picks:
+            item = options.get(pick.get("option")) if isinstance(pick, dict) else None
+            if item is None or item["id"] in seen:
+                self.problems.append(f"{axis['label']}: invalid or repeated option")
+                continue
+            seen.add(item["id"])
+            levels = pick.get("levels") if axis["repeatable"] else None
+            if axis["repeatable"]:
+                if type(levels) is not int or levels < 1:
+                    self.problems.append(f"{item['label']}: levels must be at least 1")
+                    continue
+                self.symbols["LV_" + item["id"]] = levels
+            result.append((item, levels))
+        if not axis["repeatable"] and len(picks) != 1:
+            self.problems.append(f"Choose exactly one {axis['label']}")
+        if axis["repeatable"]:
+            total = sum(levels for _, levels in result)
+            if total != self.symbols["LEVEL"]:
+                self.problems.append(f"{axis['label']}: levels add up to {total} of {self.symbols['LEVEL']}")
+        return result
+
+    def apply(self, owner, gate, first, source, prefix):
+        for grant in owner["grants"]:
+            if grant["level"] > gate or (grant["when"] == "first" and not first) or (grant["when"] == "later" and first):
+                continue
+            for variable, formula in grant["values"].items():
+                self.grants["values"].append((variable, self.trees[formula]))
+            for key, value in grant["stats"].items():
+                self.grants["stats"][key] = self.grants["stats"].get(key, 0) + value
+            for key, rank in grant["skills"].items():
+                self.rank(key, rank, None)
+            self.grants["items"] += grant["items"]
+            self.grants["features"] += [{**f, "source": source} for f in grant["features"]]
+            if grant.get("choice"):
+                self.choice(grant["choice"], gate, first, source, prefix)
+
+    def rank(self, skill, rank, key):
+        self.grants["ranks"][skill] = max(self.grants["ranks"].get(skill, 0), rank)
+        self.rank_sources.setdefault(skill, []).append((key, rank))
+
+    def number(self, formula):
+        return math.floor(evaluate(self.trees[formula], self.symbols))
+
+    def choice(self, spec, gate, first, source, prefix):
+        key = f"{prefix}/{spec['id']}" if prefix else spec["id"]
+        count = self.number(spec["count"])
+        if count < 1:
+            return
+        kind = spec["kind"]
+        if kind == "options":
+            available = {o["id"]: o for o in spec["options"]}
+        elif kind == "list":
+            low = self.number(spec["rank_min"]) if spec.get("rank_min") is not None else None
+            high = self.number(spec["rank_max"]) if spec.get("rank_max") is not None else None
+            available = {k: e for k, e in self.lists[spec["list"]].items()
+                         if (not spec["tags_any"] or set(spec["tags_any"]) & set(e["tags"]))
+                         and (low is None or e["rank"] >= low) and (high is None or e["rank"] <= high)}
+        elif kind == "skills":
+            available = {k: None for k in spec["among"]}
+        else:
+            available = None
+        self.open[key] = {"id": spec["id"], "label": spec["label"], "kind": kind, "count": count,
+                          "available": list(available) if available is not None else None, "source": source}
+        data = self.choices.get(key)
+        if not isinstance(data, dict):
+            self.problems.append(f"Choose: {spec['label']}")
+            return
+        if kind == "stats_bonus":
+            self.stats_bonus(spec, data.get("values"), key)
+            return
+        picks = data.get("picks")
+        if not isinstance(picks, list) or any(not isinstance(x, str) for x in picks):
+            self.problems.append(f"Choose: {spec['label']}")
+            return
+        if len(picks) != count or len(set(picks)) != len(picks):
+            self.problems.append(f"{spec['label']}: choose {count}")
+        valid = [x for x in dict.fromkeys(picks) if x in available]
+        if len(valid) != len(set(picks)):
+            self.problems.append(f"{spec['label']}: choice outside the allowed options")
+        labels = []
+        for pick in valid:
+            if kind == "skills":
+                self.rank(pick, spec["rank"], key)
+                if spec["requires_rank"]:
+                    self.rank_checks.append((pick, spec["requires_rank"], key, spec["label"]))
+                labels.append(next(s["label"] for s in self.pack["skills"] if s["id"] == pick))
+                continue
+            item = available[pick]
+            if kind == "list":
+                self.used.setdefault((spec["list"], pick), []).append(key)
+            labels.append(item["label"])
+            self.apply(item, gate, first, item["label"], f"{key}/{pick}")
+        self.picked[key] = labels
+
+    def stats_bonus(self, spec, values, key):
+        if (not isinstance(values, dict) or any(k not in spec["among"] for k in values)
+                or any(type(v) is not int or v < 1 for v in values.values())
+                or sorted(values.values(), reverse=True) not in [sorted(p, reverse=True) for p in spec["patterns"]]):
+            self.problems.append(f"{spec['label']}: invalid distribution")
+            return
+        for stat, value in values.items():
+            self.grants["stats"][stat] = self.grants["stats"].get(stat, 0) + value
+        self.bonus_caps.append((spec, values))
+        labels = {s["id"]: s["label"] for s in self.pack["stats"]}
+        self.picked[key] = [f"{labels[k]} +{v}" for k, v in values.items()]
+
+    def finish(self, defs, chosen):
+        self.collisions()
+        if self.base is None:  # statistics not set yet: caps and combination rules wait for them
+            return
+        stats = {k: self.base.get(k, 0) + self.grants["stats"].get(k, 0) for k in self.base}
+        for spec, values in self.bonus_caps:
+            if any(stats.get(k, 0) > spec["cap"] for k in values):
+                self.problems.append(f"{spec['label']}: above {spec['cap']}")
+        for key, picks in chosen.items():
+            if defs[key]["repeatable"] and len(picks) > 1:
+                for item, _ in picks:
+                    if item.get("requires_multi") and not evaluate(self.trees[item["requires_multi"]], stats):
+                        self.problems.append(f"{item['label']}: requires {item['requires_multi']} to combine")
+
+    def collisions(self):
+        for (listing, entry), keys in self.used.items():
+            if len(keys) > 1 and not self.lists[listing][entry]["repeatable"]:
+                self.problems.append(f"{self.lists[listing][entry]['label']}: chosen more than once")
+        for skill, needed, key, label in self.rank_checks:
+            if not any(rank >= needed for source, rank in self.rank_sources.get(skill, []) if source != key):
+                name = next(s["label"] for s in self.pack["skills"] if s["id"] == skill)
+                self.problems.append(f"{label}: {name} needs rank {needed} first")
+
+
 # ── Sheet computation ───────────────────────────────────────────────────────
 
 def item_problems(pack, items):
