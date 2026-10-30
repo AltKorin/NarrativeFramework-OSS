@@ -103,7 +103,13 @@ class CharacterFlowTests(TestCase):
         draft = self.act(self.gm, draft, action="approve")
         self.assertEqual(draft["status"], "approved")
         page = WikiPage.objects.get(pk=draft["page"])
-        self.assertEqual((page.kind, page.title, page.audience), ("pc", "Kira", "gm"))
+        self.assertEqual((page.kind, page.title, page.audience), ("pc", "Kira", "selected"))
+        self.assertEqual(list(page.recipients.values_list("id", flat=True)), [self.member.id])
+        mine = self.client_for(self.player).get(f"{self.base}pages/{page.id}/")
+        self.assertEqual((mine.status_code, mine.data["title"]), (200, "Kira"))  # the player sees their sheet
+        self.assertNotIn("gm_notes", mine.data)  # but never the GM dice log
+        self.assertEqual(self.client_for(self.other).get(f"{self.base}pages/{page.id}/").status_code, 404)
+        self.assertEqual(self.client_for(self.player).get(self.base + "characters/").data[0]["page"], str(page.id))
         self.assertIn("Ramię", page.body)
         self.assertIn("dom 1d6", page.gm_notes)
         self.campaign.refresh_from_db()
@@ -175,7 +181,7 @@ class CharacterFlowTests(TestCase):
         self.assertEqual(draft["state"]["tables"]["dom"][0]["text"], "Z portu.")
         draft = self.act(self.gm, draft, action="submit")
         self.assertEqual(draft["status"], "approved")
-        self.assertTrue(WikiPage.objects.filter(pk=draft["page"], kind="pc").exists())
+        self.assertTrue(WikiPage.objects.filter(pk=draft["page"], kind="pc", audience="gm").exists())  # NPCs stay GM-only
         self.assertEqual(self.client_for(self.player).get(f"{self.base}characters/{draft['id']}/").status_code, 404)
 
     def test_ruleset_removal_keeps_draft_snapshots(self):

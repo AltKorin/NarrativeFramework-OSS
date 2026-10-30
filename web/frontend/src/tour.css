@@ -1,0 +1,33 @@
+/* Spotlight tour: theme tokens only, so Fantasy and Cyberpunk campaigns both fit. */
+.tour-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgb(0 0 0 / 0.55); }
+.tour-spot {
+  position: fixed; z-index: 1000; border-radius: 6px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.6), 0 0 0 3px var(--campaign-accent, #31594a);
+}
+.tour-card {
+  position: fixed; z-index: 1001; width: min(360px, calc(100vw - 24px)); padding: 16px 18px;
+  background: var(--campaign-surface, #fffef9); color: var(--campaign-text, #233b32);
+  border: 1px solid var(--campaign-border, #c4cebf); border-left: 4px solid var(--campaign-accent, #31594a); border-radius: 6px;
+}
+.tour-card:focus { outline: 2px solid var(--campaign-accent, #31594a); outline-offset: 2px; }
+.tour-card h2 { margin: 2px 0 8px; font-size: 1.15rem; }
+.tour-card p { margin: 0 0 10px; line-height: 1.5; }
+.tour-progress { font-size: 0.85rem; color: var(--campaign-muted, #566b5c); }
+.tour-why { padding: 8px 10px; background: var(--campaign-raised, #edf1e7); border-radius: 4px; font-size: 0.95rem; }
+.tour-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.tour-invite {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; padding: 12px 16px;
+  background: var(--campaign-raised, #edf1e7); border-left: 4px solid var(--campaign-accent, #31594a); border-radius: 4px;
+}
+.tour-invite p { margin: 0; flex: 1 1 280px; }
+.tour-help { white-space: nowrap; }
+@media (max-width: 760px) {
+  .tour-card { left: 12px !important; right: 12px; width: auto; top: auto !important; bottom: 12px !important; }
+}
+.campaign-tabs .tour-help { margin-left: 12px; }
+@media (max-width: 760px) {
+  /* Phones: no invitation banner — it would push or cover the view's first action. The
+     "How does it work?" button in the tab row starts the same tour. */
+  .tour-invite { display: none; }
+  .campaign-tabs .tour-help { margin-left: 0; }
+}

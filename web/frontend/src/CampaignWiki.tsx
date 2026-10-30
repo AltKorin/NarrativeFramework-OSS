@@ -17,12 +17,65 @@ import CampaignStart from "./CampaignStart";
 import CampaignRuntime from "./CampaignRuntime";
 import CharacterBuilder from "./CharacterBuilder";
 import Gallery, { imageUrl, ZoomImage } from "./Gallery";
+import { Tour, TourInvite, type TourStep } from "./Tour";
 import type { CampaignView } from "./campaignRuntimeTypes";
 import {
   CampaignSharing,
   PublicationControls,
   type Publication,
 } from "./WikiSharing";
+
+function campaignTour(gm: boolean, pl: boolean, show: (view: CampaignView) => void): TourStep[] {
+  const t = (a: string, b: string) => (pl ? a : b);
+  const help: TourStep = {
+    target: "help",
+    title: t("Jak to działa?", "How does it work?"),
+    body: t("Ten przewodnik włączysz ponownie w każdej chwili.", "Open this guide again any time."),
+  };
+  if (!gm)
+    return [
+      { target: "tab-materials", before: () => show("materials"), title: t("Materiały świata", "World material"),
+        body: t("Tu prowadzący publikuje to, co wie twoja postać: miejsca, ludzi, wskazówki. Tu znajdziesz też swoją kartę postaci po zatwierdzeniu.",
+          "The GM publishes what your character knows here: places, people, clues. Your approved character sheet appears here too."),
+        why: t("Widzisz tylko to, co prowadzący świadomie udostępnił. Reszta to jego notatki i sekrety.",
+          "You only see what the GM chose to share. Everything else is their notes and secrets.") },
+      { target: "tab-characters", before: () => show("characters"), title: t("Tworzenie postaci", "Character creation"),
+        body: t("Tworzysz tu postać krok po kroku według zasad kampanii, a potem wysyłasz ją prowadzącemu.",
+          "Build your character step by step with the campaign rules, then send it to the GM."),
+        why: t("Prowadzący zatwierdza postać, żeby pasowała do zasad i historii. Po zatwierdzeniu karta trafia do Materiałów świata.",
+          "The GM approves characters so they fit the rules and the story. Once approved, the sheet appears in World material.") },
+      { target: "tab-gallery", before: () => show("gallery"), title: t("Galeria", "Gallery"),
+        body: t("Obrazy klimatu i sprzętu od prowadzącego. Kliknij obraz, żeby go powiększyć.",
+          "Mood and gear images from the GM. Click an image to enlarge it."),
+        why: t("Obrazy są prywatne dla tej kampanii i nie mają publicznych linków.",
+          "Images are private to this campaign and have no public links.") },
+      help,
+    ];
+  return [
+    { target: "tab-run", before: () => show("run"), title: t("Prowadzenie", "Run session"),
+      body: t("Wydarzenia do rozegrania teraz, stan świata i następny dzień.", "Events to play now, world state and the next day."),
+      why: t("Każda decyzja pokazuje skutki przed zapisem, więc nic nie zmienia się przypadkiem.",
+        "Every decision previews its consequences before saving, so nothing changes by accident.") },
+    { target: "tab-timeline", before: () => show("timeline"), title: t("Oś czasu", "Timeline"),
+      body: t("Zaplanowane i rozegrane wydarzenia z terminami.", "Planned and played events with their deadlines.") },
+    { target: "tab-actors", before: () => show("actors"), title: t("Postacie", "Characters"),
+      body: t("Statystyki i relacje NPC oraz postaci graczy.", "Stats and relationships of NPCs and player characters.") },
+    { target: "tab-characters", before: () => show("characters"), title: t("Tworzenie postaci", "Character creation"),
+      body: t("Wgrywasz tu zasady tworzenia postaci i zatwierdzasz postacie graczy.", "Upload character rules here and approve players' characters."),
+      why: t("Zatwierdzona postać od razu trafia do wiki i jest widoczna dla swojego gracza.",
+        "An approved character goes straight to the wiki and becomes visible to its player.") },
+    { target: "tab-gallery", before: () => show("gallery"), title: t("Galeria", "Gallery"),
+      body: t("Obrazy kampanii: okładka, ilustracje stron i obrazki dla graczy.", "Campaign images: cover, page illustrations and pictures for players."),
+      why: t("Gracz zobaczy obraz tylko wtedy, gdy go udostępnisz albo użyjesz w czymś, co już widzi.",
+        "Players only see an image you share or use in something they can already see.") },
+    { target: "tab-materials", before: () => show("materials"), title: t("Materiały świata", "World material"),
+      body: t("Wiki kampanii: piszesz szkice, a graczom publikujesz wybrane strony. Ustawienia kampanii i zaproszenia też są tutaj.",
+        "The campaign wiki: write drafts and publish chosen pages to players. Campaign settings and invitations live here too."),
+      why: t("Szkic i publikacja są osobno: poprawiasz spokojnie, gracze widzą wersję, którą zatwierdziłeś.",
+        "Drafts and publications are separate: edit calmly, players see the version you published.") },
+    help,
+  ];
+}
 
 type Meta = {
   id: string;
@@ -161,6 +214,7 @@ export default function CampaignWiki() {
   const [editing, setEditing] = useState(false);
   const [graph, setGraph] = useState(false);
   const [view, setView] = useState<CampaignView>("run");
+  const [tourOpen, setTourOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Meta[] | null>(null);
   const [target, setTarget] = useState("");
@@ -599,6 +653,7 @@ export default function CampaignWiki() {
             ).map((tab) => (
               <button
                 key={tab}
+                data-tour={`tab-${tab}`}
                 aria-current={view === tab ? "page" : undefined}
                 onClick={() => {
                   if (mayLeave()) {
@@ -623,9 +678,33 @@ export default function CampaignWiki() {
                 }
               </button>
             ))}
+            <button type="button" className="tour-help" data-tour="help" onClick={() => setTourOpen(true)}>
+              {t("Jak to działa?", "How does it work?")}
+            </button>
           </nav>
         )}
       </div>
+      {user && campaign && (
+        <TourInvite
+          key={`${campaign.id}:${canEdit ? "gm" : "player"}`}
+          id={`campaign-${canEdit ? "gm" : "player"}`}
+          pl={pl}
+          text={canEdit
+            ? t("Pierwszy raz prowadzisz tu kampanię? Pokażę w minutę, gdzie co jest i jak gracze to zobaczą.",
+                "First time running a campaign here? A one-minute tour shows where everything is and what players see.")
+            : t("Pierwszy raz w tej kampanii? Pokażę w minutę, gdzie znajdziesz materiały, jak stworzyć postać i co dzieje się potem.",
+                "New to this campaign? A one-minute tour shows where to find material, how to create your character and what happens next.")}
+          onStart={() => setTourOpen(true)}
+        />
+      )}
+      {tourOpen && campaign && (
+        <Tour
+          id={`campaign-${canEdit ? "gm" : "player"}`}
+          pl={pl}
+          steps={campaignTour(canEdit, pl, (next) => setView(next))}
+          onClose={() => setTourOpen(false)}
+        />
+      )}
       {inviteToken && (
         <section className="wiki-invite-accept">
           <h2>{t("Zaproszenie do kampanii", "Campaign invitation")}</h2>
@@ -1151,6 +1230,7 @@ export default function CampaignWiki() {
                       setView("materials");
                       goPage(id);
                     }}
+                    onMaterials={() => setView("materials")}
                   />
                 )}
                 <div hidden={focusView}>

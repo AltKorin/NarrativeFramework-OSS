@@ -58,3 +58,52 @@
 .builder-catalog .builder-thumb { width: 64px; height: 64px; flex: 0 0 64px; }
 .builder-check .builder-thumb { width: 40px; height: 40px; }
 .builder-catalog .zoom-trigger.builder-thumb { width: 64px; height: 64px; flex: 0 0 64px; overflow: hidden; border-radius: 3px; }
+/* Guided builder: step path, help, steppers, budget meter, sticky actions, player path. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.character-builder .builder-steps { display: flex; gap: 6px; flex-wrap: wrap; list-style: none; padding: 0; margin: 16px 0 4px; }
+.character-builder .builder-steps li { flex: 1 1 120px; }
+.character-builder .builder-steps button { display: flex; gap: 8px; align-items: center; width: 100%; padding: 8px 10px; text-align: left; }
+.builder-step-number { display: inline-grid; place-items: center; min-width: 1.6em; height: 1.6em; border-radius: 50%; border: 1px solid var(--campaign-border, #c4cebf); font-size: 0.85em; }
+.step-done .builder-step-number { background: var(--campaign-accent, #31594a); color: var(--campaign-on-accent, #fffef9); border-color: var(--campaign-accent, #31594a); }
+.builder-grid { grid-template-columns: minmax(0, 1fr) 300px; }
+.builder-help { margin-bottom: 12px; padding: 12px 14px; background: var(--campaign-raised, #edf1e7); border-radius: 4px; }
+.builder-help p { margin: 0; line-height: 1.5; }
+.builder-help-do { font-size: 1.05em; font-weight: 600; margin-bottom: 6px !important; }
+.builder-help-why { color: var(--campaign-muted, #566b5c); }
+.builder-step-problems { margin: 12px 0 0; padding: 10px 14px 10px 30px; border-left: 4px solid var(--campaign-danger, #b3261e); color: var(--campaign-danger, #b3261e); }
+.builder-stepper { display: grid; gap: 4px; }
+.builder-stepper-label { font-size: 0.92em; }
+.builder-stepper-controls { display: flex; align-items: stretch; }
+.builder-stepper-controls button { min-width: 2.4em; }
+.builder-stepper-controls input { width: 3.4em; text-align: center; }
+.builder-budget { display: grid; gap: 4px; margin: 4px 0 12px; }
+.builder-budget meter { width: 100%; height: 12px; }
+.builder-actions { position: sticky; bottom: 0; z-index: 5; padding: 12px 0; background: var(--campaign-canvas, #fffef9); border-top: 1px solid var(--campaign-border, #c4cebf); }
+.builder-actions-hint { color: var(--campaign-muted, #566b5c); }
+.builder-delete { margin-left: auto; }
+.player-path { margin: 8px 0 20px; padding: 16px 20px; border: 1px solid var(--campaign-border, #c4cebf); border-radius: 4px; background: var(--campaign-surface, #fffef9); }
+.player-path h3 { margin: 0 0 10px; }
+.player-path ol { margin: 0; padding-left: 22px; display: grid; gap: 10px; }
+.player-path li { display: grid; gap: 4px; justify-items: start; }
+.player-path li span { color: var(--campaign-muted, #566b5c); }
+.player-path .path-done strong::after { content: " ✓"; color: var(--campaign-accent, #31594a); }
+.player-path .path-action strong, .player-path .path-action span { color: var(--campaign-danger, #b3261e); }
+@media (max-width: 960px) { .builder-grid { grid-template-columns: 1fr; } .character-builder .builder-steps li { flex: 1 1 45%; } }
+/* Primary actions use the campaign accent (the campaign view has no global .primary style). */
+.character-builder button.primary, .tour-card button.primary, .tour-invite button.primary {
+  background: var(--campaign-accent, #31594a); color: var(--campaign-on-accent, #fffef9); border-color: var(--campaign-accent, #31594a); font-weight: 600;
+}
+.character-builder button.primary:disabled { opacity: 0.45; }
+.builder-methods button { border-color: var(--campaign-accent, #31594a); }
+.builder-methods button strong { color: var(--campaign-text, #233b32); font-size: 1.05em; }
+/* Player path markers: number while open, check when done, exclamation when action is needed. */
+.player-path ol { list-style: none; padding-left: 0; counter-reset: path; }
+.player-path li { position: relative; padding-left: 40px; counter-increment: path; }
+.player-path li::before {
+  content: counter(path); position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 28px; height: 28px;
+  border-radius: 50%; border: 1px solid var(--campaign-border, #c4cebf); font-weight: 600;
+}
+.player-path .path-current::before { border-color: var(--campaign-accent, #31594a); color: var(--campaign-accent, #31594a); }
+.player-path .path-done::before { content: "✓"; background: var(--campaign-accent, #31594a); border-color: var(--campaign-accent, #31594a); color: var(--campaign-on-accent, #fffef9); }
+.player-path .path-action::before { content: "!"; border-color: var(--campaign-danger, #b3261e); color: var(--campaign-danger, #b3261e); }
+.player-path .path-done strong::after { content: none; }

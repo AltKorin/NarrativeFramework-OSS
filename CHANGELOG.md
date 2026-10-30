@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Guided campaign experience: a spotlight tour ("How does it work?") for players and GMs explains each view and why it works that way; a non-blocking first-visit invitation (hidden on phones). Character creation becomes a guided path: step bar with done/to-do status, "what you do / why" help per step, gaps shown on their own step, −/+ steppers with a points meter, sticky actions and a builder tour. Players get a "Your way through the campaign" path; approving a character now publishes its sheet to that player (NPCs stay GM-only).
+
 - Click-to-enlarge for campaign images (gallery, cover, page illustrations, catalog items in character creation) using the native `<dialog>`: full-size image with caption, closes with Escape, click or Close.
 
 - Campaign images: GM gallery (upload, caption, share with players, delete with usage summary), campaign cover, page illustrations published with the page, and role/item/method images in character creation via `image` in rule packs. Uploads are decoded and re-encoded to WebP ≤1600 px without metadata (Pillow 13, pixel and size limits), stored in PostgreSQL and served only through an authenticated, private, non-indexable endpoint; players see an image only through the player gallery, the cover, a page published to them or the ruleset. Caddy allows 9 MB only on the upload path. Author MCP image tools. Additive migration `0010_campaign_images`.

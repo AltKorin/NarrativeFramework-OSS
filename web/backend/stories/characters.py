@@ -239,7 +239,8 @@ def list_drafts(user, campaign_id):
     qs = c.character_drafts.all() if gm else c.character_drafts.filter(member=c.wiki_member)
     return [{"id": str(d.id), "status": d.status, "method": d.method, "version": d.version,
              "member": str(d.member_id) if d.member_id else None,
-             "name": fold(d.events)["name"], "updated_at": d.updated_at.isoformat()}
+             "name": fold(d.events)["name"], "page": str(d.page_id) if d.page_id else None,
+             "updated_at": d.updated_at.isoformat()}
             for d in qs.order_by("-updated_at")[:200]]
 
 
@@ -485,6 +486,10 @@ def approve(c, user, pack, draft):
     c.runtime = runtime
     c.save(update_fields=["runtime"])
     wiki.touch(c, user, "character.approved", page["id"])
+    if draft.member_id:  # the player can find their own sheet in World material right away
+        from . import wiki_sharing
+        wiki_sharing.publish(user, c.id, page["id"], {"version": WikiPage.objects.get(pk=page["id"]).version,
+                                                       "audience": "selected", "recipients": [str(draft.member_id)]})
     draft.page = WikiPage.objects.get(pk=page["id"])
     draft.status = "approved"
     draft.events = draft.events + [{"type": "approved", "page": page["id"]}]
@@ -495,7 +500,7 @@ def markdown(pack, state, result):
                                       **{d["id"]: d["label"] for d in pack["derived"]}}
     role = lookup(pack, "roles").get(state["role"])
     catalog, skills = lookup(pack, "catalog"), lookup(pack, "skills")
-    lines = [f"## {state['name']}", ""]
+    lines = []  # the page title already carries the character's name
     if role:
         ability = role.get("ability")
         lines.append(f"**{role['label']}**" + (f" · {ability['label']} {ability['rank']}" if ability else ""))

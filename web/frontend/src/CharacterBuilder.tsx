@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { newUUID } from "./uuid";
 import { ZoomImage } from "./Gallery";
+import { Tour, TourInvite, type TourStep } from "./Tour";
 import "./character-builder.css";
 
 type Request = (path: string, method?: string, body?: unknown) => Promise<any>;
@@ -16,7 +17,7 @@ type Pack = {
   roles: Item[];
   methods: Item[];
 };
-type Summary = { id: string; status: string; method: string; version: number; member: string | null; name: string | null };
+type Summary = { id: string; status: string; method: string; version: number; member: string | null; name: string | null; page?: string | null };
 type Draft = Summary & {
   review_note: string;
   page: string | null;
@@ -73,6 +74,76 @@ const say = (pl: boolean, text: string) => {
   return match ? text.replace(match[0], match[1]) : text;
 };
 
+// Which rule problems belong to which step, so each step shows its own gaps.
+const STEP_PROBLEMS: Record<string, RegExp> = {
+  role: /^Choose a role$/,
+  template: /^Choose a template$/,
+  stats_points: /statistic points|^Set statistics$/,
+  stats_role_roll: /^Set statistics$/,
+  skills_points: /^Skill points|: too high$|below the role package$|: at least \d+$/,
+  gear_package: /from the role package/,
+  shop: /budget|categories|requires |no free slot|: max \d+$|install as a pair|^Only one of|: below -?\d+$|^unknown item$/,
+  tables: /^Roll /,
+  name: /^Name the character$/,
+};
+function stepProblems(step: Item, steps: Item[], problems: string[]) {
+  let pattern = STEP_PROBLEMS[step.type];
+  // Without a shop step, item rules (slots, requirements, pools) are about the role gear.
+  if (step.type === "gear_package" && !steps.some((s) => s.type === "shop")) pattern = new RegExp(`${pattern.source}|${STEP_PROBLEMS.shop.source}`);
+  return pattern ? problems.filter((p) => pattern.test(p)) : [];
+}
+
+// What the player does in each step and why the rules work that way (system-neutral copy).
+const STEP_HELP: Record<string, [string, string, string, string]> = {
+  role: ["Wybierz, kim jest twoja postać w drużynie.", "Choose who your character is in the crew.",
+    "Rola daje zdolność specjalną i decyduje o pakietach w kolejnych krokach, dlatego jest pierwsza.", "The role grants a special ability and shapes the packages in later steps, so it comes first."],
+  template: ["Wybierz gotową postać swojej roli.", "Pick a ready-made character for your role.",
+    "To najszybsza droga: statystyki, umiejętności i sprzęt są już dobrane zgodnie z zasadami.", "The fastest route: stats, skills and gear already follow the rules."],
+  stats_points: ["Rozdziel punkty między statystyki.", "Spread points across your statistics.",
+    "Statystyki to wrodzone możliwości postaci. Pula jest stała, żeby wszyscy startowali z równą siłą.", "Statistics are innate ability. The pool is fixed so everyone starts on equal footing."],
+  stats_role_roll: ["Rzuć, żeby poznać statystyki z tabeli twojej roli.", "Roll to get statistics from your role's table.",
+    "Rzuca serwer i zapisuje wynik, więc prowadzący widzi uczciwą historię. Ponowny rzut tylko za jego zgodą.", "The server rolls and records it, so the GM sees an honest history. Rerolls need the GM's permission."],
+  skills_package: ["To umiejętności, które dostajesz od roli.", "These skills come with your role.",
+    "To twój start. W następnym kroku możesz je rozwinąć, ale nie obniżyć.", "This is your start. You can raise them next, but not lower them."],
+  skills_points: ["Kupuj poziomy umiejętności z puli punktów.", "Buy skill levels from the point pool.",
+    "W teście dodajesz umiejętność do powiązanej statystyki. Trudniejsze umiejętności kosztują więcej punktów za poziom.", "In a check you add the skill to its linked statistic. Harder skills cost more points per level."],
+  gear_package: ["Wybierz sprzęt z pakietu swojej roli.", "Choose gear from your role package.",
+    "Pakiet jest darmowy, ale wszczepy zużywają pulę (np. człowieczeństwo) widoczną na karcie obok.", "The package is free, but implants use up a pool (such as humanity) shown on the sheet."],
+  shop: ["Kup sprzęt i wszczepy za budżet startowy.", "Buy gear and implants with your starting budget.",
+    "Wszczepy zużywają pulę widoczną na karcie. Jej spadek może obniżyć powiązane statystyki, więc patrz na kartę, zanim kupisz więcej.", "Implants use up a pool shown on the sheet. Losing it can lower linked statistics, so check the sheet before buying more."],
+  tables: ["Rzuć albo wybierz wydarzenia z przeszłości postaci.", "Roll or choose events from your character's past.",
+    "Historia daje prowadzącemu haczyki fabularne: przyjaciół, wrogów i cele twojej postaci.", "Your history gives the GM story hooks: friends, enemies and goals."],
+  name: ["Nadaj postaci imię i opisz jej wygląd.", "Name your character and describe how they look.",
+    "Pod tym imieniem postać pojawi się w wiki kampanii po zatwierdzeniu.", "Your character appears in the campaign wiki under this name once approved."],
+};
+
+function NumberStepper({ label, hint, value, min, max, onChange, pl }: {
+  label: string; hint?: string; value: number; min: number; max: number; onChange: (v: number) => void; pl: boolean;
+}) {
+  const clamp = (v: number) => Math.max(min, Math.min(max, v));
+  return (
+    <div className="builder-stepper" title={hint}>
+      <span className="builder-stepper-label">{label}</span>
+      <div className="builder-stepper-controls">
+        <button type="button" aria-label={`${pl ? "Zmniejsz" : "Decrease"}: ${label}`} disabled={value <= min} onClick={() => onChange(clamp(value - 1))}>−</button>
+        <input type="number" aria-label={label} min={min} max={max} value={value} onChange={(e) => onChange(clamp(Number(e.target.value) || min))} />
+        <button type="button" aria-label={`${pl ? "Zwiększ" : "Increase"}: ${label}`} disabled={value >= max} onClick={() => onChange(clamp(value + 1))}>+</button>
+      </div>
+    </div>
+  );
+}
+
+function Budget({ spent, pool, pl }: { spent: number; pool: number; pl: boolean }) {
+  const left = pool - spent;
+  return (
+    <div className={`builder-budget ${left === 0 ? "builder-ok" : "builder-counter"}`} data-tour="builder-budget">
+      <meter min={0} max={pool} value={Math.min(spent, pool)} />
+      <span>{pl ? `Wydane punkty: ${spent} / ${pool}` : `Points spent: ${spent} / ${pool}`}
+        {" · "}{left > 0 ? (pl ? `zostało ${left}` : `${left} left`) : left < 0 ? (pl ? `za dużo o ${-left}` : `${-left} too many`) : (pl ? "wszystko rozdane" : "all spent")}</span>
+    </div>
+  );
+}
+
 const STATUS: Record<string, [string, string]> = {
   draft: ["W przygotowaniu", "In progress"],
   submitted: ["Czeka na MG", "Waiting for GM"],
@@ -80,12 +151,13 @@ const STATUS: Record<string, [string, string]> = {
   approved: ["Zatwierdzona", "Approved"],
 };
 
-export default function CharacterBuilder({ campaignId, gm, pl, request, onPage }: {
+export default function CharacterBuilder({ campaignId, gm, pl, request, onPage, onMaterials }: {
   campaignId: string;
   gm: boolean;
   pl: boolean;
   request: Request;
   onPage: (id: string) => void;
+  onMaterials: () => void;
 }) {
   const t = (a: string, b: string) => (pl ? a : b);
   const base = `campaigns/${campaignId}/`;
@@ -140,6 +212,7 @@ export default function CharacterBuilder({ campaignId, gm, pl, request, onPage }
       ) : (
         <>
           <h2 id="builder-title">{t("Tworzenie postaci", "Character creation")}</h2>
+          {!gm && <PlayerPath drafts={drafts} hasRules={!!ruleset} pl={pl} onMaterials={onMaterials} onPage={onPage} />}
           {gm && <RulesetPanel ruleset={ruleset} pl={pl} busy={busy}
             upload={(document) => run(async () => {
               await request(base + "ruleset/", "PUT", { version: ruleset?.revision || 0, document });
@@ -166,6 +239,51 @@ export default function CharacterBuilder({ campaignId, gm, pl, request, onPage }
       )}
     </section>
     </ImageUrl.Provider>
+  );
+}
+
+/** The player's whole journey in one place, driven by real draft state. */
+function PlayerPath({ drafts, hasRules, pl, onMaterials, onPage }: {
+  drafts: Summary[]; hasRules: boolean; pl: boolean; onMaterials: () => void; onPage: (id: string) => void;
+}) {
+  const t = (a: string, b: string) => (pl ? a : b);
+  const approved = drafts.find((d) => d.status === "approved" && d.page);
+  const returned = drafts.find((d) => d.status === "returned");
+  const submitted = drafts.find((d) => d.status === "submitted");
+  const started = drafts.find((d) => d.status === "draft");
+  const create = approved || submitted || returned ? "done" : started ? "current" : "todo";
+  const review = approved ? "done" : returned ? "action" : submitted ? "current" : "todo";
+  return (
+    <section className="player-path" data-tour="player-path" aria-labelledby="player-path-title">
+      <h3 id="player-path-title">{t("Twoja droga w kampanii", "Your way through the campaign")}</h3>
+      <ol>
+        <li className="path-current">
+          <strong>{t("Poznaj świat", "Learn the world")}</strong>
+          <span>{t("Prowadzący publikuje w Materiałach świata to, co wie twoja postać.", "The GM publishes what your character knows in World material.")}</span>
+          <button type="button" onClick={onMaterials}>{t("Otwórz Materiały świata", "Open World material")}</button>
+        </li>
+        <li className={`path-${create}`}>
+          <strong>{t("Stwórz postać", "Create your character")}</strong>
+          <span>{!hasRules ? t("Czekamy, aż prowadzący doda zasady tworzenia postaci.", "Waiting for the GM to add character rules.")
+            : create === "done" ? t("Postać wysłana.", "Character sent.")
+            : create === "current" ? t("Masz rozpoczętą postać — dokończ ją z listy poniżej.", "You have a character in progress — finish it from the list below.")
+            : t("Wybierz metodę poniżej. Kreator poprowadzi cię krok po kroku.", "Pick a method below. The builder guides you step by step.")}</span>
+        </li>
+        <li className={`path-${review}`}>
+          <strong>{t("Decyzja prowadzącego", "The GM's decision")}</strong>
+          <span>{review === "done" ? t("Postać zatwierdzona.", "Character approved.")
+            : review === "action" ? t("Prowadzący odesłał postać z uwagą — otwórz ją i popraw.", "The GM returned your character with a note — open it and fix it.")
+            : review === "current" ? t("Postać czeka na prowadzącego.", "Your character is waiting for the GM.")
+            : t("Prowadzący sprawdza, czy postać pasuje do zasad i historii.", "The GM checks that the character fits the rules and the story.")}</span>
+        </li>
+        <li className={approved ? "path-done" : "path-todo"}>
+          <strong>{t("Twoja karta", "Your sheet")}</strong>
+          <span>{approved ? t("Karta jest w Materiałach świata, widoczna dla ciebie i prowadzącego.", "Your sheet is in World material, visible to you and the GM.")
+            : t("Po zatwierdzeniu karta pojawi się w Materiałach świata.", "Once approved, your sheet appears in World material.")}</span>
+          {approved && <button type="button" className="primary" onClick={() => onPage(approved.page!)}>{t("Otwórz moją kartę", "Open my sheet")}</button>}
+        </li>
+      </ol>
+    </section>
   );
 }
 
@@ -253,6 +371,26 @@ function NewDraft({ methods, pl, busy, create }: { methods: Item[]; pl: boolean;
   );
 }
 
+function builderTour(pl: boolean, editable: boolean): TourStep[] {
+  const t = (a: string, b: string) => (pl ? a : b);
+  const steps: TourStep[] = [
+    { target: "builder-steps", title: t("Kroki tworzenia", "Creation steps"),
+      body: t("Idziesz po kolei, ale możesz wrócić do każdego kroku. Znaczek przy kroku mówi, czy jest gotowy.", "Go in order, but you can return to any step. The mark next to a step tells you whether it is done."),
+      why: t("Kolejność wynika z zasad: rola wpływa na pakiety, a statystyki na wartości na karcie.", "The order follows the rules: the role shapes packages, and statistics shape values on the sheet.") },
+    { target: "builder-step", title: t("Bieżący krok", "Current step"),
+      body: t("Na górze przeczytasz, co robisz i dlaczego. Braki tego kroku pojawią się tutaj, a nie gdzieś indziej.", "The top explains what you do and why. This step's gaps appear right here."),
+      why: t("Zmiany zapisujesz przyciskiem w kroku. Dopiero wtedy karta obok się przelicza.", "Save changes with the step's button; only then does the sheet recalculate.") },
+    { target: "builder-sheet", title: t("Karta postaci", "Character sheet"),
+      body: t("Karta liczy się sama: punkty życia, pule (np. człowieczeństwo) i ostrzeżenia.", "The sheet calculates itself: hit points, pools (such as humanity) and warnings."),
+      why: t("Liczy serwer według zasad kampanii, więc to, co widzisz, zobaczy też prowadzący.", "The server calculates with the campaign rules, so the GM sees exactly what you see.") },
+  ];
+  if (editable)
+    steps.push({ target: "builder-submit", title: t("Wysyłka do prowadzącego", "Sending to the GM"),
+      body: t("Przycisk działa, gdy wszystkie kroki są gotowe. Prowadzący zatwierdzi postać albo odeśle ją z uwagą.", "The button works once every step is done. The GM approves the character or returns it with a note."),
+      why: t("Po zatwierdzeniu karta pojawi się w Materiałach świata, widoczna tylko dla ciebie i prowadzącego.", "Once approved, your sheet appears in World material, visible only to you and the GM.") });
+  return steps;
+}
+
 function DraftEditor({ draft, gm, pl, busy, act, onBack, onDelete, onPage }: {
   draft: Draft; gm: boolean; pl: boolean; busy: boolean;
   act: (command: Record<string, unknown>) => void; onBack: () => void; onDelete: () => void; onPage: (id: string) => void;
@@ -263,47 +401,73 @@ function DraftEditor({ draft, gm, pl, busy, act, onBack, onDelete, onPage }: {
   const steps: Item[] = method.steps;
   const editable = ["draft", "returned"].includes(draft.status) && (!gm || draft.member === null);
   const [index, setIndex] = useState(0);
+  const [tour, setTour] = useState(false);
   const step = steps[Math.min(index, steps.length - 1)];
   const [note, setNote] = useState("");
   const [reroll, setReroll] = useState("");
+  const gaps = steps.map((s) => stepProblems(s, steps, draft.problems));
+  const help = STEP_HELP[step.type];
   return (
     <div className="builder-editor">
       <div className="builder-editor-head">
         <button onClick={onBack} disabled={busy}>← {t("Lista postaci", "Characters")}</button>
         <h2 id="builder-title">{draft.state.name || t("Nowa postać", "New character")} · {method.label}</h2>
         <span className={`builder-status status-${draft.status}`}>{STATUS[draft.status]?.[pl ? 0 : 1]}</span>
+        <button type="button" className="tour-help" onClick={() => setTour(true)}>{t("Jak działa kreator?", "How does the builder work?")}</button>
       </div>
+      {editable && <TourInvite id="builder" pl={pl} onStart={() => setTour(true)}
+        text={t("Pierwsza postać? Pokażę w minutę kroki, kartę i to, co dzieje się po wysłaniu.", "First character? A one-minute tour shows the steps, the sheet and what happens after you send it.")} />}
+      {tour && <Tour id="builder" pl={pl} steps={builderTour(pl, editable)} onClose={() => setTour(false)} />}
       {draft.status === "returned" && <p className="builder-note">{t("Uwaga prowadzącego", "GM note")}: {draft.review_note}</p>}
-      {draft.status === "submitted" && !gm && <p className="builder-note">{t("Postać czeka na decyzję prowadzącego.", "Waiting for the GM's decision.")}</p>}
-      {draft.status === "approved" && <p className="builder-note">{t("Postać zatwierdzona i dodana do kampanii.", "Approved and added to the campaign.")}{" "}
-        {gm && draft.page && <button onClick={() => onPage(draft.page!)}>{t("Otwórz kartę", "Open sheet")}</button>}</p>}
+      {draft.status === "submitted" && !gm && <p className="builder-note">{t("Postać czeka na decyzję prowadzącego. Dostaniesz ją tutaj: zatwierdzenie albo uwagę do poprawy.", "Waiting for the GM's decision. It will show up here: approval or a note to fix.")}</p>}
+      {draft.status === "approved" && <p className="builder-note">{t("Postać zatwierdzona. Jej karta jest w Materiałach świata.", "Approved. The sheet is in World material.")}{" "}
+        {draft.page && <button onClick={() => onPage(draft.page!)}>{t("Otwórz kartę", "Open sheet")}</button>}</p>}
+      <ol className="builder-steps" data-tour="builder-steps" aria-label={t("Kroki tworzenia postaci", "Character creation steps")}>
+        {steps.map((s, i) => (
+          <li key={i} className={gaps[i].length ? "step-todo" : "step-done"}>
+            <button aria-current={i === index ? "step" : undefined} onClick={() => setIndex(i)}>
+              <span className="builder-step-number" aria-hidden="true">{gaps[i].length ? i + 1 : "✓"}</span>
+              <span>{stepLabel(s, pack, pl)}</span>
+              <span className="visually-hidden">{gaps[i].length ? t(" — do zrobienia", " — to do") : t(" — gotowe", " — done")}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
       <div className="builder-grid">
-        <ol className="builder-steps">
-          {steps.map((s, i) => (
-            <li key={i}><button aria-current={i === index ? "step" : undefined} onClick={() => setIndex(i)}>{stepLabel(s, pack, pl)}</button></li>
-          ))}
-        </ol>
-        <div className="builder-step">
+        <div className="builder-step" data-tour="builder-step">
+          {help && (
+            <div className="builder-help">
+              <p className="builder-help-do">{pl ? help[0] : help[1]}</p>
+              <p className="builder-help-why"><strong>{t("Dlaczego? ", "Why? ")}</strong>{pl ? help[2] : help[3]}</p>
+            </div>
+          )}
           <fieldset disabled={!editable || busy}>
             <legend>{stepLabel(step, pack, pl)}</legend>
             <Step key={`${index}-${draft.version}`} step={step} draft={draft} pl={pl} act={act} />
           </fieldset>
-          <div className="builder-nav">
-            {index > 0 && <button onClick={() => setIndex(index - 1)}>← {t("Wstecz", "Back")}</button>}
-            {index < steps.length - 1 && <button className="primary" onClick={() => setIndex(index + 1)}>{t("Dalej", "Next")} →</button>}
-          </div>
+          {gaps[index].length > 0 && editable && (
+            <ul className="builder-step-problems" aria-label={t("Do zrobienia w tym kroku", "To do in this step")}>
+              {gaps[index].map((p) => <li key={p}>{say(pl, p)}</li>)}
+            </ul>
+          )}
         </div>
         <SheetPanel draft={draft} pl={pl} />
       </div>
       <div className="builder-actions">
+        <button disabled={index === 0} onClick={() => setIndex(index - 1)}>{t("Wstecz", "Back")}</button>
+        {index < steps.length - 1 && (
+          <button className={gaps[index].length ? "" : "primary"} onClick={() => setIndex(index + 1)}>{t("Dalej", "Next")}</button>
+        )}
         {editable && (
-          <button className="primary" disabled={busy || draft.problems.length > 0} onClick={() => act({ action: "submit" })}>
+          <button className="primary" data-tour="builder-submit" disabled={busy || draft.problems.length > 0} onClick={() => act({ action: "submit" })}>
             {draft.member === null ? t("Zapisz postać w kampanii", "Save character to campaign") : t("Wyślij do prowadzącego", "Send to GM")}
           </button>
         )}
-        {editable && draft.problems.length > 0 && <span>{t("Najpierw uzupełnij braki z listy obok.", "Fix the items listed next to the sheet first.")}</span>}
+        {editable && draft.problems.length > 0 && (
+          <span className="builder-actions-hint">{t(`Kroki do uzupełnienia: ${gaps.filter((g) => g.length).length}`, `Steps left: ${gaps.filter((g) => g.length).length}`)}</span>
+        )}
         {draft.status !== "approved" && (editable || gm) && (
-          <button disabled={busy} onClick={() => confirm(t("Usunąć tę postać? Tej operacji nie można cofnąć.", "Delete this character? This cannot be undone.")) && onDelete()}>
+          <button className="builder-delete" disabled={busy} onClick={() => confirm(t("Usunąć tę postać? Tej operacji nie można cofnąć.", "Delete this character? This cannot be undone.")) && onDelete()}>
             {t("Usuń postać", "Delete character")}
           </button>
         )}
@@ -421,13 +585,11 @@ function StatPoints({ step, draft, pl, act }: { step: Item; draft: Draft; pl: bo
   const spent = Object.values(values).reduce((a, b) => a + b, 0);
   return (
     <div>
-      <p className={spent === step.pool ? "builder-ok" : "builder-counter"}>{t("Wydane punkty", "Points spent")}: {spent} / {step.pool}</p>
+      <Budget spent={spent} pool={step.pool} pl={pl} />
       <div className="builder-number-grid">
         {pack.stats.map((s) => (
-          <label key={s.id} title={s.description}>{s.label}
-            <input type="number" min={step.min ?? s.min} max={step.max ?? s.max} value={values[s.id]}
-              onChange={(e) => setValues({ ...values, [s.id]: Number(e.target.value) })} />
-          </label>
+          <NumberStepper key={s.id} label={s.label} hint={s.description} value={values[s.id]} pl={pl}
+            min={step.min ?? s.min} max={step.max ?? s.max} onChange={(v) => setValues({ ...values, [s.id]: v })} />
         ))}
       </div>
       <button className="primary" onClick={() => act({ action: "set_stats", values })}>{t("Zapisz statystyki", "Save statistics")}</button>
@@ -448,16 +610,15 @@ function SkillPoints({ step, draft, pl, act }: { step: Item; draft: Draft; pl: b
   const categories = [...new Set(pack.skills.map((s) => s.category || ""))];
   return (
     <div>
-      <p className={spent === step.pool ? "builder-ok" : "builder-counter"}>{t("Wydane punkty", "Points spent")}: {spent} / {step.pool}</p>
+      <Budget spent={spent} pool={step.pool} pl={pl} />
       {categories.map((c) => (
         <div key={c}>
           {c && <h4>{c}</h4>}
           <div className="builder-number-grid">
             {pack.skills.filter((s) => (s.category || "") === c).map((s) => (
-              <label key={s.id}>{s.label} <small>({s.stat}{s.cost > 1 ? ` · ×${s.cost}` : ""}{s.basic_min ? ` · min ${s.basic_min}` : ""})</small>
-                <input type="number" min={base[s.id] || 0} max={Math.min(s.max, step.max ?? s.max)} value={values[s.id] || 0}
-                  onChange={(e) => setValues({ ...values, [s.id]: Number(e.target.value) })} />
-              </label>
+              <NumberStepper key={s.id} pl={pl} value={values[s.id] || 0} min={base[s.id] || 0} max={Math.min(s.max, step.max ?? s.max)}
+                label={`${s.label} (${s.stat}${s.cost > 1 ? ` ×${s.cost}` : ""}${s.basic_min ? `, min ${s.basic_min}` : ""})`}
+                onChange={(v) => setValues({ ...values, [s.id]: v })} />
             ))}
           </div>
         </div>
@@ -607,7 +768,7 @@ function SheetPanel({ draft, pl }: { draft: Draft; pl: boolean }) {
   const pack = draft.ruleset;
   const labels = useMemo(() => Object.fromEntries(pack.derived.map((d) => [d.id, d.label])), [pack]);
   return (
-    <aside className="builder-sheet" aria-label={t("Karta postaci", "Character sheet")}>
+    <aside className="builder-sheet" data-tour="builder-sheet" aria-label={t("Karta postaci", "Character sheet")}>
       <h3>{t("Karta", "Sheet")}</h3>
       {draft.stats && (
         <dl className="builder-stat-grid">
