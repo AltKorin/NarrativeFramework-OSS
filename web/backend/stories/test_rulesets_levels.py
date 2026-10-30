@@ -324,3 +324,44 @@ class ResolveTests(SimpleTestCase):
     def test_axes_before_stats_do_not_crash(self):
         r = resolve(stats=None, choices=CHOICES_WOJ3_MAG2)
         self.assertFalse(any("requires" in p or "above" in p for p in r["problems"]))
+
+
+def sheet_for(level=5, base=BASE, axes=WOJ3_MAG2, choices=None, document=None):
+    pack = rulesets.load(document or mini_levels())
+    resolution = rulesets.resolve(pack, level, axes, choices or {}, base)
+    return rulesets.sheet(pack, base, resolution["grants"]["ranks"], resolution["grants"]["items"], None, resolution)
+
+
+class LevelSheetTests(SimpleTestCase):
+    def test_multiclass_sheet_hand_computed(self):
+        # Circle 5: fighter 3 + mage 2; array SIL 15, WIE 14, ZRE 8; fisher +2 SIL, +1 ZRE; fighter skill: walka
+        s = sheet_for(choices=CHOICES_WOJ3_MAG2)
+        self.assertEqual(s["problems"], [])
+        self.assertEqual(s["base_stats"], BASE)
+        self.assertEqual(s["stats"], {"SIL": 17, "ZRE": 9, "WIE": 14})
+        self.assertEqual(s["level"], 5)
+        self.assertEqual(s["variables"], {"ZYCIE_KL": 30, "MAGIA": 2})  # 10 + 2*6 + 2*4
+        self.assertEqual(s["progressions"], {"BIEG": 3, "SZTUCZKI_MAG": 2, "KOMORKI": 3})
+        self.assertEqual(s["derived"], {"ZYCIE": 45, "KP": 9, "KOMORKI_TERAZ": 3})  # 30 + 3*5; 10 - 1
+        self.assertEqual(s["skill_values"], {"walka": 6, "skradanie": 2, "wiedza": 2, "odp_sil": 6})
+        self.assertEqual([f["label"] for f in s["features"]], ["Mur tarcz"])
+        self.assertEqual(s["choices"]["woj_styl"], ["Tarcza"])
+        self.assertEqual(s["items"], ["siec"])
+
+    def test_feat_adds_variable_per_level(self):
+        s = sheet_for(level=4, axes=WOJ4, choices={"woj_dar_4": {"picks": ["twardy"]}})
+        self.assertEqual(s["variables"]["ZYCIE_KL"], 36)  # 10 + 3*6 + 2*4
+        self.assertEqual(s["variables"]["MAGIA"], 0)
+        self.assertEqual(s["progressions"]["KOMORKI"], 0)
+
+    def test_stat_above_max_is_a_problem(self):
+        s = sheet_for(base={"SIL": 15, "ZRE": 20, "WIE": 14}, choices={**CHOICES_WOJ3_MAG2, "woj_styl": {"picks": ["luk"]},
+                                                                       "rybak_cechy": {"values": {"SIL": 2, "WIE": 1}}})
+        self.assertEqual(s["stats"]["ZRE"], 21)
+        self.assertTrue(any("Zre" in p for p in s["problems"]))
+
+    def test_pack_without_levels_sheet_unchanged(self):
+        from .test_rulesets import mini
+        pack = rulesets.load(mini())
+        self.assertEqual(set(rulesets.sheet(pack, {"SIL": 5, "WOL": 5}, {}, [], None)),
+                         {"stats", "derived", "pools", "skills", "items", "price", "modifiers", "problems", "warnings"})

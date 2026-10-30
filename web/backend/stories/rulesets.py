@@ -213,6 +213,8 @@ def load(document):
     if pack.get("language") not in ("pl", "en"):
         fail("language must be pl or en")
     text(pack.get("source"), 1000, "source", required=False)
+    for key in ("skills", "pools", "derived", "catalog", "tables", "roles"):
+        pack.setdefault(key, [])  # optional domains; the sheet reads them directly
 
     stats = entries(pack, "stats", 80)
     for key, stat in stats.items():
@@ -825,18 +827,25 @@ def dependents(pack, items, removed):
     return lost
 
 
-def sheet(pack, stats, skills=None, items=(), losses=None):
-    """Compute a character sheet. `losses` maps pool -> total spent; defaults to fixed costs."""
+def sheet(pack, stats, skills=None, items=(), losses=None, resolution=None):
+    """Compute a character sheet. `losses` maps pool -> total spent; defaults to fixed costs.
+
+    With a `resolution` from resolve(), stats include granted bonuses and formulas see the level,
+    per-option levels, variables and progressions; skills are ranks valued by `skill_value`.
+    """
     stat_values(pack, stats, "character")
     catalog = {i["id"]: i for i in pack["catalog"]}
     items = list(items)
     problems = item_problems(pack, items)
+    base, extra = stats, {}
+    if resolution is not None:
+        stats, extra = levelled(pack, stats, resolution, problems)
     if losses is None:
         losses = {}
         for key in items:
             for pool, cost in catalog.get(key, {}).get("costs", {}).items():
                 losses[pool] = losses.get(pool, 0) + cost["fixed"]
-    values = dict(stats)
+    values = {**stats, **extra.get("symbols", {})}
     for key in pack["_order"]:
         if key in pack["_trees"]:
             values[key] = math.floor(evaluate(pack["_trees"][key], values))
@@ -854,7 +863,37 @@ def sheet(pack, stats, skills=None, items=(), losses=None):
     for key in dict.fromkeys(items):
         for modifier in catalog.get(key, {}).get("modifiers", []):
             modifiers[modifier["target"]] = modifiers.get(modifier["target"], 0) + modifier["value"]
-    return {"stats": stats, "derived": {d["id"]: values[d["id"]] for d in pack["derived"]},
-            "pools": pools, "skills": dict(skills or {}), "items": items,
-            "price": sum(catalog[x]["price"] for x in items if x in catalog),
-            "modifiers": modifiers, "problems": problems, "warnings": warnings}
+    result = {"stats": stats, "derived": {d["id"]: values[d["id"]] for d in pack["derived"]},
+              "pools": pools, "skills": dict(skills or {}), "items": items,
+              "price": sum(catalog[x]["price"] for x in items if x in catalog),
+              "modifiers": modifiers, "problems": problems, "warnings": warnings}
+    if resolution is None:
+        return result
+    ranks = skills or {}
+    skill_values = None
+    if pack.get("skill_value") is not None:
+        tree = pack["_formulas"][pack["skill_value"]]
+        skill_values = {s["id"]: math.floor(evaluate(tree, {**values, "RANK": ranks.get(s["id"], 0), "STAT": values[s["stat"]]}))
+                        for s in pack["skills"]}
+    return {**result, "base_stats": base, "level": extra["symbols"].get("LEVEL"), "variables": extra["variables"],
+            "progressions": extra["progressions"], "skill_values": skill_values,
+            "features": resolution["grants"]["features"], "choices": resolution["picked"]}
+
+
+def levelled(pack, base, resolution, problems):
+    """Final stats plus the symbol table (level, per-option levels, variables, progressions)."""
+    stats = {k: v + resolution["grants"]["stats"].get(k, 0) for k, v in base.items()}
+    for stat in pack["stats"]:
+        if stats[stat["id"]] > stat["max"]:
+            problems.append(f"{stat['label']}: above {stat['max']}")
+    symbols = dict(resolution["symbols"])
+    known = {**stats, **symbols}
+    variables = {v["id"]: 0 for v in pack.get("variables", [])}
+    for variable, tree in resolution["grants"]["values"]:
+        variables[variable] += math.floor(evaluate(tree, known))
+    symbols.update(variables)
+    progressions = {}
+    for item in pack.get("progressions", []):
+        progressions[item["id"]] = symbols.get(item["id"], progression(item, symbols))
+    symbols.update(progressions)
+    return stats, {"symbols": symbols, "variables": variables, "progressions": progressions}
