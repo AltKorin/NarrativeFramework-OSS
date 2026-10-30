@@ -1066,12 +1066,16 @@ body {
     align-items: stretch;
     gap: 14px;
   }
+  /* One scrollable row keeps the session's first action above the fold with five tabs. */
   .campaign-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
   }
   .campaign-tabs button {
-    padding: 10px 8px;
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    scroll-snap-align: start;
   }
   .session-columns {
     grid-template-columns: 1fr;

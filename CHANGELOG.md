@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Mobile campaign tabs scroll in one row, so the session's first decision stays above the fold now that there are five views (fixes the runtime browser regression from the character creation release).
+
 - Author MCP `update_campaign` accepts optional `appearance` and `page_template` (omitted values stay unchanged).
 
 - Campaign appearance and page templates: the owner picks a visual theme (Fantasy light/green, Cyberpunk dark/red) and dossier/chronicle templates for new entries, shared with players; the character builder follows the theme. Fantasy stays the default; additive migration `0009_campaign_presentation` with database defaults for safe rollout.
