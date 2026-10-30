@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { newUUID } from "./uuid";
 
 type Request = (path: string, method?: string, body?: unknown) => Promise<any>;
@@ -7,6 +7,25 @@ type Img = { id: string; caption: string; gallery: "gm" | "players"; width: numb
 type PageMeta = { id: string; title: string; version: number; image?: string | null };
 
 export const imageUrl = (campaignId: string, id: string) => `/api/campaigns/${campaignId}/images/${id}/file/`;
+
+// Native <dialog>: Escape, focus trap and backdrop come from the browser; no lightbox library.
+export function ZoomImage({ src, caption, className, pl }: { src: string; caption?: string; className?: string; pl: boolean }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const label = caption || (pl ? "Obraz" : "Image");
+  return (
+    <>
+      <button type="button" className={`zoom-trigger ${className || ""}`} aria-label={`${pl ? "Powiększ" : "Enlarge"}: ${label}`}
+        onClick={() => dialog.current?.showModal()}>
+        <img src={src} alt={caption || ""} loading="lazy" />
+      </button>
+      <dialog ref={dialog} className="zoom-dialog" aria-label={label} onClick={() => dialog.current?.close()}>
+        <img src={src} alt={caption || ""} />
+        {caption && <p>{caption}</p>}
+        <button type="button" onClick={() => dialog.current?.close()}>{pl ? "Zamknij" : "Close"}</button>
+      </dialog>
+    </>
+  );
+}
 
 export default function Gallery({ campaignId, gm, pl, request, csrf, pages, cover, onChanged }: {
   campaignId: string;
@@ -93,7 +112,7 @@ export default function Gallery({ campaignId, gm, pl, request, csrf, pages, cove
           {items.map((img) => (
             <li key={img.id}>
               <figure>
-                <img src={imageUrl(campaignId, img.id)} alt={img.caption || t("Obraz kampanii", "Campaign image")} loading="lazy" width={img.width} height={img.height} />
+                <ZoomImage src={imageUrl(campaignId, img.id)} caption={img.caption} pl={pl} />
                 {img.caption && <figcaption>{img.caption}</figcaption>}
               </figure>
               {gm && img.usage && (

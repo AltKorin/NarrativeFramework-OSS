@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { newUUID } from "./uuid";
+import { ZoomImage } from "./Gallery";
 import "./character-builder.css";
 
 type Request = (path: string, method?: string, body?: unknown) => Promise<any>;
@@ -33,10 +34,14 @@ type Draft = Summary & {
 };
 
 // Ruleset entries may carry a campaign image ID; the provider turns it into a private URL.
-const ImageUrl = createContext<(id?: string) => string | null>(() => null);
-function Thumb({ id }: { id?: string }) {
-  const url = useContext(ImageUrl)(id);
-  return url ? <img className="builder-thumb" src={url} alt="" loading="lazy" /> : null;
+const ImageUrl = createContext<{ url: (id?: string) => string | null; pl: boolean }>({ url: () => null, pl: true });
+// Thumbnails inside choice buttons stay plain images (no button inside a button); elsewhere they zoom.
+function Thumb({ id, zoom, caption }: { id?: string; zoom?: boolean; caption?: string }) {
+  const images = useContext(ImageUrl);
+  const url = images.url(id);
+  if (!url) return null;
+  return zoom ? <ZoomImage className="builder-thumb" src={url} caption={caption} pl={images.pl} />
+    : <img className="builder-thumb" src={url} alt="" loading="lazy" />;
 }
 
 // Server rule messages are English; Polish UI maps them by pattern (pack labels pass through).
@@ -121,7 +126,7 @@ export default function CharacterBuilder({ campaignId, gm, pl, request, onPage }
   const imageUrl = (id?: string) => (id ? `/api/campaigns/${campaignId}/images/${id}/file/` : null);
   if (ruleset === undefined) return <section className="character-builder"><p>{t("Wczytywanie…", "Loading…")}</p></section>;
   return (
-    <ImageUrl.Provider value={imageUrl}>
+    <ImageUrl.Provider value={{ url: imageUrl, pl }}>
     <section className="character-builder" aria-labelledby="builder-title">
       {error && <p role="alert" className="builder-error">{error}</p>}
       {draft ? (
@@ -531,7 +536,7 @@ function Shop({ step, draft, pl, act }: { step: Item; draft: Draft; pl: boolean;
           <ul className="builder-catalog">
             {catalog.filter((x) => (x.category || "") === c).map((x) => (
               <li key={x.id}>
-                <Thumb id={x.image} />
+                <Thumb id={x.image} zoom caption={x.label} />
                 <div><strong>{x.label}</strong> · {x.price} {currency}{x.slots ? ` · ${x.slots} ${t("sloty", "slots")}` : ""}{x.uses_slot_of?.length ? ` · ${t("zajmuje", "uses")} ${x.slot_cost || 1} ${t("slot", "slot")}` : ""}
                   {x.costs && Object.keys(x.costs).length > 0 && <small> · {costLabel(x, pack)}</small>}
                   {x.description && <small className="builder-desc">{x.description}</small>}

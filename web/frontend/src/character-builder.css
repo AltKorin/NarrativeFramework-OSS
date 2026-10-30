@@ -57,3 +57,4 @@
 .builder-thumb { width: 100%; max-height: 140px; object-fit: cover; border-radius: 3px; }
 .builder-catalog .builder-thumb { width: 64px; height: 64px; flex: 0 0 64px; }
 .builder-check .builder-thumb { width: 40px; height: 40px; }
+.builder-catalog .zoom-trigger.builder-thumb { width: 64px; height: 64px; flex: 0 0 64px; overflow: hidden; border-radius: 3px; }

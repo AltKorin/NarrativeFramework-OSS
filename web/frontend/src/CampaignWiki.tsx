@@ -16,7 +16,7 @@ import { entryTemplate, type Presentation } from "./campaignPresentation";
 import CampaignStart from "./CampaignStart";
 import CampaignRuntime from "./CampaignRuntime";
 import CharacterBuilder from "./CharacterBuilder";
-import Gallery, { imageUrl } from "./Gallery";
+import Gallery, { imageUrl, ZoomImage } from "./Gallery";
 import type { CampaignView } from "./campaignRuntimeTypes";
 import {
   CampaignSharing,
@@ -579,7 +579,7 @@ export default function CampaignWiki() {
           <h1>{campaign?.title || t("Kampanie", "Campaigns")}</h1>
         </div>
         {campaign?.cover && (
-          <img className="campaign-cover" src={imageUrl(campaign.id, campaign.cover)} alt="" />
+          <ZoomImage className="campaign-cover" src={imageUrl(campaign.id, campaign.cover)} caption={campaign.title} pl={pl} />
         )}
         {user && campaign && (
           <nav
@@ -1459,7 +1459,7 @@ export default function CampaignWiki() {
                         ) : (
                           <article className="wiki-article">
                             {page?.image && (
-                              <img className="wiki-article-image" src={imageUrl(campaign.id, page.image)} alt="" />
+                              <ZoomImage className="wiki-article-image" src={imageUrl(campaign.id, page.image)} caption={page.title} pl={pl} />
                             )}
                             <h2 className="wiki-article-title">
                               {draft.title || t("Bez tytułu", "Untitled")}
