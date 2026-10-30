@@ -52,6 +52,15 @@ def campaigns(request):
     return Response(result, status=201 if created else 200)
 
 
+@api_view(["POST"])
+@errors
+def import_template(request):
+    from . import campaign_templates
+
+    result, created = campaign_templates.create(request.user, request.data)
+    return Response(result, status=201 if created else 200)
+
+
 @api_view(["GET", "PUT", "DELETE"])
 @errors
 def campaign(request, campaign_id):

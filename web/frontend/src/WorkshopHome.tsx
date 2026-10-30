@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Language } from "./i18n";
 import { newUUID } from "./uuid";
 import "./workshop-home.css";
+import CampaignImport from "./CampaignImport";
 
 type Action = "campaign" | "adventure";
 type Entry = { id: string; title: string; role?: string };
@@ -425,6 +426,7 @@ export default function WorkshopHome({
           </a>
         </div>
       </section>
+      {user && <CampaignImport pl={pl} request={request}/>}
       <section className="wh-play-entry">
         <h2>{t("Między sesjami", "Between sessions")}</h2>
         <p>

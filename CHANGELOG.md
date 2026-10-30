@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Author MCP covers the whole GM workflow: create/import/read/update/delete campaigns, create/delete/publish pages and relations, read and command the campaign engine (with non-saving preview), create adventures and copy wiki pages into them. Thin wrappers over the existing services: same role checks, optimistic versions and retry-safe client UUIDs as REST. Members and invitations remain browser-only. Real MCP integration covers the full workflow and player/stale/duplicate/foreign-actor rejections.
+- Campaign template import (`narrative-campaign-template/1`) from the workshop dashboard and `POST /api/campaigns/import-template/`: one private campaign with pages, relations, actor stats and events in a single transaction; identical retries return the same campaign.
+
 - Campaign workspace in PL/EN: Run session opens actionable events ordered by deadline; Timeline separates current/upcoming events from resolved/expired ones; Characters combines NPC/player descriptions, numeric stats, relationships and events; World material retains wiki editing, publication and the map. Existing article URLs remain valid.
 - MIT-licensed Python port of the Unity deterministic narrative core: inclusive time windows, flags, numeric conditions, resources, actor attributes, world values and directional relationships. Migration `0007_campaign_runtime` stores private campaign state and history without changing existing wiki prose.
 - Server-side consequence/time preview runs the same engine as commit without changing state, version or audit. Confirmation uses optimistic version checks; the UI shows before/after values and newly available events. Existing stat names are selected explicitly, with a separate option for new names.

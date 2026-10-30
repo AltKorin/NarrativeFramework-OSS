@@ -34,9 +34,10 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from redis.asyncio import Redis
 from .models import Scenario
-from . import play, wiki
+from . import play, wiki, wiki_sharing
 from .transport import bounded_json
 from .domain import serialize, save_document, inspect_document, DomainError
+from .domain import create_scenario as create_scenario_document
 
 BODY_TIMEOUT_SECONDS = 10
 TOOL_TIMEOUT_SECONDS = 25
@@ -166,6 +167,141 @@ async def save_wiki_page(
             "gm_notes": gm_notes,
         },
     )
+
+
+def gm_campaign_detail(user, campaign_id):
+    # campaign_detail also serves players; author tools must never fall back to a player projection.
+    wiki.campaign_for(user, campaign_id)
+    return wiki.campaign_detail(user, campaign_id)
+
+
+def runtime_command(user, campaign_id, data, preview):
+    from . import campaign_runtime
+
+    return campaign_runtime.command(user, campaign_id, data, preview=preview)
+
+
+def runtime_read(user, campaign_id):
+    from . import campaign_runtime
+
+    return campaign_runtime.read(user, campaign_id)
+
+
+def import_template(user, data):
+    from . import campaign_templates
+
+    return campaign_templates.create(user, data)[0]
+
+
+@mcp.tool()
+async def create_campaign(campaign_id: str, title: str, summary: str = "") -> dict:
+    """Create an owned campaign. Generate a new UUID for campaign_id; an identical retry returns the same campaign. The summary is visible to all members — keep secrets out."""
+    result = await wiki_call(wiki.create_campaign, {"id": campaign_id, "title": title, "summary": summary})
+    return result[0]
+
+
+@mcp.tool()
+async def import_campaign_template(campaign_id: str, document: dict) -> dict:
+    """Create a private campaign with pages, relations and engine state from a narrative-campaign-template/1 document (max 100 pages, 450 KB). Generate a new UUID for campaign_id."""
+    return await wiki_call(import_template, {"id": campaign_id, "document": document})
+
+
+@mcp.tool()
+async def read_campaign(campaign_id: str) -> dict:
+    """Read campaign metadata, version, page index (no bodies) and all relations. GM-only; use read_wiki_page for bodies."""
+    return await wiki_call(gm_campaign_detail, campaign_id)
+
+
+@mcp.tool()
+async def update_campaign(campaign_id: str, expected_version: int, title: str, summary: str = "") -> dict:
+    """Rename or re-describe an owned campaign. Owner-only; supply the current campaign version."""
+    return await wiki_call(wiki.update_campaign, campaign_id,
+                           {"version": expected_version, "title": title, "summary": summary})
+
+
+@mcp.tool()
+async def delete_campaign(campaign_id: str, expected_version: int) -> dict:
+    """Permanently delete an owned campaign with all pages, relations, publications and members. Owner-only; irreversible — confirm with the user first."""
+    return await wiki_call(wiki.delete_campaign, campaign_id, {"version": expected_version})
+
+
+@mcp.tool()
+async def create_wiki_page(
+    campaign_id: str, page_id: str, title: str, kind: str, body: str = "", gm_notes: str = ""
+) -> dict:
+    """Create a GM-only draft page. Generate a new UUID for page_id. kind: pc, npc, location, organization, item, lore, journal, scene, clue, timeline. Markdown body up to 12000 chars; gm_notes are never published."""
+    result = await wiki_call(wiki.create_page, campaign_id,
+                             {"id": page_id, "title": title, "kind": kind, "body": body, "gm_notes": gm_notes})
+    return result[0]
+
+
+@mcp.tool()
+async def delete_wiki_page(campaign_id: str, page_id: str, expected_version: int) -> dict:
+    """Delete a page and its relations. Rejected while the campaign engine uses the page as a character."""
+    return await wiki_call(wiki.delete_page, campaign_id, page_id, expected_version)
+
+
+@mcp.tool()
+async def publish_wiki_page(
+    campaign_id: str, page_id: str, expected_version: int, audience: str, recipients: list[str] = []
+) -> dict:
+    """Snapshot the saved page for players. audience: all, selected (recipients = player membership UUIDs) or gm (withdraw). GM notes are never copied; check the body for secrets first."""
+    return await wiki_call(wiki_sharing.publish, campaign_id, page_id,
+                           {"version": expected_version, "audience": audience, "recipients": recipients})
+
+
+@mcp.tool()
+async def create_wiki_relation(campaign_id: str, relation_id: str, source: str, target: str, label: str) -> dict:
+    """Link two saved pages with a label (max 80 chars). Generate a new UUID for relation_id. New relations are GM-only."""
+    result = await wiki_call(wiki.create_relation, campaign_id,
+                             {"id": relation_id, "source": source, "target": target, "label": label})
+    return result[0]
+
+
+@mcp.tool()
+async def delete_wiki_relation(campaign_id: str, relation_id: str) -> dict:
+    """Delete a relation between pages."""
+    return await wiki_call(wiki.delete_relation, campaign_id, relation_id)
+
+
+@mcp.tool()
+async def publish_wiki_relation(
+    campaign_id: str, relation_id: str, expected_version: int, audience: str, recipients: list[str] = []
+) -> dict:
+    """Publish a relation label; players see it only if both pages are also published to them. audience: all, selected or gm."""
+    return await wiki_call(wiki_sharing.publish, campaign_id, relation_id,
+                           {"version": expected_version, "audience": audience, "recipients": recipients}, True)
+
+
+@mcp.tool()
+async def read_campaign_runtime(campaign_id: str) -> dict:
+    """Read the campaign engine: day, flags, resources, variables, actor stats, relationships, events with blockers and history."""
+    return await wiki_call(runtime_read, campaign_id)
+
+
+@mcp.tool()
+async def run_campaign_command(campaign_id: str, expected_version: int, command: dict, preview: bool = False) -> dict:
+    """Change the campaign engine with one command; preview=true shows the result without saving. command.action: add_event/update_event {event}, set_value {scope: resources|variables|actors, key, value, actorId?}, set_flags {flags}, advance, resolve {eventId, choice}. Actor IDs are wiki page IDs of pc/npc/organization pages."""
+    return await wiki_call(runtime_command, campaign_id, {**command, "version": expected_version}, preview)
+
+
+@mcp.tool()
+async def create_scenario(scenario_id: str, title: str, document: dict) -> dict:
+    """Create an owned adventure (scenario graph). Generate a new UUID; an identical retry returns the same scenario."""
+    try:
+        result = await db_call(create_scenario_document, principal.get(), uuid.UUID(scenario_id), title, document)
+    except DomainError as e:
+        raise ValueError(f"{e.status}: {e}") from e
+    return result[0]
+
+
+@mcp.tool()
+async def copy_wiki_page_to_scenario(
+    campaign_id: str, page_id: str, source_version: int, scenario_id: str, scenario_version: int
+) -> dict:
+    """Copy a campaign page into an owned adventure as an independent node (GM notes become the node secret)."""
+    return await wiki_call(wiki.import_to_scenario, campaign_id, page_id,
+                           {"source_version": source_version, "scenario_id": scenario_id, "version": scenario_version})
 
 
 # A separate tool catalog and scoped credentials keep player clients out of author tools.

@@ -55,6 +55,21 @@ async def run():
                 "search_wiki",
                 "read_wiki_page",
                 "save_wiki_page",
+                "create_campaign",
+                "import_campaign_template",
+                "read_campaign",
+                "update_campaign",
+                "delete_campaign",
+                "create_wiki_page",
+                "delete_wiki_page",
+                "publish_wiki_page",
+                "create_wiki_relation",
+                "delete_wiki_relation",
+                "publish_wiki_relation",
+                "read_campaign_runtime",
+                "run_campaign_command",
+                "create_scenario",
+                "copy_wiki_page_to_scenario",
             }
             result = await session.call_tool(
                 "read_scenario", {"scenario_id": scenario_id}
