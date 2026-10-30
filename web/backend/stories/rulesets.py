@@ -22,8 +22,11 @@ STEPS = {"role", "template", "stats_points", "stats_role_roll", "skills_points",
 FUNCTIONS = {"ceil": math.ceil, "floor": math.floor, "round": round, "min": min, "max": max}
 OPERATORS = {ast.Add: lambda a, b: a + b, ast.Sub: lambda a, b: a - b,
              ast.Mult: lambda a, b: a * b, ast.Div: lambda a, b: a / b if b else 0}
+COMPARISONS = {ast.Gt: lambda a, b: a > b, ast.GtE: lambda a, b: a >= b, ast.Lt: lambda a, b: a < b,
+               ast.LtE: lambda a, b: a <= b, ast.Eq: lambda a, b: a == b, ast.NotEq: lambda a, b: a != b}
 SYMBOL = re.compile(r"[A-Za-z][A-Za-z0-9_]{0,29}")
 DICE = re.compile(r"([1-9]\d?)d([1-9]\d{0,2})(?:/([1-9]))?")  # 2d6, 1d6/2 (halved, rounded down)
+DICE_KEEP = re.compile(r"([1-9]\d?)d([1-9]\d{0,2})(?:kh([1-9]\d?))?")  # 4d6kh3 (keep the highest three)
 
 
 def fail(message):
@@ -49,6 +52,15 @@ def dice(value, label):
     if not match:
         fail(f"invalid dice in {label}")
     return int(match[1]), int(match[2]), int(match[3] or 1)
+
+
+def dice_keep(value, label):
+    match = DICE_KEEP.fullmatch(value) if isinstance(value, str) else None
+    count = int(match[1]) if match else 0
+    keep = int(match[3] or count) if match else 0
+    if not match or not 1 <= keep <= count:
+        fail(f"invalid dice in {label}")
+    return count, int(match[2]), keep
 
 
 def entries(document, key, label_limit=120):
@@ -90,6 +102,14 @@ def parse(source, label):
             check(node.left)
             check(node.right)
             return
+        if isinstance(node, ast.Compare) and all(type(op) in COMPARISONS for op in node.ops):
+            for part in [node.left, *node.comparators]:
+                check(part)
+            return
+        if isinstance(node, ast.BoolOp) and isinstance(node.op, (ast.And, ast.Or)):
+            for part in node.values:
+                check(part)
+            return
         if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
             check(node.operand)
             return
@@ -111,6 +131,12 @@ def evaluate(tree, values):
         return values[tree.id]
     if isinstance(tree, ast.BinOp):
         return OPERATORS[type(tree.op)](evaluate(tree.left, values), evaluate(tree.right, values))
+    if isinstance(tree, ast.Compare):
+        parts = [evaluate(part, values) for part in [tree.left, *tree.comparators]]
+        return int(all(COMPARISONS[type(op)](a, b) for op, a, b in zip(tree.ops, parts, parts[1:])))
+    if isinstance(tree, ast.BoolOp):
+        parts = (bool(evaluate(part, values)) for part in tree.values)
+        return int(all(parts) if isinstance(tree.op, ast.And) else any(parts))
     if isinstance(tree, ast.UnaryOp):
         value = evaluate(tree.operand, values)
         return -value if isinstance(tree.op, ast.USub) else value
