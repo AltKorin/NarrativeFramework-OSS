@@ -37,6 +37,24 @@ Exercise browser demo, login, private save, export/import, API ownership, stale 
 - Version: optimistic concurrency counter, not a revision archive.
 - Admission lease: expiring Redis entry reserving MCP execution capacity.
 
+### Characters and rules
+- **Campaign role**: a member's standing in a campaign — owner GM, co-GM or player.
+  _Avoid_: role (alone)
+- **Ruleset pack**: a data file describing one RPG system's character rules, attached to a single campaign.
+  _Avoid_: system, rules file
+- **Built-in pack**: a ruleset pack shipped with Narrative Framework from an openly licensed source, which a GM
+  selects instead of uploading.
+- **Character axis**: a named list of options every character picks from, such as Role, or Class, Background and
+  Species; its name comes from the pack.
+  _Avoid_: role, origin
+- **Starting level**: the level new characters in a campaign are built at, set by the GM.
+- **Rules pages**: wiki pages carrying the full rules text of a built-in pack, copied into one campaign, where the GM
+  may edit them as house rules.
+  _Avoid_: rules library, compendium
+- **Advancement**: a GM-granted chance for an approved character to grow under its pack's rules, completed by the
+  player and approved by the GM.
+  _Avoid_: level-up, XP
+
 ## ADR 006: review findings and resolved boundaries
 A bounded read-only Claude review used the installed grill-with-docs skill. It identified malformed-field crashes, unsafe default secrets, token scope and stale database connections. Validation now type-checks references and coordinates before membership checks, production startup requires a secret, REST is session-only, login has a dedicated shared-cache throttle, and MCP calls clean up database connections. No inherited Claude home-directory style/audit requirements were adopted as repository requirements. No historical revision/audit product is claimed for v0.1.
 
@@ -100,3 +118,21 @@ The runtime is absent from player publication/export/preview projections and is
 not exposed through player MCP. Individual-play approval records remain separate;
 no automatic campaign mutation or Unity scenario import is implied. Full GM
 exports include runtime state. See [source mapping, bounds and API](narrative-runtime.md).
+
+## ADR 011: rules pages are copied into each campaign
+
+Every installation is self-hosted and independent: there is no central Narrative Framework service to host a shared
+rules library, and an instance must work offline from its own release. A built-in pack therefore ships its rules
+text as data inside the release, and selecting the pack copies that text into the campaign wiki as rules pages with
+stable identities. The GM may edit them as house rules. Hundreds of pages per campaign are acceptable at the scale of
+a self-hosted group. A newer pack version arrives only with an upgraded release and is applied to a campaign only when
+its GM chooses to; switching to another pack leaves existing rules pages in place until the GM removes them. The
+rejected alternative, one read-only library per instance, saves storage but forbids house rules.
+
+## ADR 012: a character stays an event log after approval
+
+Creation already stores a draft as an append-only event log and computes the sheet from it. Advancement keeps the same
+model after approval: a GM-granted advancement, the player's choices and the GM's decision are appended to the same
+character, and the published card and runtime actor are recomputed. Undoing the latest approved advancement appends a
+reversal rather than rewriting history, so the GM can always answer what happened and when. The rejected alternative,
+storing the approved sheet as mutable state, would make undo, review of past choices and later rules corrections lossy.
