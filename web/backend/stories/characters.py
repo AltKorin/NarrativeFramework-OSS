@@ -99,7 +99,7 @@ def delete_ruleset(user, campaign_id, data):
 def fold(events):
     state = {"role": None, "template": None, "stats": None, "stats_roll": None, "skills": {},
              "gear": [], "items": [], "tables": {}, "name": None, "look": "", "losses": {},
-             "rerolls": set(), "level": None, "axes": {}, "choices": {}, "stat_set": None}
+             "rerolls": set(), "level": None, "axes": {}, "choices": {}, "stat_set": None, "focus": ""}
     for e in events:
         kind = e["type"]
         if kind == "role_chosen":
@@ -135,6 +135,8 @@ def fold(events):
             state["losses"] = e["losses"]
         elif kind == "reroll_granted":
             state["rerolls"].add(e["target"])
+        elif kind == "focus_set":
+            state["focus"] = e["text"]
     return state
 
 
@@ -360,6 +362,8 @@ def command(user, campaign_id, draft_id, data):
     expected(data, draft.version)
     action = data.get("action")
     own = draft.member_id is None or draft.member_id == getattr(c.wiki_member, "pk", None)
+    if action == "set_focus":  # the party sentence stays editable after approval
+        return set_focus(c, gm, draft, own, data)
     if action in PLAYER_ACTIONS:
         if not own or draft.status not in ("draft", "returned"):
             raise DomainError("This character cannot be edited now", 409)
@@ -387,6 +391,21 @@ def command(user, campaign_id, draft_id, data):
         approve(c, user, pack, draft)
     elif action == "return":
         draft.status, draft.review_note = "returned", events[0]["note"]
+    draft.version += 1
+    draft.save()
+    return view(draft, gm)
+
+
+def set_focus(c, gm, draft, own, data):
+    """The player's one sentence about their job in the party, kept in the character's log."""
+    if not own:
+        raise DomainError("Only the player can describe their character", 403)
+    text = data.get("text")
+    if not isinstance(text, str) or len(text.strip()) > 200:
+        raise DomainError("Describe the character's job in up to 200 characters")
+    if len(draft.events) + 1 > MAX_EVENTS:
+        raise DomainError("Character history limit reached", 409)
+    draft.events = draft.events + [{"type": "focus_set", "text": text.strip()}]
     draft.version += 1
     draft.save()
     return view(draft, gm)

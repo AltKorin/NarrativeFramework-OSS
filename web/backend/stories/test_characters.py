@@ -240,3 +240,32 @@ class RulesetUpdateTests(TestCase):
         self.put_ruleset()
         draft = self.start(self.player)
         self.assertNotIn("ruleset_outdated", self.client_for(self.player).get(f"{self.base}characters/{draft['id']}/").data)
+
+
+class FocusTests(TestCase):
+    """A player's one-sentence job in the party lives in the character's own log (ADR 012)."""
+    setUp, client_for, put_ruleset, start, act = (CharacterFlowTests.setUp, CharacterFlowTests.client_for,
+        CharacterFlowTests.put_ruleset, CharacterFlowTests.start, CharacterFlowTests.act)
+
+    def test_owner_sets_focus_in_any_status(self):
+        self.put_ruleset()
+        draft = self.act(self.player, self.start(self.player), action="set_focus", text="  Otwieram drzwi  ")
+        self.assertEqual(draft["state"]["focus"], "Otwieram drzwi")
+        self.assertEqual(draft["events"][-1], {"type": "focus_set", "text": "Otwieram drzwi"})
+        CharacterDraft.objects.filter(pk=draft["id"]).update(status="approved")
+        draft = self.act(self.player, {**draft, "status": "approved"}, action="set_focus", text="Naprawiam sprzęt")
+        self.assertEqual((draft["status"], draft["state"]["focus"]), ("approved", "Naprawiam sprzęt"))
+
+    def test_focus_is_the_owners_only(self):
+        self.put_ruleset()
+        draft = self.start(self.player)
+        self.act(self.other, draft, 404, action="set_focus", text="Cudze")
+        self.act(self.gm, draft, 403, action="set_focus", text="Od MG")
+
+    def test_focus_limits(self):
+        self.put_ruleset()
+        draft = self.start(self.player)
+        self.act(self.player, draft, 400, action="set_focus", text="x" * 201)
+        self.act(self.player, draft, 400, action="set_focus", text=5)
+        draft = self.act(self.player, draft, action="set_focus", text="Coś")
+        self.assertEqual(self.act(self.player, draft, action="set_focus", text="")["state"]["focus"], "")
