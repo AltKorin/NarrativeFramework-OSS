@@ -98,3 +98,5 @@ Testuj na instancji testowej. Skrypty tworzą i usuwają fikcyjne konta. Testy P
 Migracja 0006 zachowuje wartości domyślne nowych pól także w bazie, aby stary kod mógł nadal tworzyć prywatne strony i relacje przy wycofaniu wersji aplikacji. Wycofanie kodu nie wymaga cofania migracji i usuwania danych współdzielenia.
 
 Eksport MG zawiera również prywatny stan `runtime`; eksport gracza i podglądu gracza go pomija. Endpointy silnika i migracja `0007_campaign_runtime`: [kontrakt](../narrative-runtime.md).
+
+Przycisk **Odśwież galerię** pobiera aktualną listę obrazów bez opuszczania zakładki. Użyj go, gdy prowadzący udostępni nowy obraz lub zmieni jego widoczność.

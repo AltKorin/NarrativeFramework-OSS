@@ -83,6 +83,10 @@ export default function Gallery({ campaignId, gm, pl, request, csrf, pages, cove
   return (
     <section className="campaign-gallery" aria-labelledby="gallery-title">
       <h2 id="gallery-title">{t("Galeria", "Gallery")}</h2>
+      <button type="button" disabled={busy}
+        onClick={() => void run(async () => undefined, t("Galeria odświeżona.", "Gallery refreshed."), false)}>
+        {t("Odśwież galerię", "Refresh gallery")}
+      </button>
       <p className="gallery-privacy">
         {t("Obrazy są prywatne dla tej kampanii: nie mają publicznych adresów, a gracze widzą tylko to, co im udostępnisz.",
           "Images are private to this campaign: no public links, and players only see what you share.")}

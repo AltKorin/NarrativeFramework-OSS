@@ -112,3 +112,5 @@ Migration 0006 retains database defaults for new non-null wiki fields, so the ow
 Workshop entry: `/workshop/` now opens the dashboard. Choose **New campaign**, sign in and name your world; saved campaigns and adventures are listed here. **New adventure** creates a separate scenario with one empty opening scene. **Open adventure demo** opens the sample instead. Existing `/campaigns/` and scenario links remain valid.
 
 The GM export also includes private `runtime` state; player and preview exports omit it. Runtime endpoints and migration `0007_campaign_runtime`: [contract](../narrative-runtime.md).
+
+Use **Refresh gallery** to load the current images without leaving the tab, including images newly shared or hidden by the GM.
