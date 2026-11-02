@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { newUUID } from "./uuid";
 import { ZoomImage } from "./Gallery";
 import { Tour, TourInvite, type TourStep } from "./Tour";
+import { PlayerNextStep } from "./PlayerStart";
 import "./character-builder.css";
 
 type Request = (path: string, method?: string, body?: unknown) => Promise<any>;
@@ -225,6 +226,14 @@ export default function CharacterBuilder({ campaignId, gm, pl, cyber = false, pa
       ) : (
         <>
           <h2 id="builder-title">{t("Tworzenie postaci", "Character creation")}</h2>
+          {!gm && <PlayerNextStep drafts={drafts} hasRules={!!ruleset} pl={pl} busy={busy} onPage={onPage}
+            onRefresh={() => void run(load)}
+            onDraft={(id) => run(async () => setDraft(await request(`${base}characters/${id}/`)))}
+            onCreate={() => {
+              const methods = ruleset?.document.methods || [];
+              if (methods.length === 1) void run(async () => setDraft(await request(base + "characters/", "POST", { id: newUUID(), method: methods[0].id })));
+              else document.querySelector(".builder-new")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }} />}
           {!gm && <PlayerPath drafts={drafts} hasRules={!!ruleset} pl={pl} onMaterials={onMaterials} onPage={onPage} />}
           {gm && <RulesetPanel ruleset={ruleset} pl={pl} busy={busy}
             upload={(document) => run(async () => {
@@ -267,8 +276,8 @@ function PlayerPath({ drafts, hasRules, pl, onMaterials, onPage }: {
   const create = approved || submitted || returned ? "done" : started ? "current" : "todo";
   const review = approved ? "done" : returned ? "action" : submitted ? "current" : "todo";
   return (
-    <section className="player-path" data-tour="player-path" aria-labelledby="player-path-title">
-      <h3 id="player-path-title">{t("Twoja droga w kampanii", "Your way through the campaign")}</h3>
+    <details className="player-path">
+      <summary>{t("Cała droga w kampanii", "Your whole way through the campaign")}</summary>
       <ol>
         <li className="path-current">
           <strong>{t("Poznaj świat", "Learn the world")}</strong>
@@ -296,7 +305,7 @@ function PlayerPath({ drafts, hasRules, pl, onMaterials, onPage }: {
           {approved && <button type="button" className="primary" onClick={() => onPage(approved.page!)}>{t("Otwórz moją kartę", "Open my sheet")}</button>}
         </li>
       </ol>
-    </section>
+    </details>
   );
 }
 

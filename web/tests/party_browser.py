@@ -49,6 +49,21 @@ def login(browser, who, viewport=None):
     return page, errors
 
 
+def tour_titles(page):
+    page.get_by_role("button", name="Jak to działa?", exact=True).click()
+    titles = []
+    while True:
+        card = page.locator(".tour-card")
+        card.wait_for()
+        titles.append(card.locator("#tour-title").inner_text())
+        follow = card.get_by_role("button", name="Dalej", exact=True)
+        if not follow.count():
+            break
+        follow.click()
+    card.get_by_role("button", name="Zakończ", exact=True).click()
+    return titles
+
+
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True, args=browser_args())
     anna, anna_errors = login(browser, "anna")
@@ -86,12 +101,26 @@ with sync_playwright() as p:
         box = tabs.nth(i).bounding_box()
         assert box and box["x"] >= 0 and box["x"] + box["width"] <= 390, (tabs.nth(i).inner_text(), box)
 
+    titles = tour_titles(bart)  # A8: the tour explains where to start and the party
+    assert "Start" in titles and "Ekipa" in titles, titles
+
+    bart.get_by_role("button", name="Tworzenie postaci", exact=True).click()  # A3: one next step on the list
+    step = bart.locator(".character-builder .player-next button.primary")
+    expect(step).to_have_text("Kontynuuj")
+    box = step.bounding_box()
+    assert box and box["y"] + box["height"] <= 844, box
+    path = bart.locator(".character-builder details.player-path")
+    assert path.count() == 1 and path.get_attribute("open") is None, "the whole journey stays folded"
+    step.click()
+    expect(bart.locator(".builder-editor")).to_be_visible()
+
     gm, gm_errors = login(browser, "party-gm", {"width": 390, "height": 844})
     gm.goto(base + f"/campaigns/?lang=pl&campaign={campaign}&page={wiki_page}", wait_until="networkidle")
     active = gm.locator(".campaign-tabs button[aria-current=page]")
     expect(active).to_have_text("Materiały świata")
     box = active.bounding_box()  # A4: the GM's active tab is scrolled into view, even the last one
     assert box and box["x"] >= 0 and box["x"] + box["width"] <= 390, box
+    assert "Ekipa" in tour_titles(gm), "the GM tour covers the party"
     assert not anna_errors and not bart_errors and not gm_errors, anna_errors + bart_errors + gm_errors
     browser.close()
 print("PASS: party tiles, chosen names (no logins), own job sentence, folded drafts, builder hint, phone tabs on screen")

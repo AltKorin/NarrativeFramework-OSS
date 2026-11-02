@@ -18,7 +18,7 @@ for decision preview, event preparation and the supported Unity core port.
 | Where | What players find | Why it works this way |
 | --- | --- | --- |
 | **World material** | Pages the GM published to everyone or to them, including their own approved character sheet | Drafts and GM notes stay private; players see only deliberate publications |
-| **Character creation** | "Your way through the campaign" (learn the world → create → GM decision → your sheet) and the guided builder | The GM approves characters so they fit the rules and the story; dice are rolled server-side and logged |
+| **Character creation** | One next step (create, continue, fix, open your sheet), the folded "whole way through the campaign" below it and the guided builder | The GM approves characters so they fit the rules and the story; dice are rolled server-side and logged |
 | **Party / Crew** | Tiles for every player: character name, role or class, three highest skills and the player's "in the party I handle…" sentence; other drafts folded away. On your own tile you choose how the party sees you (until then you are "Gracz 1", "Gracz 2"…) and write your sentence | A party is built together: you see who you already have before choosing a role. Other players' drafts show only what is on the tile — never statistics, gear or history; only the GM sees logins. The page appears when the instance enables it and the GM has not switched it off |
 | **Gallery** | Images the GM shared, click to enlarge | Images never have public links and appear only where they were shared |
 | **How does it work?** | A spotlight tour of these views; GMs get their own tour | Each card explains what an element is and why it behaves that way |

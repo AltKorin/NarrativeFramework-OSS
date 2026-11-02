@@ -27,8 +27,11 @@ import {
   type Publication,
 } from "./WikiSharing";
 
-function campaignTour(gm: boolean, pl: boolean, show: (view: CampaignView) => void): TourStep[] {
+function campaignTour(gm: boolean, pl: boolean, show: (view: CampaignView) => void,
+  party = false, cyber = false, start = false): TourStep[] {
   const t = (a: string, b: string) => (pl ? a : b);
+  const partyStep = (body: string, why: string): TourStep[] => party
+    ? [{ target: "tab-party", before: () => show("party"), title: partyLabel(cyber, pl), body, why }] : [];
   const help: TourStep = {
     target: "help",
     title: t("Jak to działa?", "How does it work?"),
@@ -36,6 +39,11 @@ function campaignTour(gm: boolean, pl: boolean, show: (view: CampaignView) => vo
   };
   if (!gm)
     return [
+      ...(start ? [{ target: "tab-start", before: () => show("start"), title: t("Start", "Start"),
+        body: t("Tu zawsze widzisz jeden następny krok: stwórz postać, dokończ ją, popraw albo otwórz kartę.",
+          "Here you always see one next step: create your character, finish it, fix it or open your sheet."),
+        why: t("Nie musisz pamiętać, gdzie skończyłeś — krok wynika z zapisanego stanu postaci.",
+          "You do not need to remember where you stopped — the step follows your saved character.") }] : []),
       { target: "tab-materials", before: () => show("materials"), title: t("Materiały świata", "World material"),
         body: t("Tu prowadzący publikuje to, co wie twoja postać: miejsca, ludzi, wskazówki. Tu znajdziesz też swoją kartę postaci po zatwierdzeniu.",
           "The GM publishes what your character knows here: places, people, clues. Your approved character sheet appears here too."),
@@ -46,6 +54,10 @@ function campaignTour(gm: boolean, pl: boolean, show: (view: CampaignView) => vo
           "Build your character step by step with the campaign rules, then send it to the GM."),
         why: t("Prowadzący zatwierdza postać, żeby pasowała do zasad i historii. Po zatwierdzeniu karta trafia do Materiałów świata.",
           "The GM approves characters so they fit the rules and the story. Once approved, the sheet appears in World material.") },
+      ...partyStep(t("Kto kim gra i w czym jest dobry. Na swoim kafelku ustawiasz nazwę i piszesz, za co odpowiadasz w drużynie.",
+          "Who plays whom and what they are good at. On your tile you set your name and what you handle in the party."),
+        t("Drużynę tworzy się razem: widać, kogo już macie, zanim wybierzesz rolę. Statystyk innych graczy tu nie ma.",
+          "A party is built together: you see who you have before choosing a role. Other players' statistics are not shown.")),
       { target: "tab-gallery", before: () => show("gallery"), title: t("Galeria", "Gallery"),
         body: t("Obrazy klimatu i sprzętu od prowadzącego. Kliknij obraz, żeby go powiększyć.",
           "Mood and gear images from the GM. Click an image to enlarge it."),
@@ -66,6 +78,10 @@ function campaignTour(gm: boolean, pl: boolean, show: (view: CampaignView) => vo
       body: t("Wgrywasz tu zasady tworzenia postaci i zatwierdzasz postacie graczy.", "Upload character rules here and approve players' characters."),
       why: t("Zatwierdzona postać od razu trafia do wiki i jest widoczna dla swojego gracza.",
         "An approved character goes straight to the wiki and becomes visible to its player.") },
+    ...partyStep(t("Gracze widzą tu nawzajem swoje postacie, role i specjalizacje. Ty widzisz też loginy.",
+        "Players see each other's characters, roles and specialities here. You also see logins."),
+      t("Gracze koordynują drużynę bez twojej pomocy. Stronę wyłączysz w ustawieniach kampanii.",
+        "Players coordinate the party without you. Switch the page off in campaign settings.")),
     { target: "tab-gallery", before: () => show("gallery"), title: t("Galeria", "Gallery"),
       body: t("Obrazy kampanii: okładka, ilustracje stron i obrazki dla graczy.", "Campaign images: cover, page illustrations and pictures for players."),
       why: t("Gracz zobaczy obraz tylko wtedy, gdy go udostępnisz albo użyjesz w czymś, co już widzi.",
@@ -714,7 +730,8 @@ export default function CampaignWiki() {
         <Tour
           id={`campaign-${canEdit ? "gm" : "player"}`}
           pl={pl}
-          steps={campaignTour(canEdit, pl, (next) => setView(next))}
+          steps={campaignTour(canEdit, pl, (next) => setView(next), !!campaign.party,
+            campaign.appearance === "cyberpunk", !canEdit && !actualGM)}
           onClose={() => setTourOpen(false)}
         />
       )}
