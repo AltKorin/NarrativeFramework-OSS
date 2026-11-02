@@ -384,6 +384,10 @@ export default function CampaignWiki() {
     changeURL(campaignId, id);
   }
   useEffect(() => {
+    // Phones show the GM's views in one scrolling row; keep the current one on screen (e.g. after a page link).
+    document.querySelector(".campaign-tabs [aria-current=page]")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [view, campaign?.id]);
+  useEffect(() => {
     document.documentElement.lang = language;
     document.title = t(
       "Prowadzenie kampanii — Narrative Framework",
@@ -642,7 +646,7 @@ export default function CampaignWiki() {
         )}
         {user && campaign && (
           <nav
-            className="campaign-tabs"
+            className={canEdit ? "campaign-tabs" : "campaign-tabs player-tabs"}
             aria-label={t("Widoki kampanii", "Campaign views")}
           >
             {(canEdit

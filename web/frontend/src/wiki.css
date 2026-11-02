@@ -1077,6 +1077,16 @@ body {
     padding: 10px 12px;
     scroll-snap-align: start;
   }
+  /* Players have no session view to keep above the fold, so all their views stay visible in a grid. */
+  .campaign-tabs.player-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+  .campaign-tabs.player-tabs button {
+    min-width: 0;
+    padding: 10px 6px;
+  }
   .session-columns {
     grid-template-columns: 1fr;
     gap: 20px;
