@@ -299,6 +299,17 @@ def load(document):
         for name in names - symbols["all"] - {"RANK", "STAT"}:
             fail(f"unknown symbol {name} in skill_value")
         tree_of[pack["skill_value"]] = tree
+    if "skill_tiers" in pack:
+        tiers = pack["skill_tiers"]
+        if not isinstance(tiers, list) or not 1 <= len(tiers) <= 10:
+            fail("skill_tiers needs 1-10 entries")
+        for tier in tiers:
+            if not isinstance(tier, dict) or set(tier) != {"min", "label"}:
+                fail("skill_tiers entries need exactly min and label")
+            tier["label"] = text(tier["label"], 40, "skill_tiers label")
+            integer(tier["min"], "skill_tiers min")
+        if any(a["min"] >= b["min"] for a, b in zip(tiers, tiers[1:])):
+            fail("skill_tiers must rise strictly by min")
 
     tables = entries(pack, "tables")
     for key, table in tables.items():
@@ -902,14 +913,21 @@ def sheet(pack, stats, skills=None, items=(), losses=None, resolution=None):
               "pools": pools, "skills": dict(skills or {}), "items": items,
               "price": sum(catalog[x]["price"] for x in items if x in catalog),
               "modifiers": modifiers, "problems": problems, "warnings": warnings}
+    tree = pack["_formulas"][pack["skill_value"]] if pack.get("skill_value") is not None else None
+
+    def value_of(skill, rank):
+        if tree is None:
+            return rank
+        return math.floor(evaluate(tree, {**values, "RANK": rank, "STAT": values[skill["stat"]]}))
+
+    if "skill_tiers" in pack:  # what every rank would be worth now, so the builder can preview tiers live
+        result["skill_scale"] = {s["id"]: [value_of(s, r) for r in range(s["max"] + 1)] for s in pack["skills"]}
     if resolution is None:
         return result
     ranks = skills or {}
     skill_values = None
-    if pack.get("skill_value") is not None:
-        tree = pack["_formulas"][pack["skill_value"]]
-        skill_values = {s["id"]: math.floor(evaluate(tree, {**values, "RANK": ranks.get(s["id"], 0), "STAT": values[s["stat"]]}))
-                        for s in pack["skills"]}
+    if tree is not None:
+        skill_values = {s["id"]: value_of(s, ranks.get(s["id"], 0)) for s in pack["skills"]}
     return {**result, "base_stats": base, "level": extra["symbols"].get("LEVEL"), "variables": extra["variables"],
             "progressions": extra["progressions"], "skill_values": skill_values,
             "features": resolution["grants"]["features"], "choices": resolution["picked"]}

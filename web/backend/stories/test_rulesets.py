@@ -224,3 +224,30 @@ class SheetTests(SimpleTestCase):
     def test_removing_a_foundation_reports_dependent_items(self):
         self.assertEqual(rulesets.dependents(self.pack, ["ramie", "ostrze", "plaszcz"], "ramie"), ["ostrze"])
         self.assertEqual(rulesets.dependents(self.pack, ["ramie", "ostrze"], "ostrze"), [])
+
+
+class SkillTierTests(SimpleTestCase):
+    """Tiers tell players at creation which skill value makes them, e.g., a professional."""
+    TIERS = [{"min": 8, "label": "Wyszkolony"}, {"min": 10, "label": "Mistrz"}]
+
+    def pack(self, **extra):
+        return rulesets.load({**mini(), "skill_tiers": self.TIERS, **extra})
+
+    def test_scale_lists_the_value_of_every_rank_at_current_stats(self):
+        pack = self.pack(skill_value="STAT + RANK")
+        self.assertEqual(rulesets.sheet(pack, {"SIL": 5, "WOL": 6})["skill_scale"], {"walka": [5, 6, 7, 8, 9, 10, 11]})
+
+    def test_without_a_skill_value_formula_the_value_is_the_rank(self):
+        self.assertEqual(rulesets.sheet(self.pack(), {"SIL": 5, "WOL": 6})["skill_scale"], {"walka": list(range(7))})
+
+    def test_no_tiers_means_no_scale(self):
+        self.assertNotIn("skill_scale", rulesets.sheet(rulesets.load(mini()), {"SIL": 5, "WOL": 6}))
+
+    def test_bad_tiers_are_rejected(self):
+        for tiers in ["x", [], [{"min": 8}], [{"min": 8, "label": " "}], [{"min": "8", "label": "A"}],
+                      [{"min": 8, "label": "A" * 41}], [{"min": 8, "label": "A", "extra": 1}],
+                      [{"min": 9, "label": "A"}, {"min": 9, "label": "B"}],
+                      [{"min": 9, "label": "A"}, {"min": 3, "label": "B"}],
+                      [{"min": i, "label": "A"} for i in range(11)]]:
+            with self.subTest(tiers=tiers):
+                rejects(self, {**mini(), "skill_tiers": tiers}, "skill_tiers")

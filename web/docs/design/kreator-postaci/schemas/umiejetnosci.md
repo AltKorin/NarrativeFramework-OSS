@@ -23,6 +23,17 @@ W pakiecie z `skill_value` (np. `"floor((STAT - 10) / 2) + RANK * BIEG"`) poziom
 (0 brak, 1 biegłość, 2 ekspertyza…) nadawana przez [[osie]] i [[listy-i-wybory]], a karta pokazuje wartość
 ze wzoru (`STAT` = wartość powiązanej statystyki).
 
+**Progi (`skill_tiers`, opcjonalne, na poziomie pakietu).** Lista 1–10 wpisów `{"min": liczba, "label": tekst ≤ 40}`
+z rosnącym `min`. Kreator pokazuje przy każdej umiejętności jej wartość (ze `skill_value`, bez wzoru = poziom),
+osiągnięty próg i to, ile poziomów brakuje do następnego, np. „wartość 12 · Wyszkolony → Profesjonalista: +2”.
+Gracz widzi od razu, ile punktów zainwestować, żeby być w czymś dobrym. Serwer wysyła w karcie szkicu
+`skill_scale` (wartość dla każdej rangi 0…`max` przy zapisanych statystykach), więc przeglądarka nie liczy wzorów.
+
+```json
+"skill_value": "STAT + RANK",
+"skill_tiers": [{"min": 10, "label": "Amator"}, {"min": 14, "label": "Profesjonalista"}]
+```
+
 Przykład:
 ```json
 {"id": "szermierka", "label": "Szermierka", "stat": "ZRE", "category": "Walka",

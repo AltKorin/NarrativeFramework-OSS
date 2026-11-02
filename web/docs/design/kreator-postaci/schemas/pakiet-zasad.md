@@ -27,6 +27,7 @@ Architektura: [[02-architektura-danych]]. Koperta zawierająca wszystkie domeny 
 | `axes` | lista ≤ 10 | [[osie]] | `stats`, `skills`, `catalog`, `lists`, `variables` |
 | `lists` | lista ≤ 50 | [[listy-i-wybory]] | jak `axes` |
 | `skill_value` | wzór (`RANK`, `STAT` + symbole) | Wartość umiejętności na karcie; bez niego = poziom | [[umiejetnosci]] |
+| `skill_tiers` | lista 1–10 `{min, label}`, `min` rośnie | Progi wartości umiejętności pokazywane na żywo w kreatorze | [[umiejetnosci]] |
 | `methods` | lista ≥ 1 | [[metody]] | wszystkie powyższe |
 
 **Limity v1:** dokument ≤ 450 KB, ≤ 30 statystyk, ≤ 200 umiejętności, ≤ 30 pochodnych,

@@ -16,6 +16,7 @@ type Pack = {
   tables: Item[];
   roles: Item[];
   methods: Item[];
+  skill_tiers?: { min: number; label: string }[];
 };
 type Summary = { id: string; status: string; method: string; version: number; member: string | null; name: string | null; page?: string | null };
 type Draft = Summary & {
@@ -30,7 +31,7 @@ type Draft = Summary & {
   items: string[];
   problems: string[];
   sheet: null | { derived: Record<string, number>; pools: Record<string, { label: string; max: number; current: number }>;
-    price: number; warnings: string[] };
+    price: number; warnings: string[]; skill_scale?: Record<string, number[]> };
   events: { type: string; [key: string]: any }[];
 };
 
@@ -117,8 +118,8 @@ const STEP_HELP: Record<string, [string, string, string, string]> = {
     "Pod tym imieniem postać pojawi się w wiki kampanii po zatwierdzeniu.", "Your character appears in the campaign wiki under this name once approved."],
 };
 
-function NumberStepper({ label, hint, value, min, max, onChange, pl }: {
-  label: string; hint?: string; value: number; min: number; max: number; onChange: (v: number) => void; pl: boolean;
+function NumberStepper({ label, hint, note, value, min, max, onChange, pl }: {
+  label: string; hint?: string; note?: string; value: number; min: number; max: number; onChange: (v: number) => void; pl: boolean;
 }) {
   const clamp = (v: number) => Math.max(min, Math.min(max, v));
   return (
@@ -129,6 +130,7 @@ function NumberStepper({ label, hint, value, min, max, onChange, pl }: {
         <input type="number" aria-label={label} min={min} max={max} value={value} onChange={(e) => onChange(clamp(Number(e.target.value) || min))} />
         <button type="button" aria-label={`${pl ? "Zwiększ" : "Increase"}: ${label}`} disabled={value >= max} onClick={() => onChange(clamp(value + 1))}>+</button>
       </div>
+      {note && <small className="builder-desc">{note}</small>}
     </div>
   );
 }
@@ -608,15 +610,31 @@ function SkillPoints({ step, draft, pl, act }: { step: Item; draft: Draft; pl: b
   const [values, setValues] = useState<Record<string, number>>({ ...base, ...draft.state.skills });
   const spent = pack.skills.reduce((sum, s) => sum + Math.max(0, (values[s.id] || 0) - (base[s.id] || 0)) * s.cost, 0);
   const categories = [...new Set(pack.skills.map((s) => s.category || ""))];
+  const tiers = pack.skill_tiers;
+  const scale = draft.sheet?.skill_scale;
+  const cap = (s: Item) => Math.min(s.max, step.max ?? s.max);
+  // Live tier preview: the server sends each rank's value at the saved stats, so no formula runs here.
+  const tierNote = (s: Item, rank: number) => {
+    const row = scale?.[s.id];
+    if (!tiers || !row || rank === 0) return undefined; // untouched skills stay quiet; the legend covers them
+    const value = row[rank];
+    const tier = [...tiers].reverse().find((x) => value >= x.min);
+    const next = tiers.find((x) => x.min > value);
+    const need = next ? row.findIndex((v, r) => r > rank && r <= cap(s) && v >= next.min) : -1;
+    return `${t("wartość", "value")} ${value}${tier ? ` · ${tier.label}` : ""}${need > 0 ? ` → ${next!.label}: +${need - rank}` : ""}`;
+  };
   return (
     <div>
       <Budget spent={spent} pool={step.pool} pl={pl} />
+      {tiers && <p className="builder-desc">{scale
+        ? `${t("Progi", "Tiers")}: ${tiers.map((x) => `${x.min} ${x.label}`).join(" · ")}`
+        : t("Zapisz statystyki, a zobaczysz tu poziom każdej umiejętności.", "Save statistics to see each skill's tier here.")}</p>}
       {categories.map((c) => (
         <div key={c}>
           {c && <h4>{c}</h4>}
           <div className="builder-number-grid">
             {pack.skills.filter((s) => (s.category || "") === c).map((s) => (
-              <NumberStepper key={s.id} pl={pl} value={values[s.id] || 0} min={base[s.id] || 0} max={Math.min(s.max, step.max ?? s.max)}
+              <NumberStepper key={s.id} pl={pl} value={values[s.id] || 0} min={base[s.id] || 0} max={cap(s)} note={tierNote(s, values[s.id] || 0)}
                 label={`${s.label} (${s.stat}${s.cost > 1 ? ` ×${s.cost}` : ""}${s.basic_min ? `, min ${s.basic_min}` : ""})`}
                 onChange={(v) => setValues({ ...values, [s.id]: v })} />
             ))}
