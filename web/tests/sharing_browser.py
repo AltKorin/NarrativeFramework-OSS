@@ -123,6 +123,9 @@ try:
         credentials(alice, "alice")
         alice.get_by_role("button", name="Accept invitation", exact=True).wait_for()
         alice.get_by_role("button", name="Accept invitation", exact=True).click()
+        # A new player lands on Start (their next step); leaving the campaign lives with the world material.
+        alice.locator("[data-tour=tab-start][aria-current=page]").wait_for()
+        alice.get_by_role("button", name="World material", exact=True).click()
         alice.get_by_role("button", name="Leave campaign", exact=True).wait_for()
         idle(alice)
         assert not alice.get_by_role("button", name="New article", exact=True).count()
