@@ -192,3 +192,51 @@ class CharacterFlowTests(TestCase):
         self.act(self.player, draft, action="choose_role", role="wojownik")
         self.assertEqual(CharacterDraft.objects.get(pk=draft["id"]).ruleset["id"], "mini")
         self.assertEqual(self.client_for(self.player).post(self.base + "characters/", {"id": str(uuid.uuid4()), "method": "pelna"}, format="json").status_code, 409)
+
+
+class RulesetUpdateTests(TestCase):
+    """The GM moves an unfinished draft onto the campaign's current pack (drafts keep a snapshot otherwise)."""
+    setUp, client_for, put_ruleset, start, act = (CharacterFlowTests.setUp, CharacterFlowTests.client_for,
+        CharacterFlowTests.put_ruleset, CharacterFlowTests.start, CharacterFlowTests.act)  # helpers only, not its tests
+
+    def newer(self, **changes):
+        document = {**pack(), "version": 2, "skill_tiers": [{"min": 4, "label": "Wprawny"}], **changes}
+        self.assertEqual(self.put_ruleset(document, 1).status_code, 200)
+        return document
+
+    def test_gm_updates_a_draft_and_the_history_records_it(self):
+        self.put_ruleset()
+        draft = self.start(self.player)
+        self.newer()
+        gm_view = self.client_for(self.gm).get(f"{self.base}characters/{draft['id']}/").data
+        self.assertTrue(gm_view["ruleset_outdated"])
+        updated = self.act(self.gm, gm_view, action="update_ruleset")
+        self.assertEqual(updated["ruleset"]["skill_tiers"], [{"min": 4, "label": "Wprawny"}])
+        self.assertFalse(updated["ruleset_outdated"])
+        self.assertEqual(updated["status"], "draft")
+        self.assertEqual(updated["events"][-1], {"type": "ruleset_updated", "from": 1, "to": 2})
+        again = self.act(self.gm, updated, action="update_ruleset")  # idempotent: nothing to do
+        self.assertEqual((again["version"], len(again["events"])), (updated["version"], len(updated["events"])))
+
+    def test_only_the_gm_and_only_unfinished_drafts(self):
+        self.put_ruleset()
+        draft = self.start(self.player)
+        self.newer()
+        self.act(self.player, draft, 403, action="update_ruleset")
+        CharacterDraft.objects.filter(pk=draft["id"]).update(status="approved")
+        draft = self.client_for(self.gm).get(f"{self.base}characters/{draft['id']}/").data
+        self.act(self.gm, draft, 409, action="update_ruleset")
+        self.assertEqual(CharacterDraft.objects.get(pk=draft["id"]).ruleset["version"], 1)
+
+    def test_a_pack_without_the_drafts_method_is_refused_and_nothing_changes(self):
+        self.put_ruleset()
+        draft = self.start(self.player)
+        self.newer(methods=[m for m in pack()["methods"] if m["id"] != "pelna"])
+        draft = self.client_for(self.gm).get(f"{self.base}characters/{draft['id']}/").data
+        self.act(self.gm, draft, 409, action="update_ruleset")
+        self.assertEqual(CharacterDraft.objects.get(pk=draft["id"]).ruleset["version"], 1)
+
+    def test_players_do_not_see_the_outdated_flag(self):
+        self.put_ruleset()
+        draft = self.start(self.player)
+        self.assertNotIn("ruleset_outdated", self.client_for(self.player).get(f"{self.base}characters/{draft['id']}/").data)

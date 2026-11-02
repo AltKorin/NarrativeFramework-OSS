@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Character drafts: the GM can move an unfinished draft onto the campaign's current ruleset ("Update the character's rules", MCP `update_ruleset`). Drafts otherwise keep the pack they started with; the builder tells the GM when a draft is behind.
+
 - Character builder: rulesets can define `skill_tiers` (e.g. 14 = professional). The skill step shows each skill's value, its tier and how many more levels reach the next tier, live while the player spends points.
 
 - Guided campaign experience: a spotlight tour ("How does it work?") for players and GMs explains each view and why it works that way; a non-blocking first-visit invitation (hidden on phones). Character creation becomes a guided path: step bar with done/to-do status, "what you do / why" help per step, gaps shown on their own step, −/+ steppers with a points meter, sticky actions and a builder tour. Players get a "Your way through the campaign" path; approving a character now publishes its sheet to that player (NPCs stay GM-only).

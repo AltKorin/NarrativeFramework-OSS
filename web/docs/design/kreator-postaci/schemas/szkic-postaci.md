@@ -41,6 +41,7 @@ wycofanie kroku kasuje wybory, ale rzuty zostają w historii widocznej dla MG.
 | `choice_set {key, picks \| values}` | `choose` | `key` musi być otwarty w aktualnym drzewie; `values` dla `stats_bonus` |
 | `stats_assigned {values}` | `assign_stats` | Rozdanie `stats_array` albo ostatniego rzutu |
 | `stat_set_rolled {dice, rolls, values}` | `roll_stat_set` | Jeden rzut (np. `4d6kh3`) na statystykę; kasuje rozdanie; ponownie tylko po `reroll_granted stats` |
+| `ruleset_updated {from, to}` | `update_ruleset` (MG) | Szkic przechodzi z migawki pakietu na aktualny pakiet kampanii; wybory liczą się od nowa według nowych zasad, braki wracają do kroków. Nie dla `approved`; gdy pakiet już aktualny — nic się nie dzieje. Odmowa, gdy nowy pakiet nie ma metody szkicu. API dla MG zwraca `ruleset_outdated` |
 
 Stan szkicu zwracany przez API ma dodatkowo `level`, `axes`, `choices`, `stat_set`, a wynik — `open`
 (otwarte wybory z liczbą i dostępnymi pozycjami) dla interfejsu kreatora.

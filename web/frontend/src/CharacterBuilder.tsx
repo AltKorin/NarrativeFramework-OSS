@@ -33,6 +33,7 @@ type Draft = Summary & {
   sheet: null | { derived: Record<string, number>; pools: Record<string, { label: string; max: number; current: number }>;
     price: number; warnings: string[]; skill_scale?: Record<string, number[]> };
   events: { type: string; [key: string]: any }[];
+  ruleset_outdated?: boolean;
 };
 
 // Ruleset entries may carry a campaign image ID; the provider turns it into a private URL.
@@ -482,6 +483,13 @@ function DraftEditor({ draft, gm, pl, busy, act, onBack, onDelete, onPage }: {
             <textarea value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} />
           </label>
           <button disabled={busy || !note.trim()} onClick={() => act({ action: "return", note })}>{t("Odeślij do poprawy", "Return for changes")}</button>
+        </div>
+      )}
+      {gm && draft.status !== "approved" && draft.ruleset_outdated && (
+        <div className="builder-review">
+          <p>{t("Postać powstaje na starszej wersji zasad kampanii. Po aktualizacji jej wybory zostaną sprawdzone według nowych zasad, a braki pokażą się w krokach.",
+            "This character uses an older version of the campaign rules. After the update its choices are checked against the new rules and any gaps show up in the steps.")}</p>
+          <button disabled={busy} onClick={() => act({ action: "update_ruleset" })}>{t("Zaktualizuj zasady postaci", "Update the character's rules")}</button>
         </div>
       )}
       {gm && draft.status !== "approved" && (

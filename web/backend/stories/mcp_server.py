@@ -356,7 +356,7 @@ async def create_character_draft(campaign_id: str, draft_id: str, method: str) -
 
 @mcp.tool()
 async def run_character_command(campaign_id: str, draft_id: str, expected_version: int, command: dict) -> dict:
-    """Apply one action to a draft. Builder actions (own GM drafts): choose_role {role}, choose_template {index}, set_stats {values}, roll_stats, set_skills {values}, set_gear {items}, set_items {items}, roll_table {table}, choose_table {table, entry}, set_name {name, look}, submit. Review actions (any draft): approve, return {note}, grant_reroll {target: "stats" or table id}. Dice are rolled by the server."""
+    """Apply one action to a draft. Builder actions (own GM drafts): choose_role {role}, choose_template {index}, set_stats {values}, roll_stats, set_skills {values}, set_gear {items}, set_items {items}, roll_table {table}, choose_table {table, entry}, set_name {name, look}, submit. Review actions (any draft): approve, return {note}, grant_reroll {target: "stats" or table id}, update_ruleset (move an unfinished draft onto the current campaign pack). Dice are rolled by the server."""
     return await wiki_call(characters_call("command"), campaign_id, draft_id, {**command, "version": expected_version})
 
 

@@ -21,7 +21,7 @@ PLAYER_ACTIONS = {"choose_role", "choose_template", "set_stats", "roll_stats", "
                   "set_gear", "set_items", "roll_table", "choose_table", "set_name", "submit",
                   "set_axis", "choose", "assign_stats", "roll_stat_set"}
 MAX_PICKS = 200
-GM_ACTIONS = {"approve", "return", "grant_reroll"}
+GM_ACTIONS = {"approve", "return", "grant_reroll", "update_ruleset"}
 MAX_EVENTS = 500
 
 
@@ -278,7 +278,9 @@ def view(draft, gm):
             "page": str(draft.page_id) if draft.page_id else None,
             "state": {**{k: v for k, v in state.items() if k != "rerolls"}, "rerolls": sorted(state["rerolls"])},
             "ruleset": draft.ruleset if gm else public_pack(draft.ruleset),
-            **result, "events": draft.events}
+            **result, "events": draft.events,
+            **({"ruleset_outdated": CampaignRuleset.objects.filter(campaign_id=draft.campaign_id)
+                .exclude(document=draft.ruleset).exists()} if gm else {})}
 
 
 # ── Drafts ──────────────────────────────────────────────────────────────────
@@ -366,6 +368,8 @@ def command(user, campaign_id, draft_id, data):
             raise DomainError("Only the GM can do this", 403)
     else:
         raise DomainError("Unknown character action")
+    if action == "update_ruleset":
+        return update_ruleset(c, gm, draft)
     pack = rulesets.load(draft.ruleset)
     state = fold(draft.events)
     events = handle(pack, draft, state, action, data, user)
@@ -383,6 +387,25 @@ def command(user, campaign_id, draft_id, data):
         approve(c, user, pack, draft)
     elif action == "return":
         draft.status, draft.review_note = "returned", events[0]["note"]
+    draft.version += 1
+    draft.save()
+    return view(draft, gm)
+
+
+def update_ruleset(c, gm, draft):
+    """Move an unfinished draft onto the campaign's current pack; its events then replay against that pack."""
+    if draft.status == "approved":
+        raise DomainError("Approved characters keep the pack they were approved with", 409)
+    current = CampaignRuleset.objects.filter(campaign=c).first()
+    if not current:
+        raise DomainError("Campaign has no ruleset", 409)
+    if current.document == draft.ruleset:
+        return view(draft, gm)  # already current: nothing to record
+    if draft.method not in lookup(current.document, "methods"):
+        raise DomainError("The current pack has no such creation method", 409)
+    draft.events = draft.events + [{"type": "ruleset_updated", "from": draft.ruleset.get("version"),
+                                    "to": current.document.get("version")}]
+    draft.ruleset = current.document
     draft.version += 1
     draft.save()
     return view(draft, gm)
