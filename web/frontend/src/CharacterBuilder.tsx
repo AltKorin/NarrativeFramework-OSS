@@ -154,10 +154,11 @@ const STATUS: Record<string, [string, string]> = {
   approved: ["Zatwierdzona", "Approved"],
 };
 
-export default function CharacterBuilder({ campaignId, gm, pl, request, onPage, onMaterials }: {
+export default function CharacterBuilder({ campaignId, gm, pl, cyber = false, request, onPage, onMaterials }: {
   campaignId: string;
   gm: boolean;
   pl: boolean;
+  cyber?: boolean;
   request: Request;
   onPage: (id: string) => void;
   onMaterials: () => void;
@@ -167,6 +168,7 @@ export default function CharacterBuilder({ campaignId, gm, pl, request, onPage, 
   const [ruleset, setRuleset] = useState<{ revision: number; document: Pack } | null | undefined>(undefined);
   const [drafts, setDrafts] = useState<Summary[]>([]);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [party, setParty] = useState<{ account: string; character: { id: string; name: string | null; axes: string } | null }[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -186,6 +188,8 @@ export default function CharacterBuilder({ campaignId, gm, pl, request, onPage, 
     const rules = await request(base + "ruleset/").catch(() => null);
     setRuleset(rules);
     setDrafts(await request(base + "characters/"));
+    // The party's picks help choose a role; a campaign without the party page simply shows nothing.
+    setParty((await request(base + "party/").catch(() => null))?.players || []);
   }
   useEffect(() => {
     void run(load);
@@ -205,7 +209,8 @@ export default function CharacterBuilder({ campaignId, gm, pl, request, onPage, 
     <section className="character-builder" aria-labelledby="builder-title">
       {error && <p role="alert" className="builder-error">{error}</p>}
       {draft ? (
-        <DraftEditor draft={draft} gm={gm} pl={pl} busy={busy} onBack={() => run(async () => { setDraft(null); await load(); })}
+        <DraftEditor draft={draft} gm={gm} pl={pl} busy={busy}
+          partyLine={partyLine(party, draft.id, cyber, pl)} onBack={() => run(async () => { setDraft(null); await load(); })}
           act={(c) => run(() => act(c))} onPage={onPage}
           onDelete={() => run(async () => {
             await request(`${base}characters/${draft.id}/`, "DELETE", { version: draft.version });
@@ -394,8 +399,16 @@ function builderTour(pl: boolean, editable: boolean): TourStep[] {
   return steps;
 }
 
-function DraftEditor({ draft, gm, pl, busy, act, onBack, onDelete, onPage }: {
-  draft: Draft; gm: boolean; pl: boolean; busy: boolean;
+function partyLine(party: { account: string; character: { id: string; name: string | null; axes: string } | null }[],
+  current: string, cyber: boolean, pl: boolean) {
+  const picks = party.flatMap(({ account, character: c }) =>
+    c && c.id !== current && c.axes ? [`${c.axes} (${c.name || account})`] : []);
+  if (!picks.length) return "";
+  return `${cyber ? (pl ? "W ekipie" : "In the crew") : pl ? "W drużynie" : "In the party"}: ${picks.join(", ")}`;
+}
+
+function DraftEditor({ draft, gm, pl, busy, partyLine, act, onBack, onDelete, onPage }: {
+  draft: Draft; gm: boolean; pl: boolean; busy: boolean; partyLine: string;
   act: (command: Record<string, unknown>) => void; onBack: () => void; onDelete: () => void; onPage: (id: string) => void;
 }) {
   const t = (a: string, b: string) => (pl ? a : b);
@@ -446,6 +459,7 @@ function DraftEditor({ draft, gm, pl, busy, act, onBack, onDelete, onPage }: {
           )}
           <fieldset disabled={!editable || busy}>
             <legend>{stepLabel(step, pack, pl)}</legend>
+            {step.type === "role" && partyLine && <p className="builder-note">{partyLine}</p>}
             <Step key={`${index}-${draft.version}`} step={step} draft={draft} pl={pl} act={act} />
           </fieldset>
           {gaps[index].length > 0 && editable && (

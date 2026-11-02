@@ -1249,6 +1249,7 @@ export default function CampaignWiki() {
                   <CharacterBuilder
                     key={campaign.id}
                     campaignId={campaign.id}
+                    cyber={campaign.appearance === "cyberpunk"}
                     gm={canEdit}
                     pl={pl}
                     request={api}
