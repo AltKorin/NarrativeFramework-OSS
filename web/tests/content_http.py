@@ -1,6 +1,7 @@
 """Search-visible HTML, real status codes and feeds, with no browser JavaScript."""
 
 import json
+import re
 import os
 from html.parser import HTMLParser
 from urllib.error import HTTPError
@@ -114,6 +115,12 @@ for path in [
         raise AssertionError("Soft 404: " + path)
     except HTTPError as error:
         assert error.code == 404, (path, error.code)
+# Built assets keep their names across releases while their content can change (the entry chunk did):
+# browsers and the CDN must revalidate, or a cached entry asks for a chunk the new release no longer has.
+_, campaigns_html, _ = get("/campaigns/")
+for asset in sorted(set(re.findall(r'/assets/[^"]+\.(?:js|css)', campaigns_html))):
+    _, _, asset_headers = get(asset)
+    assert "no-cache" in (asset_headers.get("Cache-Control") or ""), (asset, asset_headers.get("Cache-Control"))
 _, robots, _ = get("/robots.txt")
 assert f"Sitemap: {origin}/sitemap.xml" in robots
 for prefix in ["/api/", "/campaigns", "/workshop"]:

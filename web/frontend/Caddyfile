@@ -13,6 +13,10 @@
  @www host www.narrativeframework.com
  redir @www https://narrativeframework.com{uri} 301
  encode zstd gzip
+ # Built assets can keep a name while their content changes; revalidate (cheap 304 via ETag) so a cached
+ # entry never asks for a chunk the current release no longer has.
+ @assets path /assets/*
+ header @assets Cache-Control "no-cache"
  # Image uploads (multipart) get a larger body; everything else keeps 512KB.
  @imageUpload path_regexp imageUpload ^/api/campaigns/[0-9a-f-]+/images/$
  @notImageUpload not path_regexp notImageUpload ^/api/campaigns/[0-9a-f-]+/images/$
