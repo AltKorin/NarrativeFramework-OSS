@@ -35,6 +35,7 @@ jobs:
           config = Path('web/.env.example').read_text()
           config = config.replace('replace-with-a-long-random-secret', secrets.token_urlsafe(48))
           config = config.replace('replace-with-a-long-random-password', secrets.token_urlsafe(48))
+          config = config.replace('PARTY_PAGE=0', 'PARTY_PAGE=1')  # browser suites cover the party page
           Path('web/.env').write_text(config)
           Path('web/.env').chmod(0o600)
           PY
@@ -59,7 +60,7 @@ jobs:
         run: |
           # Disposable CI only: suites share one IP. Reset only DRF login
           # counters between suites; keep production limits and other Redis state.
-          for suite in blog_browser analytics_browser browser languages site_browser dashboard_browser onboarding_browser wiki_browser sharing_browser runtime_browser play_browser; do
+          for suite in blog_browser analytics_browser browser languages site_browser dashboard_browser onboarding_browser wiki_browser sharing_browser runtime_browser play_browser party_browser; do
             docker compose -f web/compose.yaml exec -T api python manage.py shell -c "
           from django.core.cache import cache
           from django.conf import settings
