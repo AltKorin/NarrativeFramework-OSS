@@ -168,7 +168,7 @@ export default function CharacterBuilder({ campaignId, gm, pl, cyber = false, re
   const [ruleset, setRuleset] = useState<{ revision: number; document: Pack } | null | undefined>(undefined);
   const [drafts, setDrafts] = useState<Summary[]>([]);
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [party, setParty] = useState<{ account: string; character: { id: string; name: string | null; axes: string } | null }[]>([]);
+  const [party, setParty] = useState<{ display: string; character: { id: string; name: string | null; axes: string } | null }[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -399,10 +399,10 @@ function builderTour(pl: boolean, editable: boolean): TourStep[] {
   return steps;
 }
 
-function partyLine(party: { account: string; character: { id: string; name: string | null; axes: string } | null }[],
+function partyLine(party: { display: string; character: { id: string; name: string | null; axes: string } | null }[],
   current: string, cyber: boolean, pl: boolean) {
-  const picks = party.flatMap(({ account, character: c }) =>
-    c && c.id !== current && c.axes ? [`${c.axes} (${c.name || account})`] : []);
+  const picks = party.flatMap(({ display, character: c }) =>
+    c && c.id !== current && c.axes ? [`${c.axes} (${c.name || display})`] : []);
   if (!picks.length) return "";
   return `${cyber ? (pl ? "W ekipie" : "In the crew") : pl ? "W drużynie" : "In the party"}: ${picks.join(", ")}`;
 }

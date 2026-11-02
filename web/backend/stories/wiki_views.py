@@ -335,9 +335,11 @@ def page_image(request, campaign_id, page_id):
     return Response(service.set_page_image(request.user, campaign_id, page_id, request.data))
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 @errors
 def party(request, campaign_id):
     from . import party as party_domain
 
+    if request.method == "POST":
+        return Response(party_domain.set_display_name(request.user, campaign_id, request.data))
     return Response(party_domain.overview(request.user, campaign_id))

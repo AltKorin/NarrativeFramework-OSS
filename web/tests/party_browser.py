@@ -21,7 +21,8 @@ gm = users.create_user('party-gm-{tag}', password={password!r})
 c = Campaign.objects.create(id={campaign!r}, owner=gm, title='Party {tag}', appearance='cyberpunk')
 CampaignRuleset.objects.create(campaign=c, document=pack())
 for name, hero, stats, skills in (('anna', None, None, None), ('bart', 'Tor', {{'SIL': 7, 'WOL': 4}}, {{'walka': 4}})):
-    member = CampaignMember.objects.create(campaign=c, user=users.create_user(name + '-{tag}', password={password!r}), role='player')
+    member = CampaignMember.objects.create(campaign=c, user=users.create_user(name + '-{tag}', password={password!r}), role='player',
+                                           display_name='Bart' if hero else '')
     if hero:  # created first, so the newer Tor is on top of the tile
         CharacterDraft.objects.create(id=uuid.uuid4(), campaign=c, member=member, ruleset=pack(), method='punkty',
                                       events=events(name='Porzucony'))
@@ -50,7 +51,8 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True, args=browser_args())
     anna, anna_errors = login(browser, "anna")
     anna.get_by_role("button", name="Ekipa", exact=True).click()
-    hung = anna.locator(".party-tile").filter(has_text=f"bart-{tag}")
+    hung = anna.locator(".party-tile").filter(has_text="Bart")
+    assert f"bart-{tag}" not in anna.locator(".party").inner_text(), "players never see other logins"
     expect(hung.locator(".party-card").first).to_contain_text("Tor")
     expect(hung.locator(".party-card").first).to_contain_text("Wojownik")
     expect(hung.locator(".party-skills")).to_contain_text("Walka 11 · Wyszkolony")
@@ -58,9 +60,13 @@ with sync_playwright() as p:
     assert drafts.get_attribute("open") is None, "other drafts start folded"
     expect(drafts.locator("summary")).to_have_text("Szkice (1)")
     assert hung.locator("input").count() == 0, "only your own tile is editable"
-    mine = anna.locator(".party-tile").filter(has_text=f"anna-{tag}")
+    mine = anna.locator(".party-tile").filter(has_text="Gracz 1")
+    mine.get_by_label("Jak widzą cię inni w drużynie").fill("Anka")
+    mine.get_by_role("button", name="Zapisz nazwę").click()
+    mine = anna.locator(".party-tile").filter(has_text="Anka")
+    expect(mine.locator(".party-account")).to_contain_text("Anka")
     mine.get_by_label("W drużynie odpowiadam za…").fill("Otwieram drzwi")
-    mine.get_by_role("button", name="Zapisz").click()
+    mine.get_by_role("button", name="Zapisz", exact=True).click()
     expect(mine.locator(".party-focus")).to_have_text("„Otwieram drzwi”")
 
     anna.get_by_role("button", name="Tworzenie postaci", exact=True).click()
@@ -70,9 +76,9 @@ with sync_playwright() as p:
 
     bart, bart_errors = login(browser, "bart", {"width": 390, "height": 844})
     bart.get_by_role("button", name="Ekipa", exact=True).click()
-    expect(bart.locator(".party-tile").filter(has_text=f"anna-{tag}").locator(".party-focus")).to_have_text("„Otwieram drzwi”")
+    expect(bart.locator(".party-tile").filter(has_text="Anka").locator(".party-focus")).to_have_text("„Otwieram drzwi”")
     assert bart.evaluate("document.documentElement.scrollWidth <= innerWidth"), "no horizontal scroll on a phone"
     bart.screenshot(path="/tmp/narrative-party-mobile.png", full_page=True)
     assert not anna_errors and not bart_errors, anna_errors + bart_errors
     browser.close()
-print("PASS: party tiles, own job sentence, folded drafts, builder hint, phone layout")
+print("PASS: party tiles, chosen names (no logins), own job sentence, folded drafts, builder hint, phone layout")

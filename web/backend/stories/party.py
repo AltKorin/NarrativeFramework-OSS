@@ -14,20 +14,38 @@ def overview(user, campaign_id):
     c = campaign_access(user, campaign_id, minimum="player")
     if not (settings.PARTY_PAGE and c.party_enabled):
         raise DomainError("Campaign not found", 404)
-    players = c.members.filter(role="player").select_related("user").order_by("user__username")
+    players = list(c.members.filter(role="player").select_related("user").order_by("user__username"))
     drafts = {}
     for draft in c.character_drafts.filter(member__in=players).order_by("-updated_at"):
         drafts.setdefault(draft.member_id, []).append(draft)
-    return {"players": [tile(member, drafts.get(member.pk, []), user) for member in players]}
+    gm = c.wiki_role in {"owner", "gm"}
+    return {"players": [tile(member, n, drafts.get(member.pk, []), user, gm) for n, member in enumerate(players, 1)]}
 
 
-def tile(member, drafts, viewer):
+@transaction.atomic
+def set_display_name(user, campaign_id, data):
+    """A player's own name in this party; logins stay visible to the GM only."""
+    c = campaign_access(user, campaign_id, minimum="player")
+    if not (settings.PARTY_PAGE and c.party_enabled):
+        raise DomainError("Campaign not found", 404)
+    if c.wiki_role != "player":
+        raise DomainError("Only players have a name in the party", 403)
+    name = data.get("display_name") if isinstance(data, dict) else None
+    if not isinstance(name, str) or len(name.strip()) > 40:
+        raise DomainError("Choose a name of up to 40 characters")
+    c.wiki_member.display_name = name.strip()
+    c.wiki_member.save(update_fields=["display_name"])
+    return overview(user, campaign_id)
+
+
+def tile(member, number, drafts, viewer, gm):
     """Approved character on top, otherwise the most recently changed draft; the rest stay folded away."""
     approved = [d for d in drafts if d.status == "approved"]
     active = [d for d in drafts if d.status in ACTIVE]
     ordered = approved + active
     top = ordered[0] if ordered else None
-    return {"member": str(member.pk), "account": member.user.username, "mine": member.user_id == viewer.pk,
+    return {"member": str(member.pk), "display": member.display_name or f"Gracz {number}",
+            "mine": member.user_id == viewer.pk, **({"account": member.user.username} if gm else {}),
             "character": card(top) if top else None,
             "drafts": [card(d) for d in ordered[1:]]}
 

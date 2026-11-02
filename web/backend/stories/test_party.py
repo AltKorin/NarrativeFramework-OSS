@@ -66,8 +66,8 @@ class PartyTests(TestCase):
         self.assertEqual(response.status_code, status, getattr(response, "data", None))
         return response.data
 
-    def tile(self, data, account):
-        return next(t for t in data["players"] if t["account"] == account)
+    def tile(self, data, who):
+        return next(t for t in data["players"] if t["member"] == str(self.members[who].pk))
 
     def test_flag_and_switch_hide_the_page(self):
         with override_settings(PARTY_PAGE=False):
@@ -80,12 +80,12 @@ class PartyTests(TestCase):
         self.draft("anna", name="Mira", stats={"SIL": 5, "WOL": 6}, skills={"walka": 2})
         self.draft("bart", name="Tor", stats={"SIL": 7, "WOL": 4}, skills={"walka": 4}, focus="Strzelam")
         data = self.get(self.anna)
-        self.assertEqual([t["account"] for t in data["players"]], ["anna", "bart"])
+        self.assertEqual([t["display"] for t in data["players"]], ["Gracz 1", "Gracz 2"])
         hung = self.tile(data, "bart")["character"]
         self.assertEqual((hung["name"], hung["axes"], hung["focus"]), ("Tor", "Wojownik", "Strzelam"))
         self.assertEqual(hung["skills"], [{"label": "Walka", "value": 11, "tier": "Wyszkolony"}])
         text = json.dumps(data)
-        for private in ('"stats"', '"items"', '"events"', '"tables"', '"SIL"'):
+        for private in ('"stats"', '"items"', '"events"', '"tables"', '"SIL"', '"account"', "anna", "bart"):
             self.assertNotIn(private, text)
 
     def test_approved_character_wins_and_other_drafts_are_listed(self):
@@ -161,7 +161,7 @@ class MineTests(TestCase):
 
     def test_each_viewer_finds_their_own_tile(self):
         data = self.get(self.anna)
-        self.assertEqual([(t["account"], t["mine"]) for t in data["players"]], [("anna", True), ("bart", False)])
+        self.assertEqual([t["mine"] for t in data["players"]], [True, False])
         self.assertEqual([t["mine"] for t in self.get(self.gm)["players"]], [False, False])
 
 
@@ -175,3 +175,31 @@ class StaleSnapshotTests(TestCase):
                                       ruleset=broken, method="punkty", events=events(name="Stara"))
         card = self.tile(self.get(self.bart), "anna")["character"]
         self.assertEqual((card["name"], card["axes"], card["skills"]), ("Stara", "", []))
+
+
+@override_settings(PARTY_PAGE=True)
+class DisplayNameTests(TestCase):
+    """Players choose how the party sees them; logins stay with the GM."""
+    setUp, get, tile = PartyTests.setUp, PartyTests.get, PartyTests.tile
+
+    def name(self, user, value, status=200):
+        client = APIClient()
+        client.force_authenticate(user)
+        response = client.post(self.url, {"display_name": value}, format="json")
+        self.assertEqual(response.status_code, status, getattr(response, "data", None))
+        return response.data
+
+    def test_player_sets_and_clears_their_name(self):
+        self.name(self.bart, "  Kuba  ")
+        self.assertEqual(self.tile(self.get(self.anna), "bart")["display"], "Kuba")
+        self.name(self.bart, "")
+        self.assertEqual(self.tile(self.get(self.anna), "bart")["display"], "Gracz 2")
+
+    def test_name_limits_and_who_may_set_it(self):
+        self.name(self.anna, "x" * 41, 400)
+        self.name(self.anna, 7, 400)
+        self.name(self.gm, "Mistrz", 403)
+
+    def test_only_the_gm_sees_logins(self):
+        self.assertEqual([t["account"] for t in self.get(self.gm)["players"]], ["anna", "bart"])
+        self.assertNotIn("account", self.get(self.anna)["players"][0])

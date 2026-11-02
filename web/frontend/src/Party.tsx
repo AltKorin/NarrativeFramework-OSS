@@ -3,7 +3,7 @@ import "./party.css";
 
 type Skill = { label: string; value: number; tier: string | null };
 type Card = { id: string; name: string | null; status: string; axes: string; skills: Skill[]; focus: string };
-type Tile = { member: string; account: string; mine: boolean; character: Card | null; drafts: Card[] };
+type Tile = { member: string; display: string; account?: string; mine: boolean; character: Card | null; drafts: Card[] };
 type Request = (path: string, method?: string, body?: unknown) => Promise<any>;
 
 const STATUS: Record<string, [string, string]> = {
@@ -31,7 +31,9 @@ export default function Party({ campaignId, pl, cyber, request, onCreate }: {
       <div className="party-tiles">
         {tiles.map((tile) => (
           <article key={tile.member} className="party-tile">
-            <p className="party-account">{tile.account}</p>
+            <p className="party-account">{tile.display}{tile.account && <small> · {t("login", "login")}: {tile.account}</small>}</p>
+            {tile.mine && <DisplayName key={tile.display} tile={tile} pl={pl}
+              save={(name) => request(`campaigns/${campaignId}/party/`, "POST", { display_name: name }).then((d) => setTiles(d.players))} />}
             {tile.character ? <CharacterCard card={tile.character} pl={pl} />
               : <p>{t("Jeszcze bez postaci.", "No character yet.")}</p>}
             {tile.mine && (tile.character
@@ -65,6 +67,25 @@ function CharacterCard({ card, pl }: { card: Card; pl: boolean }) {
       )}
       {card.focus && <p className="party-focus">„{card.focus}”</p>}
     </div>
+  );
+}
+
+function DisplayName({ tile, pl, save }: { tile: Tile; pl: boolean; save: (name: string) => Promise<unknown> }) {
+  const t = (a: string, b: string) => (pl ? a : b);
+  const [name, setName] = useState(/^Gracz \d+$/.test(tile.display) ? "" : tile.display);
+  const [state, setState] = useState("");
+  return (
+    <form className="party-focus-form" onSubmit={(e) => {
+      e.preventDefault();
+      setState("…");
+      save(name).then(() => setState(t("Zapisano.", "Saved."))).catch((err) => setState(String(err.message || err)));
+    }}>
+      <label>{t("Jak widzą cię inni w drużynie", "How the party sees you")}
+        <input value={name} maxLength={40} placeholder={tile.display} onChange={(e) => setName(e.target.value)} />
+      </label>
+      <button type="submit">{t("Zapisz nazwę", "Save name")}</button>
+      {state && <small role="status">{state}</small>}
+    </form>
   );
 }
 

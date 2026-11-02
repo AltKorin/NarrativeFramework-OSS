@@ -165,6 +165,7 @@ class CampaignMember(models.Model):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="members")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=[("gm", "Co-GM"), ("player", "Player")])
+    display_name = models.CharField(max_length=40, blank=True, default="", db_default="")  # how the party sees them
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["campaign", "user"], name="unique_campaign_member")]

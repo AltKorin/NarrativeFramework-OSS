@@ -59,6 +59,9 @@ Exercise browser demo, login, private save, export/import, API ownership, stale 
 - **Party**: the group of all players in one campaign and their characters; a campaign has exactly one. Shown as
   "Drużyna" in fantasy campaigns and "Ekipa" in cyberpunk ones.
   _Avoid_: team, group, crew (as domain terms)
+- **Display name**: how a player appears to the rest of the party in one campaign, chosen by that player; until they
+  choose one they appear as a numbered player. Other players never see login names; the GM does.
+  _Avoid_: username, nick
 - **Specialization**: what a character is good at within the party — its three highest skills, plus one optional
   sentence from the player about their job in the party.
   _Avoid_: class, role (both are character axes)

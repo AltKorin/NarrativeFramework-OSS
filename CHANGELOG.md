@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Party page (behind `PARTY_PAGE=1` and a per-campaign GM switch): every player sees who plays whom, their role or class, three highest skills and a one-sentence job in the party; other drafts stay folded. The character builder shows the party's picks above the role choice.
+- Party page (behind `PARTY_PAGE=1` and a per-campaign GM switch): every player sees who plays whom, their role or class, three highest skills and a one-sentence job in the party; other drafts stay folded. Players choose their own display name per campaign; logins stay visible to the GM only. The character builder shows the party's picks above the role choice.
 
 - Character drafts: the GM can move an unfinished draft onto the campaign's current ruleset ("Update the character's rules", MCP `update_ruleset`). Drafts otherwise keep the pack they started with; the builder tells the GM when a draft is behind.
 
