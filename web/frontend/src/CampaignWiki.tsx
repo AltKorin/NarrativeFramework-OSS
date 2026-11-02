@@ -1004,7 +1004,10 @@ export default function CampaignWiki() {
                     <button
                       onClick={() => {
                         if (mayLeave())
-                          run(() => openCampaign(campaign.id, page?.id));
+                          run(async () => {
+                            await refresh(campaign.id);
+                            if (page) await openPage(campaign.id, page.id);
+                          });
                       }}
                     >
                       {t("Odśwież kampanię", "Reload campaign")}

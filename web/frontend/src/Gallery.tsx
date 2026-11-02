@@ -46,12 +46,13 @@ export default function Gallery({ campaignId, gm, pl, request, csrf, pages, cove
   const [caption, setCaption] = useState("");
   const [shared, setShared] = useState(false);
 
-  async function run(fn: () => Promise<void>, done = "") {
+  async function run(fn: () => Promise<void>, done = "", changed = true) {
     if (busy) return;
     setBusy(true);
     setNotice("");
     try {
       await fn();
+      if (changed) await onChanged();
       setItems(await request(base + "images/"));
       setNotice(done);
     } catch (e) {
@@ -61,7 +62,7 @@ export default function Gallery({ campaignId, gm, pl, request, csrf, pages, cove
     }
   }
   useEffect(() => {
-    void run(async () => undefined);
+    void run(async () => undefined, "", false);
   }, [campaignId]);
 
   async function upload() {
@@ -130,13 +131,13 @@ export default function Gallery({ campaignId, gm, pl, request, csrf, pages, cove
                   <button disabled={busy} onClick={() => run(() => request(`${base}images/${img.id}/`, "PATCH", { gallery: img.gallery === "players" ? "gm" : "players" }))}>
                     {img.gallery === "players" ? t("Ukryj przed graczami", "Hide from players") : t("Pokaż graczom", "Show to players")}
                   </button>
-                  <button disabled={busy} onClick={() => run(async () => { await request(`${base}cover/`, "PUT", { image: cover === img.id ? null : img.id }); await onChanged(); })}>
+                  <button disabled={busy} onClick={() => run(async () => { await request(`${base}cover/`, "PUT", { image: cover === img.id ? null : img.id }); })}>
                     {cover === img.id ? t("Usuń z okładki", "Remove as cover") : t("Ustaw jako okładkę", "Set as cover")}
                   </button>
                   <label>{t("Ilustracja strony", "Page illustration")}
                     <select value="" disabled={busy} onChange={(e) => {
                       const page = pages.find((p) => p.id === e.target.value);
-                      if (page) void run(async () => { await request(`${base}pages/${page.id}/image/`, "PUT", { version: page.version, image: img.id }); await onChanged(); },
+                      if (page) void run(async () => { await request(`${base}pages/${page.id}/image/`, "PUT", { version: page.version, image: img.id }); },
                         t(`Dołączono do „${page.title}”. Gracze zobaczą ilustrację po ponownej publikacji strony.`, `Attached to “${page.title}”. Players see it after the page is published again.`));
                     }}>
                       <option value="">{t("Dołącz do strony…", "Attach to page…")}</option>
@@ -147,7 +148,7 @@ export default function Gallery({ campaignId, gm, pl, request, csrf, pages, cove
                     onClick={() => {
                       const effects = [img.usage!.cover && t("okładkę", "the cover"), img.usage!.pages.length && t(`${img.usage!.pages.length} ilustracji stron`, `${img.usage!.pages.length} page illustrations`)].filter(Boolean).join(t(" i ", " and "));
                       if (confirm(t(`Usunąć obraz?${effects ? ` Odepnie też ${effects}.` : ""}`, `Delete the image?${effects ? ` It also removes ${effects}.` : ""}`)))
-                        void run(async () => { await request(`${base}images/${img.id}/`, "DELETE"); await onChanged(); }, t("Obraz usunięty.", "Image deleted."));
+                        void run(async () => { await request(`${base}images/${img.id}/`, "DELETE"); }, t("Obraz usunięty.", "Image deleted."));
                     }}>
                     {t("Usuń", "Delete")}
                   </button>
