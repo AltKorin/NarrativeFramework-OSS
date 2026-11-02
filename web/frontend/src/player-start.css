@@ -1,0 +1,8 @@
+.player-start { padding: 24px 32px; max-width: 760px; }
+.player-intro { margin: 0 0 20px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.player-next { padding: 20px; border: 1px solid var(--campaign-border); background: var(--campaign-surface); }
+.player-next h2 { margin: 0 0 12px; }
+.player-next p { line-height: 1.5; }
+.player-next-name { font-weight: 600; overflow-wrap: anywhere; }
+.player-next button.primary { background: var(--campaign-accent); color: var(--campaign-on-accent); border-color: var(--campaign-accent); font-weight: 600; }
+@media (max-width: 600px) { .player-start { padding: 20px; } .player-next { padding: 16px; } }

@@ -13,6 +13,7 @@ import { initialLanguage, translate, type Language } from "./i18n";
 import { newUUID } from "./uuid";
 import "./wiki.css";
 import { entryTemplate, type Presentation } from "./campaignPresentation";
+import PlayerStart from "./PlayerStart";
 import CampaignStart from "./CampaignStart";
 import CampaignRuntime from "./CampaignRuntime";
 import CharacterBuilder from "./CharacterBuilder";
@@ -216,6 +217,7 @@ export default function CampaignWiki() {
   const [editing, setEditing] = useState(false);
   const [graph, setGraph] = useState(false);
   const [view, setView] = useState<CampaignView>("run");
+  const [characterId, setCharacterId] = useState<string | undefined>();
   const [tourOpen, setTourOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Meta[] | null>(null);
@@ -242,7 +244,7 @@ export default function CampaignWiki() {
   // Full-width focus views: GM session tools and the character builder (both roles).
   const focusView =
     !!campaign &&
-    (canEdit ? view !== "materials" : view === "characters" || view === "party" || view === "gallery");
+    (canEdit ? view !== "materials" : view === "start" || view === "characters" || view === "party" || view === "gallery");
   const actualGM =
     !!campaign && (campaign.actual_role || campaign.role) !== "player";
   const dirty =
@@ -353,10 +355,11 @@ export default function CampaignWiki() {
       : c.role === "player"
         ? c.pages[0]?.id
         : undefined;
-    setView(pageId || c.role === "player" ? "materials" : "run");
+    setCharacterId(undefined);
+    setView(pageId || c.preview ? "materials" : c.role === "player" ? "start" : "run");
     setGraph(false);
     if (pageId && !first) setNotice("Wiki page not found");
-    if (first) await openPage(id, first);
+    if (first && (pageId || c.preview)) await openPage(id, first);
     else {
       setPage(null);
       setDraft(null);
@@ -652,7 +655,7 @@ export default function CampaignWiki() {
                   "gallery",
                   "materials",
                 ] as CampaignView[])
-              : (["materials", "characters", "party", "gallery"] as CampaignView[])
+              : ([...(!actualGM ? ["start"] : []), "materials", "characters", "party", "gallery"] as CampaignView[])
             ).filter((tab) => tab !== "party" || campaign.party).map((tab) => (
               <button
                 key={tab}
@@ -660,6 +663,7 @@ export default function CampaignWiki() {
                 aria-current={view === tab ? "page" : undefined}
                 onClick={() => {
                   if (mayLeave()) {
+                    setCharacterId(undefined);
                     setView(tab);
                     setEditing(false);
                     changeURL(
@@ -671,6 +675,7 @@ export default function CampaignWiki() {
               >
                 {
                   {
+                    start: t("Start", "Start"),
                     run: t("Prowadzenie", "Run session"),
                     timeline: t("Oś czasu", "Timeline"),
                     actors: t("Postacie", "Characters"),
@@ -688,7 +693,7 @@ export default function CampaignWiki() {
           </nav>
         )}
       </div>
-      {user && campaign && (
+      {user && campaign && view !== "start" && (
         <TourInvite
           key={`${campaign.id}:${canEdit ? "gm" : "player"}`}
           id={`campaign-${canEdit ? "gm" : "player"}`}
@@ -1223,6 +1228,12 @@ export default function CampaignWiki() {
                     onAdd={addEntry}
                   />
                 )}
+                {view === "start" && !actualGM && (
+                  <PlayerStart key={campaign.id} campaignId={campaign.id} summary={campaign.summary} pl={pl} request={api}
+                    onCreate={() => { setCharacterId(undefined); setView("characters"); }}
+                    onDraft={(id) => { setCharacterId(id); setView("characters"); }}
+                    onPage={goPage} />
+                )}
                 {view === "gallery" && (
                   <Gallery
                     key={campaign.id}
@@ -1253,6 +1264,8 @@ export default function CampaignWiki() {
                     key={campaign.id}
                     campaignId={campaign.id}
                     cyber={campaign.appearance === "cyberpunk"}
+                    party={!!campaign.party}
+                    initialDraftId={characterId}
                     gm={canEdit}
                     pl={pl}
                     request={api}

@@ -114,3 +114,5 @@ Workshop entry: `/workshop/` now opens the dashboard. Choose **New campaign**, s
 The GM export also includes private `runtime` state; player and preview exports omit it. Runtime endpoints and migration `0007_campaign_runtime`: [contract](../narrative-runtime.md).
 
 Use **Refresh gallery** to load the current images without leaving the tab, including images newly shared or hidden by the GM.
+
+Entering a campaign as a player opens **Start**, with a short introduction and one action based on your character’s progress: create, continue, make changes or open the approved sheet. If you are waiting for rules or a GM decision, the screen explains this and lets you check again. World material remains a separate tab; a direct article link opens the article.

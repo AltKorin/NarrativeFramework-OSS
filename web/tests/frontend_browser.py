@@ -88,6 +88,54 @@ try:
         click(gm, 'Odśwież kampanię')
         expect(gm.locator('[data-tour=tab-materials]')).to_have_attribute('aria-current', 'page')
         expect(gm.locator('textarea[name=summary]')).to_have_value('Zmiana drugiego MG')
+        # Entry follows persisted state, not tutorial flags or browser storage.
+        draft_id, page_id = str(uuid.uuid4()), str(uuid.uuid4())
+        for appearance in ('fantasy', 'cyberpunk'):
+            db(f"from stories.models import Campaign\nCampaign.objects.filter(pk={cid!r}).update(appearance={appearance!r},party_enabled=False)")
+            for width in (390, 1440):
+                player.set_viewport_size({'width': width, 'height': 844 if width == 390 else 1000})
+                for state, action in [('no-rules', 'Sprawdź ponownie'), ('new', 'Stwórz postać'), ('draft', 'Kontynuuj'), ('returned', 'Popraw postać'), ('submitted', 'Sprawdź decyzję'), ('approved', 'Otwórz kartę')]:
+                    db(f"""
+from stories.models import Campaign, CampaignRuleset, CharacterDraft, CampaignMember, WikiPage
+from stories.test_party import pack, events
+c=Campaign.objects.get(pk={cid!r})
+CharacterDraft.objects.filter(campaign=c).delete()
+# 24 entry states for one account exceed the 120/minute user limit; reset it in this disposable stack only.
+from django.core.cache import cache
+from django.conf import settings as S
+import redis
+r=redis.Redis.from_url(S.CACHES['default']['LOCATION'])
+keys=list(r.scan_iter(match=cache.make_key('throttle_user_*')))
+if keys: r.delete(*keys)
+CampaignRuleset.objects.filter(campaign=c).delete()
+if {state!r} != 'no-rules': CampaignRuleset.objects.create(campaign=c,document=pack())
+if {state!r} not in ('no-rules','new'):
+    page,_=WikiPage.objects.get_or_create(id={page_id!r},defaults=dict(campaign=c,title='Wędrowiec',kind='pc',body='Karta testowa',audience='all',published={{'title':'Wędrowiec','kind':'pc','body':'Karta testowa','version':1,'image':None}}))
+    CharacterDraft.objects.create(id={draft_id!r},campaign=c,member=CampaignMember.objects.get(campaign=c),ruleset=pack(),method='punkty',status={state!r},events=events(name='Wędrowiec'),review_note='Zmień opis postaci',page=page if {state!r}=='approved' else None)
+""")
+                    player.goto(base + f'/campaigns/?lang=pl&campaign={cid}', wait_until='networkidle')
+                    expect(player.locator('[data-tour=tab-start]')).to_have_attribute('aria-current','page')
+                    button=player.locator('.player-start').get_by_role('button',name=action,exact=True)
+                    expect(button).to_be_visible()
+                    rect=button.bounding_box()
+                    assert rect['y'] >= 0 and rect['y'] + rect['height'] <= player.viewport_size['height'], (appearance,width,state,rect)
+                    assert player.locator('.player-start button.primary').count()==1
+                    if state in ('draft','returned'):
+                        click(player,action)
+                        expect(player.locator('.builder-editor')).to_be_visible()
+                        if state=='returned': expect(player.get_by_text('Uwaga prowadzącego: Zmień opis postaci',exact=True)).to_be_visible()
+                    if state=='approved':
+                        click(player,action)
+                        expect(player.locator('.wiki-article-title')).to_contain_text('Wędrowiec')
+                        player.reload(wait_until='networkidle')
+                        expect(player.locator('.wiki-article-title')).to_contain_text('Wędrowiec')
+        player.goto(base + f'/campaigns/?lang=pl&campaign={cid}', wait_until='networkidle')
+        player.route('**/characters/', lambda route: route.fulfill(status=500,content_type='application/json',body='{"error":"Temporary error"}'))
+        player.reload(wait_until='networkidle')
+        expect(player.locator('.player-start [role=alert]')).to_contain_text('Nie udało się sprawdzić postępu')
+        player.unroute('**/characters/')
+        click(player,'Spróbuj ponownie')
+        expect(player.locator('.player-start').get_by_role('button',name='Otwórz kartę',exact=True)).to_be_visible()
         browser.close()
     print('PASS: gallery mutations refresh campaign version; real conflicts remain; reload preserves settings view')
 finally:

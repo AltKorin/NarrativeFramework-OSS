@@ -100,3 +100,5 @@ Migracja 0006 zachowuje wartości domyślne nowych pól także w bazie, aby star
 Eksport MG zawiera również prywatny stan `runtime`; eksport gracza i podglądu gracza go pomija. Endpointy silnika i migracja `0007_campaign_runtime`: [kontrakt](../narrative-runtime.md).
 
 Przycisk **Odśwież galerię** pobiera aktualną listę obrazów bez opuszczania zakładki. Użyj go, gdy prowadzący udostępni nowy obraz lub zmieni jego widoczność.
+
+Po wejściu do kampanii gracz widzi **Start**: krótkie wprowadzenie i jedno działanie zależne od postępu postaci. Może zacząć tworzenie, kontynuować szkic, poprawić postać lub otworzyć zatwierdzoną kartę. Jeśli czeka na zasady lub decyzję MG, komunikat wyjaśnia sytuację i pozwala sprawdzić ją ponownie. Materiały świata pozostają w osobnej zakładce; bezpośredni link do artykułu otwiera jego treść.

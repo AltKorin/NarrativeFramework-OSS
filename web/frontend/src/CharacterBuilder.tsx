@@ -154,11 +154,13 @@ const STATUS: Record<string, [string, string]> = {
   approved: ["Zatwierdzona", "Approved"],
 };
 
-export default function CharacterBuilder({ campaignId, gm, pl, cyber = false, request, onPage, onMaterials }: {
+export default function CharacterBuilder({ campaignId, gm, pl, cyber = false, party: partyOn = false, request, onPage, onMaterials, initialDraftId }: {
   campaignId: string;
+  initialDraftId?: string;
   gm: boolean;
   pl: boolean;
   cyber?: boolean;
+  party?: boolean;
   request: Request;
   onPage: (id: string) => void;
   onMaterials: () => void;
@@ -188,11 +190,14 @@ export default function CharacterBuilder({ campaignId, gm, pl, cyber = false, re
     const rules = await request(base + "ruleset/").catch(() => null);
     setRuleset(rules);
     setDrafts(await request(base + "characters/"));
-    // The party's picks help choose a role; a campaign without the party page simply shows nothing.
-    setParty((await request(base + "party/").catch(() => null))?.players || []);
+    // The party's picks help choose a role; without the party page there is nothing to ask for.
+    if (partyOn) setParty((await request(base + "party/").catch(() => null))?.players || []);
   }
   useEffect(() => {
-    void run(load);
+    void run(async () => {
+      await load();
+      if (initialDraftId) setDraft(await request(`${base}characters/${initialDraftId}/`));
+    });
   }, [campaignId]);
 
   async function act(command: Record<string, unknown>) {
