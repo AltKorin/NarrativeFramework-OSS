@@ -54,7 +54,7 @@ def specialization(pack, draft, state):
         return []
     order = {s["id"]: i for i, s in enumerate(pack["skills"])}
     labels = {s["id"]: s["label"] for s in pack["skills"]}
-    totals = sheet["skill_totals"]
+    totals = sheet.get("skill_values") or rulesets.skill_totals(pack, result["stats"], ranks)
     picked = sorted((k for k, r in ranks.items() if r > 0 and k in totals), key=lambda k: (-totals[k], order[k]))[:3]
     tiers = pack.get("skill_tiers") or []
     return [{"label": labels[k], "value": totals[k],

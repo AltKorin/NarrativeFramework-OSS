@@ -138,3 +138,18 @@ class PartyTests(TestCase):
         player = APIClient()
         player.force_authenticate(self.anna)
         self.assertEqual(player.put(base, {"title": "World", "version": 0, "party_enabled": True}, format="json").status_code, 404)
+
+
+@override_settings(PARTY_PAGE=True)
+class LevelledPartyTests(TestCase):
+    """Packs with levels pick classes on axes and value skills by formula; the tile follows the sheet."""
+    from .test_characters_levels import LevelCharacterFlowTests as _L  # helpers only; not at module level, so its tests do not run twice
+    setUp, client_for, start, act, fighter = _L.setUp, _L.client_for, _L.start, _L.act, _L.fighter
+
+    def test_tile_shows_axis_options_and_formula_valued_skills(self):
+        d = self.fighter(self.player)
+        d = self.act(self.player, d, action="assign_stats", values={"SIL": 15, "ZRE": 8, "WIE": 14})
+        tile = self.client_for(self.player).get(f"{self.base}party/").data["players"][0]["character"]
+        self.assertIn("Wojownik 1", tile["axes"])
+        best = max(d["sheet"]["skill_values"].items(), key=lambda kv: kv[1])
+        self.assertEqual(tile["skills"][0]["value"], best[1])

@@ -920,7 +920,6 @@ def sheet(pack, stats, skills=None, items=(), losses=None, resolution=None):
             return rank
         return math.floor(evaluate(tree, {**values, "RANK": rank, "STAT": values[skill["stat"]]}))
 
-    result["skill_totals"] = {s["id"]: value_of(s, (skills or {}).get(s["id"], 0)) for s in pack["skills"]}
     if "skill_tiers" in pack:  # what every rank would be worth now, so the builder can preview tiers live
         result["skill_scale"] = {s["id"]: [value_of(s, r) for r in range(s["max"] + 1)] for s in pack["skills"]}
     if resolution is None:
@@ -932,6 +931,15 @@ def sheet(pack, stats, skills=None, items=(), losses=None, resolution=None):
     return {**result, "base_stats": base, "level": extra["symbols"].get("LEVEL"), "variables": extra["variables"],
             "progressions": extra["progressions"], "skill_values": skill_values,
             "features": resolution["grants"]["features"], "choices": resolution["picked"]}
+
+
+def skill_totals(pack, stats, ranks):
+    """Skill values of a pack without levels: its skill_value formula over the stats, otherwise the rank."""
+    if pack.get("skill_value") is None:
+        return {s["id"]: ranks.get(s["id"], 0) for s in pack["skills"]}
+    tree = pack["_formulas"][pack["skill_value"]]
+    return {s["id"]: math.floor(evaluate(tree, {**stats, "RANK": ranks.get(s["id"], 0), "STAT": stats[s["stat"]]}))
+            for s in pack["skills"]}
 
 
 def levelled(pack, base, resolution, problems):
