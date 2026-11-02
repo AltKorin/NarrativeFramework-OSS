@@ -70,6 +70,9 @@ REST_FRAMEWORK = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 USE_TZ = True
 SESSION_COOKIE_HTTPONLY = True
+# Party page (players see each other's characters; materials and board follow); off until released.
+PARTY_PAGE = os.environ.get("PARTY_PAGE", "0") == "1"
+
 SESSION_COOKIE_SECURE = os.environ.get("SECURE_COOKIES", "0") == "1"
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
 CSRF_TRUSTED_ORIGINS = [

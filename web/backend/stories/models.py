@@ -108,6 +108,7 @@ class Campaign(models.Model):
     cover = models.ForeignKey("CampaignImage", on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
     appearance = models.CharField(max_length=20, default="fantasy", db_default="fantasy")
     page_template = models.CharField(max_length=20, default="fantasy", db_default="fantasy")
+    party_enabled = models.BooleanField(default=True, db_default=True)  # GM switch under the PARTY_PAGE flag
     runtime = models.JSONField(default=dict, blank=True)
     version = models.PositiveIntegerField(default=1)
     creation_fingerprint = models.CharField(max_length=64, editable=False)

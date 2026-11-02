@@ -920,6 +920,7 @@ def sheet(pack, stats, skills=None, items=(), losses=None, resolution=None):
             return rank
         return math.floor(evaluate(tree, {**values, "RANK": rank, "STAT": values[skill["stat"]]}))
 
+    result["skill_totals"] = {s["id"]: value_of(s, (skills or {}).get(s["id"], 0)) for s in pack["skills"]}
     if "skill_tiers" in pack:  # what every rank would be worth now, so the builder can preview tiers live
         result["skill_scale"] = {s["id"]: [value_of(s, r) for r in range(s["max"] + 1)] for s in pack["skills"]}
     if resolution is None:

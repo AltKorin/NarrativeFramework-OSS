@@ -333,3 +333,11 @@ def page_image(request, campaign_id, page_id):
     from . import images as service
 
     return Response(service.set_page_image(request.user, campaign_id, page_id, request.data))
+
+
+@api_view(["GET"])
+@errors
+def party(request, campaign_id):
+    from . import party as party_domain
+
+    return Response(party_domain.overview(request.user, campaign_id))

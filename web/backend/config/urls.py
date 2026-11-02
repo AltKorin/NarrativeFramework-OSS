@@ -21,6 +21,7 @@ urlpatterns = [
     path("api/campaigns/<uuid:campaign_id>/pages/<uuid:page_id>/image/", wiki_views.page_image),
     path("api/campaigns/<uuid:campaign_id>/ruleset/", wiki_views.ruleset),
     path("api/campaigns/<uuid:campaign_id>/characters/", wiki_views.character_drafts),
+    path("api/campaigns/<uuid:campaign_id>/party/", wiki_views.party),
     path("api/campaigns/<uuid:campaign_id>/characters/<uuid:draft_id>/", wiki_views.character_draft),
     path("api/campaigns/", wiki_views.campaigns),
     path("api/campaigns/import-template/", wiki_views.import_template),

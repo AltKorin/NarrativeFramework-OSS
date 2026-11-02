@@ -9,6 +9,7 @@ import hashlib
 import json
 import uuid
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.db.models import Q
@@ -77,6 +78,7 @@ def campaign_json(c):
         "appearance": c.appearance,
         "cover": str(c.cover_id) if c.cover_id else None,
         "page_template": c.page_template,
+        "party": settings.PARTY_PAGE and c.party_enabled,
         "version": 0 if getattr(c, "wiki_role", "owner") == "player" else c.version,
         "role": getattr(c, "wiki_role", "owner"),
     }
@@ -456,7 +458,11 @@ def update_campaign(user, campaign_id, data):
     c.summary = text(data.get("summary", ""), 4000)
     c.appearance = presentation_value(data.get("appearance", c.appearance))
     c.page_template = presentation_value(data.get("page_template", c.page_template))
-    c.save(update_fields=["title", "summary", "appearance", "page_template"])
+    if "party_enabled" in data:
+        if type(data["party_enabled"]) is not bool:
+            raise DomainError("party_enabled must be true or false")
+        c.party_enabled = data["party_enabled"]
+    c.save(update_fields=["title", "summary", "appearance", "page_template", "party_enabled"])
     touch(c, user, "campaign.updated", c.id)
     return campaign_json(c)
 
