@@ -153,3 +153,13 @@ class LevelledPartyTests(TestCase):
         self.assertIn("Wojownik 1", tile["axes"])
         best = max(d["sheet"]["skill_values"].items(), key=lambda kv: kv[1])
         self.assertEqual(tile["skills"][0]["value"], best[1])
+
+
+@override_settings(PARTY_PAGE=True)
+class MineTests(TestCase):
+    setUp, draft, get, tile = PartyTests.setUp, PartyTests.draft, PartyTests.get, PartyTests.tile
+
+    def test_each_viewer_finds_their_own_tile(self):
+        data = self.get(self.anna)
+        self.assertEqual([(t["account"], t["mine"]) for t in data["players"]], [("anna", True), ("bart", False)])
+        self.assertEqual([t["mine"] for t in self.get(self.gm)["players"]], [False, False])

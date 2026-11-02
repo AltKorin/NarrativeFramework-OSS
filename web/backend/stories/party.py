@@ -18,16 +18,16 @@ def overview(user, campaign_id):
     drafts = {}
     for draft in c.character_drafts.filter(member__in=players).order_by("-updated_at"):
         drafts.setdefault(draft.member_id, []).append(draft)
-    return {"players": [tile(member, drafts.get(member.pk, [])) for member in players]}
+    return {"players": [tile(member, drafts.get(member.pk, []), user) for member in players]}
 
 
-def tile(member, drafts):
+def tile(member, drafts, viewer):
     """Approved character on top, otherwise the most recently changed draft; the rest stay folded away."""
     approved = [d for d in drafts if d.status == "approved"]
     active = [d for d in drafts if d.status in ACTIVE]
     ordered = approved + active
     top = ordered[0] if ordered else None
-    return {"member": str(member.pk), "account": member.user.username,
+    return {"member": str(member.pk), "account": member.user.username, "mine": member.user_id == viewer.pk,
             "character": card(top) if top else None,
             "drafts": [card(d) for d in ordered[1:]]}
 

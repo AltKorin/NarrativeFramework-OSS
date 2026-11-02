@@ -16,6 +16,7 @@ import { entryTemplate, type Presentation } from "./campaignPresentation";
 import CampaignStart from "./CampaignStart";
 import CampaignRuntime from "./CampaignRuntime";
 import CharacterBuilder from "./CharacterBuilder";
+import Party, { partyLabel } from "./Party";
 import Gallery, { imageUrl, ZoomImage } from "./Gallery";
 import { Tour, TourInvite, type TourStep } from "./Tour";
 import type { CampaignView } from "./campaignRuntimeTypes";
@@ -94,6 +95,7 @@ type Relation = Publication & {
 };
 type Campaign = {
   cover?: string | null;
+  party?: boolean;
   appearance: Presentation;
   page_template: Presentation;
   id: string;
@@ -240,7 +242,7 @@ export default function CampaignWiki() {
   // Full-width focus views: GM session tools and the character builder (both roles).
   const focusView =
     !!campaign &&
-    (canEdit ? view !== "materials" : view === "characters" || view === "gallery");
+    (canEdit ? view !== "materials" : view === "characters" || view === "party" || view === "gallery");
   const actualGM =
     !!campaign && (campaign.actual_role || campaign.role) !== "player";
   const dirty =
@@ -646,11 +648,12 @@ export default function CampaignWiki() {
                   "timeline",
                   "actors",
                   "characters",
+                  "party",
                   "gallery",
                   "materials",
                 ] as CampaignView[])
-              : (["materials", "characters", "gallery"] as CampaignView[])
-            ).map((tab) => (
+              : (["materials", "characters", "party", "gallery"] as CampaignView[])
+            ).filter((tab) => tab !== "party" || campaign.party).map((tab) => (
               <button
                 key={tab}
                 data-tour={`tab-${tab}`}
@@ -672,6 +675,7 @@ export default function CampaignWiki() {
                     timeline: t("Oś czasu", "Timeline"),
                     actors: t("Postacie", "Characters"),
                     characters: t("Tworzenie postaci", "Character creation"),
+                    party: partyLabel(campaign.appearance === "cyberpunk", pl),
                     gallery: t("Galeria", "Gallery"),
                     materials: t("Materiały świata", "World material"),
                   }[tab]
@@ -917,6 +921,7 @@ export default function CampaignWiki() {
                             summary: fields.get("summary"),
                             appearance: fields.get("appearance"),
                             page_template: fields.get("page_template"),
+                            party_enabled: fields.get("party_enabled") === "on",
                           });
                           await refresh(campaign.id);
                           setCampaigns(await api("campaigns/"));
@@ -974,6 +979,17 @@ export default function CampaignWiki() {
                             Fantasy — {t("kronika", "chronicle")}
                           </option>
                         </select>
+                      </label>
+                      <label className="settings-check">
+                        <input
+                          type="checkbox"
+                          name="party_enabled"
+                          defaultChecked={campaign.party !== false}
+                        />
+                        {t(
+                          "Strona drużyny: gracze widzą nawzajem swoje postacie i specjalizacje",
+                          "Party page: players see each other's characters and specialities",
+                        )}
                       </label>
                       <p className="wiki-hint">
                         {t(
@@ -1217,6 +1233,16 @@ export default function CampaignWiki() {
                     onChanged={async () => {
                       await refresh(campaign.id);
                     }}
+                  />
+                )}
+                {view === "party" && campaign.party && (
+                  <Party
+                    key={campaign.id}
+                    campaignId={campaign.id}
+                    pl={pl}
+                    cyber={campaign.appearance === "cyberpunk"}
+                    request={api}
+                    onCreate={() => setView("characters")}
                   />
                 )}
                 {view === "characters" && (
