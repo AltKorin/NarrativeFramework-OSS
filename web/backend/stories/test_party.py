@@ -163,3 +163,15 @@ class MineTests(TestCase):
         data = self.get(self.anna)
         self.assertEqual([(t["account"], t["mine"]) for t in data["players"]], [("anna", True), ("bart", False)])
         self.assertEqual([t["mine"] for t in self.get(self.gm)["players"]], [False, False])
+
+
+@override_settings(PARTY_PAGE=True)
+class StaleSnapshotTests(TestCase):
+    setUp, get, tile = PartyTests.setUp, PartyTests.get, PartyTests.tile
+
+    def test_a_draft_whose_snapshot_no_longer_validates_does_not_break_the_page(self):
+        broken = {**pack(), "skill_tiers": "not a list"}  # stored before a stricter validator existed
+        CharacterDraft.objects.create(id=uuid.uuid4(), campaign=self.campaign, member=self.members["anna"],
+                                      ruleset=broken, method="punkty", events=events(name="Stara"))
+        card = self.tile(self.get(self.bart), "anna")["character"]
+        self.assertEqual((card["name"], card["axes"], card["skills"]), ("Stara", "", []))

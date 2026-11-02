@@ -33,10 +33,14 @@ def tile(member, drafts, viewer):
 
 
 def card(draft):
-    pack = rulesets.load(draft.ruleset)
     state = characters.fold(draft.events)
-    return {"id": str(draft.id), "name": state["name"], "status": draft.status,
-            "axes": axes(pack, state), "skills": specialization(pack, draft, state), "focus": state["focus"]}
+    result = {"id": str(draft.id), "name": state["name"], "status": draft.status, "axes": "", "skills": [],
+              "focus": state["focus"]}
+    try:
+        pack = rulesets.load(draft.ruleset)
+    except DomainError:  # a snapshot stored before a stricter validator must not take the page down for everyone
+        return result
+    return {**result, "axes": axes(pack, state), "skills": specialization(pack, draft, state)}
 
 
 def axes(pack, state):
