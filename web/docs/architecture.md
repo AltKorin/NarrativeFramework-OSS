@@ -55,6 +55,31 @@ Exercise browser demo, login, private save, export/import, API ownership, stale 
   player and approved by the GM.
   _Avoid_: level-up, XP
 
+### Party
+- **Party**: the group of all players in one campaign and their characters; a campaign has exactly one. Shown as
+  "Drużyna" in fantasy campaigns and "Ekipa" in cyberpunk ones.
+  _Avoid_: team, group, crew (as domain terms)
+- **Specialization**: what a character is good at within the party — its three highest skills, plus one optional
+  sentence from the player about their job in the party.
+  _Avoid_: class, role (both are character axes)
+- **Player material**: something a player writes or adds for their character, kept on the party page apart from the
+  GM's wiki; only its author changes it.
+  _Avoid_: player page, wiki page
+- **Sharing**: who among the players sees a player material — private, selected players or the whole party, chosen
+  by the author every time they create one. The GM always sees every player material, private ones included.
+  _Avoid_: visibility, audience (those belong to GM wiki publication)
+- **Party board**: a shared surface on the party page made of cards, viewed as a list or as a map; every party member
+  adds cards, and each card is changed only by its author. On the map anyone moves any card, since placement is
+  shared and is not content.
+  _Avoid_: whiteboard, notes
+- **Card**: one item on the party board — a title, short text and optionally a reference to a published wiki page, a
+  player material or an outside web address; anyone who cannot see the referenced material sees the card without it.
+- **Board link**: an arrow between two cards on the party board, drawn by any party member in that member's colour;
+  only its author changes or removes it.
+  _Avoid_: relation (that is the GM wiki's term), edge
+- **Former player**: someone who has left the campaign; their player materials, cards and board links stay in the
+  party until the GM removes them.
+
 ## ADR 006: review findings and resolved boundaries
 A bounded read-only Claude review used the installed grill-with-docs skill. It identified malformed-field crashes, unsafe default secrets, token scope and stale database connections. Validation now type-checks references and coordinates before membership checks, production startup requires a secret, REST is session-only, login has a dedicated shared-cache throttle, and MCP calls clean up database connections. No inherited Claude home-directory style/audit requirements were adopted as repository requirements. No historical revision/audit product is claimed for v0.1.
 
@@ -136,3 +161,12 @@ model after approval: a GM-granted advancement, the player's choices and the GM'
 character, and the published card and runtime actor are recomputed. Undoing the latest approved advancement appends a
 reversal rather than rewriting history, so the GM can always answer what happened and when. The rejected alternative,
 storing the approved sheet as mutable state, would make undo, review of past choices and later rules corrections lossy.
+
+## ADR 013: the GM sees private player materials
+
+A player material marked "Prywatne" (private) is hidden from other players but not from the GM. The GM reads every
+player material so they can weave a character's secrets into the story and remove inappropriate content; the
+player-facing guide and privacy notes state this plainly, while the sharing control itself just says "Prywatne". The
+rejected alternatives were a label naming the GM ("only me and the GM"), which the owner found to spoil the feeling
+of a secret, and truly GM-proof private notes, which would leave the GM blind to material the story depends on.
+Changing this later is trust-sensitive: players will have written private material under this rule.
